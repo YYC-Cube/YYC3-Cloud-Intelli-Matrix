@@ -1,0 +1,429 @@
+// @vitest-environment jsdom
+/**
+ * useBigModelSDK.test.ts
+ * ========================
+ * useBigModelSDK Hook - 大模型 SDK 测试
+ *
+ * 覆盖范围:
+ * - 会话管理（创建、删除、清空）
+ * - 能力查询
+ * - 消息发送（同步和流式）
+ * - Mock 模式
+ * - 统计数据更新
+ * - 错误处理
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { renderHook, act, cleanup } from "@testing-library/react";
+import { useBigModelSDK } from "../hooks/useBigModelSDK";
+import type { ConfiguredModel } from "../types";
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+  };
+})();
+Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
+
+// Mock fetch
+global.fetch = vi.fn();
+
+describe("useBigModelSDK", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorageMock.clear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  describe("初始化状态", () => {
+    it("应该初始化为空闲状态", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      expect(result.current.connectionStatus).toBe("idle");
+      expect(result.current.streaming).toBe(false);
+      expect(result.current.streamingContent).toBe("");
+      expect(result.current.error).toBe(null);
+      expect(result.current.sessions).toEqual([]);
+      expect(result.current.activeSession).toBe(null);
+    });
+
+    it("应该从 localStorage 加载会话", () => {
+      const mockSessions = [
+        {
+          id: "session-1",
+          title: "Test Session",
+          modelId: "model-1",
+          messages: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+      localStorageMock.setItem("yyc3_chat_sessions", JSON.stringify(mockSessions));
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      expect(result.current.sessions).toHaveLength(1);
+      expect(result.current.sessions[0].title).toBe("Test Session");
+    });
+  });
+
+  describe("会话管理", () => {
+    it("应该创建新会话", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        result.current.createSession("model-1", "New Session");
+      });
+
+      expect(result.current.sessions).toHaveLength(1);
+      expect(result.current.sessions[0].title).toBe("New Session");
+      expect(result.current.sessions[0].modelId).toBe("model-1");
+      expect(result.current.activeSessionId).toBe(result.current.sessions[0].id);
+    });
+
+    it("应该删除会话", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        const session = result.current.createSession("model-1", "Session 1");
+        result.current.createSession("model-1", "Session 2");
+        result.current.deleteSession(session.id);
+      });
+
+      expect(result.current.sessions).toHaveLength(1);
+      expect(result.current.sessions[0].title).toBe("Session 2");
+    });
+
+    it("应该清空所有会话", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        result.current.createSession("model-1", "Session 1");
+        result.current.createSession("model-1", "Session 2");
+        result.current.clearSessions();
+      });
+
+      expect(result.current.sessions).toHaveLength(0);
+      expect(result.current.activeSessionId).toBe(null);
+    });
+
+    it("删除活跃会话时应该重置 activeSessionId", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        const session = result.current.createSession("model-1", "Active Session");
+        result.current.deleteSession(session.id);
+      });
+
+      expect(result.current.activeSessionId).toBe(null);
+    });
+  });
+
+  describe("能力查询", () => {
+    it("应该返回提供商的能力列表", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const capabilities = result.current.getCapabilities("zhipu");
+
+      expect(capabilities).toContain("chat");
+      expect(capabilities).toContain("chat-stream");
+      expect(capabilities).toContain("image-gen");
+    });
+
+    it("应该检查提供商是否支持特定能力", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      expect(result.current.hasCapability("zhipu", "chat")).toBe(true);
+      expect(result.current.hasCapability("zhipu", "image-gen")).toBe(true);
+      expect(result.current.hasCapability("zhipu", "unknown")).toBe(false);
+    });
+
+    it("未知提供商应该返回空能力列表", () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const capabilities = result.current.getCapabilities("unknown" as any);
+
+      expect(capabilities).toEqual([]);
+    });
+  });
+
+  describe("Mock 模式 - 同步消息", () => {
+    const mockModel: ConfiguredModel = {
+      id: "model-1",
+      name: "Test Model",
+      providerId: "zhipu",
+      model: "chatglm3",
+      apiKey: "", // 空 apiKey 触发 mock 模式
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      tier: "primary",
+      avg_latency_ms: 100,
+      throughput: 1000,
+      created_at: new Date().toISOString(),
+    };
+
+    it("应该在 Mock 模式下返回模拟响应", async () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessage(mockModel, "你好");
+      });
+
+      expect(response.content).toContain("YYC3 Cloud Intelli-Matrix");
+      expect(response.finishReason).toBe("stop");
+      expect(result.current.connectionStatus).toBe("connected");
+      expect(result.current.sessions[0].messages).toHaveLength(2);
+    });
+
+    it("应该根据输入内容返回不同的模拟响应", async () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const statusResponse = await act(async () => {
+        return await result.current.sendMessage(mockModel, "系统状态");
+      });
+
+      expect(statusResponse.content).toContain("系统状态概览");
+
+      const errorResponse = await act(async () => {
+        return await result.current.sendMessage(mockModel, "异常检测");
+      });
+
+      expect(errorResponse.content).toContain("异常模式");
+    });
+
+    it("应该更新使用统计", async () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      await act(async () => {
+        await result.current.sendMessage(mockModel, "测试");
+      });
+
+      expect(result.current.usageStats.totalRequests).toBe(1);
+      expect(result.current.usageStats.totalTokensIn).toBeGreaterThan(0);
+      expect(result.current.usageStats.totalTokensOut).toBeGreaterThan(0);
+      expect(result.current.usageStats.avgLatencyMs).toBeGreaterThan(0);
+    });
+  });
+
+  describe("Mock 模式 - 流式消息", () => {
+    const mockModel: ConfiguredModel = {
+      id: "model-1",
+      name: "Test Model",
+      providerId: "zhipu",
+      model: "chatglm3",
+      apiKey: "",
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      tier: "primary",
+      avg_latency_ms: 100,
+      throughput: 1000,
+      created_at: new Date().toISOString(),
+    };
+
+    it("应该流式返回模拟响应", async () => {
+      const { result } = renderHook(() => useBigModelSDK());
+      const chunks: string[] = [];
+
+      const response = await act(async () => {
+        return await result.current.sendMessageStream(mockModel, "你好", undefined, (chunk) => {
+          chunks.push(chunk);
+        });
+      });
+
+      expect(response.content).toContain("YYC3 Cloud Intelli-Matrix");
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(result.current.streaming).toBe(false);
+      expect(result.current.streamingContent).toBe("");
+    });
+
+    it("应该逐字符更新流式内容", async () => {
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        result.current.sendMessageStream(mockModel, "你好", undefined, () => {});
+      });
+
+      expect(result.current.streaming).toBe(true);
+
+      await vi.runAllTimersAsync();
+
+      expect(result.current.streaming).toBe(false);
+    });
+  });
+
+  describe("错误处理", () => {
+    const mockModel: ConfiguredModel = {
+      id: "model-1",
+      name: "Test Model",
+      providerId: "zhipu",
+      model: "chatglm3",
+      apiKey: "test-key",
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      tier: "primary",
+      avg_latency_ms: 100,
+      throughput: 1000,
+      created_at: new Date().toISOString(),
+    };
+
+    it("应该处理 API 错误", async () => {
+      (global.fetch as any).mockRejectedValueOnce(new Error("Network error"));
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessage(mockModel, "测试");
+      });
+
+      expect(response.finishReason).toBe("error");
+      expect(response.content).toContain("请求失败");
+      expect(result.current.error).not.toBeNull();
+      expect(result.current.connectionStatus).toBe("error");
+      expect(result.current.usageStats.errorCount).toBe(1);
+    });
+
+    it("应该处理 HTTP 错误响应", async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+      });
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessage(mockModel, "测试");
+      });
+
+      expect(response.finishReason).toBe("error");
+      expect(response.content).toContain("401");
+    });
+
+    it("应该处理流式响应错误", async () => {
+      (global.fetch as any).mockRejectedValueOnce(new Error("Stream error"));
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessageStream(mockModel, "测试", undefined, () => {});
+      });
+
+      expect(response.finishReason).toBe("error");
+      expect(result.current.streaming).toBe(false);
+      expect(result.current.streamingContent).toBe("");
+    });
+  });
+
+  describe("边界情况", () => {
+    it("应该处理空消息", async () => {
+      const mockModel: ConfiguredModel = {
+        id: "model-1",
+        name: "Test Model",
+        providerId: "zhipu",
+        model: "chatglm3",
+        apiKey: "",
+        baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+        tier: "primary",
+        avg_latency_ms: 100,
+        throughput: 1000,
+        created_at: new Date().toISOString(),
+      };
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessage(mockModel, "");
+      });
+
+      expect(response.content).not.toBe("");
+    });
+
+    it("应该处理没有活跃会话的情况", async () => {
+      const mockModel: ConfiguredModel = {
+        id: "model-1",
+        name: "Test Model",
+        providerId: "zhipu",
+        model: "chatglm3",
+        apiKey: "",
+        baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+        tier: "primary",
+        avg_latency_ms: 100,
+        throughput: 1000,
+        created_at: new Date().toISOString(),
+      };
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      const response = await act(async () => {
+        return await result.current.sendMessage(mockModel, "测试");
+      });
+
+      expect(response.content).not.toBe("");
+      expect(result.current.sessions).toHaveLength(1);
+    });
+
+    it("应该处理 localStorage 错误", () => {
+      localStorageMock.setItem.mockImplementationOnce(() => {
+        throw new Error("Storage error");
+      });
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      act(() => {
+        result.current.createSession("model-1", "Test");
+      });
+
+      expect(result.current.sessions).toHaveLength(1);
+    });
+  });
+
+  describe("统计功能", () => {
+    it("应该从 localStorage 加载统计数据", () => {
+      const mockStats = {
+        totalRequests: 10,
+        totalTokensIn: 1000,
+        totalTokensOut: 2000,
+        avgLatencyMs: 150,
+        lastRequestAt: Date.now(),
+        errorCount: 1,
+      };
+      localStorageMock.setItem("yyc3_sdk_usage_stats", JSON.stringify(mockStats));
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      expect(result.current.usageStats.totalRequests).toBe(10);
+      expect(result.current.usageStats.totalTokensIn).toBe(1000);
+      expect(result.current.usageStats.errorCount).toBe(1);
+    });
+
+    it("应该计算平均延迟", async () => {
+      const mockModel: ConfiguredModel = {
+        id: "model-1",
+        name: "Test Model",
+        providerId: "zhipu",
+        model: "chatglm3",
+        apiKey: "",
+        baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+        tier: "primary",
+        avg_latency_ms: 100,
+        throughput: 1000,
+        created_at: new Date().toISOString(),
+      };
+
+      const { result } = renderHook(() => useBigModelSDK());
+
+      await act(async () => {
+        await result.current.sendMessage(mockModel, "测试");
+      });
+
+      expect(result.current.usageStats.avgLatencyMs).toBeGreaterThan(0);
+    });
+  });
+});

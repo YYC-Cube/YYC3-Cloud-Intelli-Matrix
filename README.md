@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![YYC³ Cloud Intelli-Matrix](./public/YYC-Cloud%20Intelli-Matrix-005.png)
+![YYC³ Cloud Intelli-Matrix](./public/YYC3-Cloud-Intelli-Matrix-005.png)
 
 # YYC³ Cloud Intelli-Matrix
 

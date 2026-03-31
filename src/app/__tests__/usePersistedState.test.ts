@@ -1,3 +1,14 @@
+/**
+ * @file: usePersistedState.test.ts
+ * @description: usePersistedState.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";

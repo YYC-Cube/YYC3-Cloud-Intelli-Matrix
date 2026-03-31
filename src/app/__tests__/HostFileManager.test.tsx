@@ -1,3 +1,14 @@
+/**
+ * @file: HostFileManager.test.tsx
+ * @description: HostFileManager.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -7,28 +18,44 @@ import { HostFileManager } from "../components/HostFileManager";
 
 vi.mock("../hooks/useHostFileSystem", () => ({
   useHostFileSystem: vi.fn(() => ({
+    supported: true,
+    rootHandle: { name: "test-root" },
+    rootName: "test-root",
     entries: [],
-    currentPath: "/",
-    editingFile: null,
-    editingContent: "",
+    currentPath: [],
+    breadcrumbs: ["test-root"],
+    selectedEntry: null,
+    editingContent: null,
     editingDirty: false,
-    recentFiles: [],
+    versions: [],
     currentFileVersions: [],
+    recentFiles: [],
+    loading: false,
+    searchQuery: "",
     searchResults: [],
     searching: false,
+    imagePreviewUrl: null,
+    stats: { totalEntries: 0, dirs: 0, files: 0, totalSize: 0, totalVersions: 0 },
     openDirectory: vi.fn(),
-    navigateTo: vi.fn(),
+    navigateToDir: vi.fn(),
+    navigateUp: vi.fn(),
+    navigateToBreadcrumb: vi.fn(),
     createFile: vi.fn(),
     createDirectory: vi.fn(),
     deleteEntry: vi.fn(),
     renameEntry: vi.fn(),
-    openFile: vi.fn(),
+    readFile: vi.fn(),
     saveFile: vi.fn(),
     closeEditor: vi.fn(),
     uploadFiles: vi.fn(),
     searchFiles: vi.fn(),
     restoreVersion: vi.fn(),
     deleteVersion: vi.fn(),
+    refreshCurrentDir: vi.fn(),
+    downloadFile: vi.fn(),
+    setEditingContent: vi.fn(),
+    setSelectedEntry: vi.fn(),
+    formatSize: vi.fn((n: number) => `${n} B`),
   })),
   getFileTypeInfo: vi.fn(() => ({
     icon: "File",
@@ -36,7 +63,7 @@ vi.mock("../hooks/useHostFileSystem", () => ({
   })),
 }));
 
-vi.mock("./CodeEditor", () => ({
+vi.mock("../components/CodeEditor", () => ({
   CodeEditor: ({ value, onChange }: any) => (
     <textarea value={value} onChange={(e) => onChange(e.target.value)} />
   ),
@@ -67,10 +94,10 @@ describe("HostFileManager", () => {
 
   it("should render tabs", () => {
     render(React.createElement(HostFileManager));
-    expect(screen.getByText("文件浏览")).toBeInTheDocument();
-    expect(screen.getByText("编辑器")).toBeInTheDocument();
-    expect(screen.getByText("版本历史")).toBeInTheDocument();
-    expect(screen.getByText("最近文件")).toBeInTheDocument();
+    expect(screen.getAllByText("文件浏览").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("编辑器").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("版本历史").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("最近文件").length).toBeGreaterThan(0);
   });
 
   it("should render open directory button", () => {
@@ -81,19 +108,19 @@ describe("HostFileManager", () => {
 
   it("should render create file button", () => {
     render(React.createElement(HostFileManager));
-    const createButtons = screen.getAllByText("新建文件");
+    const createButtons = screen.getAllByTitle("新建文件");
     expect(createButtons.length).toBeGreaterThan(0);
   });
 
   it("should render create directory button", () => {
     render(React.createElement(HostFileManager));
-    const createDirButtons = screen.getAllByText("新建目录");
+    const createDirButtons = screen.getAllByTitle("新建目录");
     expect(createDirButtons.length).toBeGreaterThan(0);
   });
 
   it("should render upload button", () => {
     render(React.createElement(HostFileManager));
-    const uploadButtons = screen.getAllByText("上传文件");
+    const uploadButtons = screen.getAllByTitle("上传文件");
     expect(uploadButtons.length).toBeGreaterThan(0);
   });
 });

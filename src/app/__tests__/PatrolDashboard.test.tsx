@@ -1,3 +1,14 @@
+/**
+ * @file: PatrolDashboard.test.tsx
+ * @description: PatrolDashboard.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -53,28 +64,30 @@ describe("PatrolDashboard", () => {
 
   it("should render patrol dashboard page", () => {
     render(React.createElement(PatrolDashboard));
-    expect(screen.getByText("巡查模式")).toBeInTheDocument();
+    expect(screen.getByText("patrol.title")).toBeInTheDocument();
   });
 
   it("should render patrol plan button", () => {
     render(React.createElement(PatrolDashboard));
-    const patrolPlanButtons = screen.getAllByText("巡查计划");
+    const patrolPlanButtons = screen.getAllByText("patrol.patrolPlan");
     expect(patrolPlanButtons.length).toBeGreaterThan(0);
   });
 
   it("should render manual patrol button", () => {
     render(React.createElement(PatrolDashboard));
-    const manualPatrolButtons = screen.getAllByText("手动巡查");
+    const manualPatrolButtons = screen.getAllByText("patrol.manualPatrol");
     expect(manualPatrolButtons.length).toBeGreaterThan(0);
   });
 
   it("should render history section", () => {
     render(React.createElement(PatrolDashboard));
-    expect(screen.getByText("巡查历史")).toBeInTheDocument();
+    const historyElements = screen.getAllByText("巡查历史");
+    expect(historyElements.length).toBeGreaterThan(0);
   });
 
-  it("should render report section", () => {
+  it("should render no-history message when history is empty", () => {
     render(React.createElement(PatrolDashboard));
-    expect(screen.getByText("巡查报告")).toBeInTheDocument();
+    const emptyMessages = screen.getAllByText("当前范围内没有巡查记录");
+    expect(emptyMessages.length).toBeGreaterThan(0);
   });
 });

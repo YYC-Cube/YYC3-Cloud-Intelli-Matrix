@@ -1,3 +1,14 @@
+/**
+ * @file: DatabaseManager.test.tsx
+ * @description: DatabaseManager.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -10,19 +21,43 @@ vi.mock("../hooks/useLocalDatabase", () => ({
     connections: [],
     tables: [],
     activeConnectionId: null,
+    activeConnection: null,
     queryHistory: [],
     backups: [],
+    queryResults: [],
+    sqlInput: "",
+    sqlTemplates: [],
+    stats: {
+      totalConnections: 0,
+      connectedCount: 0,
+      totalTables: 0,
+      totalTableRows: 0,
+      totalTableSize: 0,
+      queryCount: 0,
+    },
+    detecting: false,
+    testing: null,
+    querying: false,
+    tableDataLoading: false,
+    tableData: [],
+    selectedTable: null,
     addConnection: vi.fn(),
     removeConnection: vi.fn(),
-    connect: vi.fn(),
-    disconnect: vi.fn(),
+    connectDB: vi.fn(),
+    disconnectDB: vi.fn(),
     testConnection: vi.fn(),
+    detectDatabases: vi.fn(),
     loadTables: vi.fn(),
     loadTableData: vi.fn(),
     executeQuery: vi.fn(),
     createBackup: vi.fn(),
     restoreBackup: vi.fn(),
     deleteBackup: vi.fn(),
+    clearQueryHistory: vi.fn(),
+    executeTemplate: vi.fn(),
+    replayQuery: vi.fn(),
+    setSqlInput: vi.fn(),
+    setSelectedTable: vi.fn(),
   })),
 }));
 
@@ -41,6 +76,20 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("../components/CodeEditor", () => ({
+  SQLEditor: ({ value, onChange }: any) => (
+    <textarea value={value} onChange={(e: any) => onChange(e.target.value)} />
+  ),
+}));
+
+vi.mock("../components/InlineEditableTable", () => ({
+  InlineEditableTable: () => <div data-testid="inline-editable-table" />,
+}));
+
+vi.mock("../lib/api-config", () => ({
+  getAPIConfig: vi.fn(() => ({ enableBackend: false })),
+}));
+
 describe("DatabaseManager", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,28 +101,29 @@ describe("DatabaseManager", () => {
 
   it("should render database manager page", () => {
     render(React.createElement(DatabaseManager));
-    expect(screen.getByText("本地数据库管理器")).toBeInTheDocument();
+    expect(screen.getByText("本地数据库管理")).toBeInTheDocument();
   });
 
   it("should render tabs", () => {
     render(React.createElement(DatabaseManager));
-    expect(screen.getByText("连接管理")).toBeInTheDocument();
-    expect(screen.getByText("表浏览")).toBeInTheDocument();
-    expect(screen.getByText("SQL 查询")).toBeInTheDocument();
-    expect(screen.getByText("查询历史")).toBeInTheDocument();
-    expect(screen.getByText("备份恢复")).toBeInTheDocument();
+    expect(screen.getAllByText("连接管理").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("表浏览").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("查询控制台").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("查询历史").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("备份恢复").length).toBeGreaterThan(0);
   });
 
-  it("should render add connection button", () => {
+  it("should render new connection button", () => {
     render(React.createElement(DatabaseManager));
-    const addButtons = screen.getAllByText("添加连接");
-    expect(addButtons.length).toBeGreaterThan(0);
+    const buttons = screen.getAllByText("新建连接");
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it("should render database type labels", () => {
+  it("should render stats bar", () => {
     render(React.createElement(DatabaseManager));
-    expect(screen.getByText("PostgreSQL")).toBeInTheDocument();
-    expect(screen.getByText("MySQL")).toBeInTheDocument();
-    expect(screen.getByText("Redis")).toBeInTheDocument();
+    expect(screen.getAllByText("连接数").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("已连接").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("表数量").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("总行数").length).toBeGreaterThan(0);
   });
 });

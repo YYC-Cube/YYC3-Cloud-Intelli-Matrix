@@ -34,6 +34,16 @@ const DEFAULT_LINES: TerminalLine[] = [
   { type: "output", content: "Models: 6 deployed  |  Tasks: 689 running  |  Uptime: 99.97%" },
 ];
 
+function getDefaultLines(t: (key: string, params?: Record<string, string | number>) => string): TerminalLine[] {
+  return [
+    { type: "info", content: t("ide.terminalWelcome") },
+    { type: "info", content: t("ide.terminalHelpHint") },
+    { type: "input", content: "$ yyc3 status" },
+    { type: "output", content: "Cluster: YYC³ Matrix  |  Nodes: 7/8 Active  |  GPU Avg: 73%" },
+    { type: "output", content: "Models: 6 deployed  |  Tasks: 689 running  |  Uptime: 99.97%" },
+  ];
+}
+
 // Command registry with responses
 const COMMAND_REGISTRY: Record<string, (args: string[]) => TerminalLine[]> = {
   help: () => [
@@ -236,7 +246,7 @@ interface IDETerminalProps {
 export function IDETerminal({ isCollapsed, onToggleCollapse }: IDETerminalProps) {
   const { t } = useI18n();
   const [tabs, setTabs] = useState<TerminalTab[]>([
-    { id: "term-1", label: "bash", lines: [...DEFAULT_LINES], history: [], historyIndex: -1, cwd: "~" },
+    { id: "term-1", label: "bash", lines: [...getDefaultLines(t)], history: [], historyIndex: -1, cwd: "~" },
   ]);
   const [activeTabId, setActiveTabId] = useState("term-1");
   const [input, setInput] = useState("");

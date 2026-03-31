@@ -17,14 +17,14 @@ import { useI18n } from "../../hooks/useI18n";
 import { MOCK_CHAT_HISTORY } from "./ide-mock-data";
 import type { ChatMessage } from "./ide-types";
 
-// AI Quick Actions for code assistance
+// AI Quick Actions — labels are resolved via i18n at render time
 const AI_QUICK_ACTIONS = [
-  { id: "explain", icon: Lightbulb, label: "Explain", color: "#ffaa00", prompt: "请解释这段代码的功能和逻辑" },
-  { id: "fix", icon: Bug, label: "Fix Bug", color: "#ff3366", prompt: "请找出并修复这段代码中的 bug" },
-  { id: "optimize", icon: Zap, label: "Optimize", color: "#00ff88", prompt: "请优化这段代码的性能" },
-  { id: "test", icon: TestTube, label: "Test", color: "#c792ea", prompt: "请为这段代码生成单元测试" },
-  { id: "refactor", icon: RefreshCw, label: "Refactor", color: "#00d4ff", prompt: "请重构这段代码，改善可读性" },
-  { id: "generate", icon: Wand2, label: "Generate", color: "#7b61ff", prompt: "请根据描述生成代码" },
+  { id: "explain", icon: Lightbulb, labelKey: "ide.explain", color: "#ffaa00", prompt: "请解释这段代码的功能和逻辑" },
+  { id: "fix", icon: Bug, labelKey: "ide.fixBug", color: "#ff3366", prompt: "请找出并修复这段代码中的 bug" },
+  { id: "optimize", icon: Zap, labelKey: "ide.optimize", color: "#00ff88", prompt: "请优化这段代码的性能" },
+  { id: "test", icon: TestTube, labelKey: "ide.test", color: "#c792ea", prompt: "请为这段代码生成单元测试" },
+  { id: "refactor", icon: RefreshCw, labelKey: "ide.refactor", color: "#00d4ff", prompt: "请重构这段代码，改善可读性" },
+  { id: "generate", icon: Wand2, labelKey: "ide.generate", color: "#7b61ff", prompt: "请根据描述生成代码" },
 ];
 
 // Mock AI response generator
@@ -108,11 +108,11 @@ export function AIChatPanel() {
   };
 
   const attachOptions = [
-    { icon: ImageIcon, label: "Upload Image", color: "#ff6b9d" },
-    { icon: FileCode, label: "Code Snippet", color: "#00d4ff" },
-    { icon: Link, label: "GitHub Link", color: "#7b61ff" },
-    { icon: Figma, label: "Figma File", color: "#00ff88" },
-    { icon: Clipboard, label: "Clipboard", color: "#ffaa00" },
+    { icon: ImageIcon, label: t("ide.uploadImage"), color: "#ff6b9d" },
+    { icon: FileCode, label: t("ide.codeSnippet"), color: "#00d4ff" },
+    { icon: Link, label: t("ide.githubLink"), color: "#7b61ff" },
+    { icon: Figma, label: t("ide.figmaFile"), color: "#00ff88" },
+    { icon: Clipboard, label: t("ide.clipboard"), color: "#ffaa00" },
   ];
 
   return (
@@ -137,7 +137,7 @@ export function AIChatPanel() {
                 title={action.prompt}
               >
                 <Icon className="w-3 h-3" style={{ color: action.color }} />
-                <span className="text-[#c0dcf0]" style={{ fontSize: "0.58rem" }}>{action.label}</span>
+                <span className="text-[#c0dcf0]" style={{ fontSize: "0.58rem" }}>{t(action.labelKey)}</span>
               </button>
             );
           })}

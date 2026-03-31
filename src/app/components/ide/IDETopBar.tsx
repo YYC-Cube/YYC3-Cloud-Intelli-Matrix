@@ -20,21 +20,33 @@ interface IDETopBarProps {
   onBack: () => void;
   selectedModel: string;
   onModelChange: (modelId: string) => void;
+  onExplorerClick?: () => void;
+  onNotificationsClick?: () => void;
+  onSettingsClick?: () => void;
+  onGithubClick?: () => void;
+  onShareClick?: () => void;
+  onDeployClick?: () => void;
+  unreadCount?: number;
 }
 
-export function IDETopBar({ projectName, onBack, selectedModel, onModelChange }: IDETopBarProps) {
+export function IDETopBar({
+  projectName, onBack, selectedModel, onModelChange,
+  onExplorerClick, onNotificationsClick, onSettingsClick,
+  onGithubClick, onShareClick, onDeployClick,
+  unreadCount = 0,
+}: IDETopBarProps) {
   const { t } = useI18n();
   const [showModelSelect, setShowModelSelect] = useState(false);
 
   const currentModel = AI_MODELS.find((m) => m.id === selectedModel) ?? AI_MODELS[0];
 
-  const ACTION_ICONS = [
-    { icon: FolderOpen, label: t("ide.explorer"), color: "#00d4ff" },
-    { icon: Bell, label: t("ide.notifications"), color: "#00d4ff" },
-    { icon: Settings, label: t("ide.settings"), color: "#00d4ff" },
-    { icon: Github, label: "GitHub", color: "#00d4ff" },
-    { icon: Share2, label: t("ide.share"), color: "#00d4ff" },
-    { icon: Rocket, label: t("ide.deploy"), color: "#00ff88" },
+  const ACTION_ICONS: { icon: React.ElementType; label: string; color: string; onClick?: () => void; badge?: number }[] = [
+    { icon: FolderOpen, label: t("ide.explorer"), color: "#00d4ff", onClick: onExplorerClick },
+    { icon: Bell, label: t("ide.notifications"), color: "#00d4ff", onClick: onNotificationsClick, badge: unreadCount },
+    { icon: Settings, label: t("ide.settings"), color: "#00d4ff", onClick: onSettingsClick },
+    { icon: Github, label: "GitHub", color: "#00d4ff", onClick: onGithubClick },
+    { icon: Share2, label: t("ide.share"), color: "#00d4ff", onClick: onShareClick },
+    { icon: Rocket, label: t("ide.deploy"), color: "#00ff88", onClick: onDeployClick },
   ];
 
   return (
@@ -151,13 +163,22 @@ export function IDETopBar({ projectName, onBack, selectedModel, onModelChange }:
           return (
             <button
               key={item.label}
-              className="p-1.5 rounded-md hover:bg-[rgba(0,212,255,0.08)] transition-all group"
+              onClick={item.onClick}
+              className="p-1.5 rounded-md hover:bg-[rgba(0,212,255,0.08)] transition-all group relative"
               title={item.label}
             >
               <Icon
                 className="w-3.5 h-3.5 transition-colors"
                 style={{ color: "rgba(0,212,255,0.4)" }}
               />
+              {item.badge !== undefined && item.badge > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-[#ff3366] text-white"
+                  style={{ fontSize: "0.4rem", minWidth: "12px", height: "12px", padding: "0 3px" }}
+                >
+                  {item.badge > 9 ? "9+" : item.badge}
+                </span>
+              )}
             </button>
           );
         })}

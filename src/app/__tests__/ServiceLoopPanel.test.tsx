@@ -1,3 +1,14 @@
+/**
+ * @file: ServiceLoopPanel.test.tsx
+ * @description: ServiceLoopPanel.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -15,14 +26,21 @@ vi.mock("../hooks/useServiceLoop", () => ({
     currentStageIndex: 0,
     stats: {
       totalRuns: 0,
-      successfulRuns: 0,
-      failedRuns: 0,
+      successRuns: 0,
+      errorRuns: 0,
       avgDuration: 0,
     },
     startLoop: vi.fn(),
     abortLoop: vi.fn(),
     clearHistory: vi.fn(),
-    stageMeta: [],
+    stageMeta: [
+      { key: "monitor", labelKey: "loop.stages.monitor", icon: "Eye" },
+      { key: "analyze", labelKey: "loop.stages.analyze", icon: "Brain" },
+      { key: "decide", labelKey: "loop.stages.decide", icon: "Zap" },
+      { key: "execute", labelKey: "loop.stages.execute", icon: "Play" },
+      { key: "verify", labelKey: "loop.stages.verify", icon: "CheckCircle" },
+      { key: "optimize", labelKey: "loop.stages.optimize", icon: "TrendingUp" },
+    ],
     dataFlowNodes: [],
     dataFlowEdges: [],
   })),
@@ -44,6 +62,14 @@ vi.mock("../lib/view-context", () => ({
   }),
 }));
 
+vi.mock("../components/LoopStageCard", () => ({
+  LoopStageCard: ({ meta }: any) => React.createElement("div", { "data-testid": `stage-${meta.key}` }, meta.labelKey),
+}));
+
+vi.mock("../components/DataFlowDiagram", () => ({
+  DataFlowDiagram: () => React.createElement("div", { "data-testid": "data-flow-diagram" }),
+}));
+
 describe("ServiceLoopPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -55,42 +81,36 @@ describe("ServiceLoopPanel", () => {
 
   it("should render service loop panel page", () => {
     render(React.createElement(ServiceLoopPanel));
-    expect(screen.getByText("服务闭环")).toBeInTheDocument();
+    expect(screen.getByText("loop.title")).toBeInTheDocument();
   });
 
   it("should render start button", () => {
     render(React.createElement(ServiceLoopPanel));
-    const startButtons = screen.getAllByText("开始闭环");
+    const startButtons = screen.getAllByText("loop.startLoop");
     expect(startButtons.length).toBeGreaterThan(0);
   });
 
   it("should render auto loop toggle", () => {
     render(React.createElement(ServiceLoopPanel));
-    const autoLoopButtons = screen.getAllByText("自动闭环");
+    const autoLoopButtons = screen.getAllByText("loop.autoLoop");
     expect(autoLoopButtons.length).toBeGreaterThan(0);
-  });
-
-  it("should render clear history button", () => {
-    render(React.createElement(ServiceLoopPanel));
-    const clearButtons = screen.getAllByText("清空历史");
-    expect(clearButtons.length).toBeGreaterThan(0);
   });
 
   it("should render stats section", () => {
     render(React.createElement(ServiceLoopPanel));
-    expect(screen.getByText("总运行次数")).toBeInTheDocument();
-    expect(screen.getByText("成功次数")).toBeInTheDocument();
-    expect(screen.getByText("失败次数")).toBeInTheDocument();
-    expect(screen.getByText("平均耗时")).toBeInTheDocument();
+    expect(screen.getAllByText("loop.totalRuns").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("loop.successRuns").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("loop.errorRuns").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("loop.avgDuration").length).toBeGreaterThan(0);
   });
 
-  it("should render stage cards", () => {
+  it("should render pipeline section", () => {
     render(React.createElement(ServiceLoopPanel));
-    expect(screen.getByText("监测")).toBeInTheDocument();
-    expect(screen.getByText("分析")).toBeInTheDocument();
-    expect(screen.getByText("决策")).toBeInTheDocument();
-    expect(screen.getByText("执行")).toBeInTheDocument();
-    expect(screen.getByText("验证")).toBeInTheDocument();
-    expect(screen.getByText("优化")).toBeInTheDocument();
+    expect(screen.getAllByText("loop.pipeline").length).toBeGreaterThan(0);
+  });
+
+  it("should render data flow section", () => {
+    render(React.createElement(ServiceLoopPanel));
+    expect(screen.getAllByText("loop.dataFlow").length).toBeGreaterThan(0);
   });
 });

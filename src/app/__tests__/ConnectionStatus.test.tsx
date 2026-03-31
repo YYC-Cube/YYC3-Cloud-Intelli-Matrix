@@ -1,6 +1,17 @@
+/**
+ * @file: ConnectionStatus.test.tsx
+ * @description: ConnectionStatus.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import type { ConnectionState } from "../types";
@@ -10,6 +21,10 @@ describe("ConnectionStatus", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("should render connected state correctly", () => {

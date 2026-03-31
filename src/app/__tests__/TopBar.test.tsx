@@ -1,10 +1,22 @@
+/**
+ * @file: TopBar.test.tsx
+ * @description: TopBar.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { BrowserRouter } from "react-router";
 import { TopBar } from "../components/TopBar";
+import { isGhostMode } from "../lib/supabaseClient";
 import type { ConnectionState } from "../types";
 
 vi.mock("../hooks/useI18n", () => ({
@@ -12,6 +24,10 @@ vi.mock("../hooks/useI18n", () => ({
     t: (key: string) => key,
     locale: "zh-CN",
     setLocale: vi.fn(),
+    locales: [
+      { code: "zh-CN", nativeLabel: "简体中文" },
+      { code: "en-US", nativeLabel: "English" },
+    ],
   }),
 }));
 
@@ -28,7 +44,14 @@ vi.mock("../components/LanguageSwitcher", () => ({
 }));
 
 vi.mock("../lib/supabaseClient", () => ({
-  isGhostMode: () => false,
+  isGhostMode: vi.fn(() => false),
+}));
+
+vi.mock("motion/react", () => ({
+  motion: {
+    div: React.forwardRef(({ children, ...props }: any, ref: any) => React.createElement("div", { ...props, ref }, children)),
+  },
+  AnimatePresence: ({ children }: any) => children,
 }));
 
 describe("TopBar Component", () => {
@@ -36,303 +59,259 @@ describe("TopBar Component", () => {
     return render(<BrowserRouter>{component}</BrowserRouter>);
   };
 
-  const defaultProps = {
+  const baseProps = {
     connectionState: "connected" as ConnectionState,
     reconnectCount: 0,
     lastSyncTime: "2024-01-01T00:00:00Z",
     onReconnect: vi.fn(),
-    isMobile: false,
-    isTablet: false,
-    mobileMenuOpen: false,
-    onToggleMobileMenu: vi.fn(),
     onLogout: vi.fn(),
     userEmail: "test@example.com",
     userRole: "admin",
     onToggleTerminal: vi.fn(),
   };
 
-  it("should render top bar", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  const desktopProps = {
+    ...baseProps,
+    isMobile: false,
+    isTablet: false,
+    mobileMenuOpen: false,
+    onToggleMobileMenu: vi.fn(),
+  };
 
-    expect(screen.getByTestId("yyc3-logo")).toBeInTheDocument();
+  const mobileProps = {
+    ...baseProps,
+    isMobile: true,
+    isTablet: false,
+    mobileMenuOpen: false,
+    onToggleMobileMenu: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("should render top bar with desktop elements", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
+
+    // Desktop shows connection status and language switcher
     expect(screen.getByTestId("connection-status")).toBeInTheDocument();
     expect(screen.getByTestId("language-switcher")).toBeInTheDocument();
+    expect(screen.getByTestId("brand-name")).toBeInTheDocument();
+    expect(screen.getByTestId("search-input")).toBeInTheDocument();
   });
 
-  it("should render hamburger menu button", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render hamburger menu button on mobile", () => {
+    renderWithRouter(<TopBar {...mobileProps} />);
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    expect(hamburgerButton).toBeDefined();
+    // On mobile the hamburger button is the first button
+    const allButtons = screen.getAllByRole("button");
+    expect(allButtons.length).toBeGreaterThan(0);
+    // On mobile, YYC3Logo is rendered
+    expect(screen.getByTestId("yyc3-logo")).toBeInTheDocument();
   });
 
-  it("should open mobile drawer when hamburger is clicked", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should call onToggleMobileMenu when hamburger is clicked", () => {
+    const onToggle = vi.fn();
+    renderWithRouter(<TopBar {...mobileProps} onToggleMobileMenu={onToggle} />);
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
+    // The hamburger button is the first button on mobile
+    const hamburgerButton = screen.getAllByRole("button")[0];
+    fireEvent.click(hamburgerButton);
 
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-      // Mobile drawer should be visible
-    }
+    expect(onToggle).toHaveBeenCalled();
   });
 
-  it("should close mobile drawer when close button is clicked", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should call onToggleMobileMenu when close button is clicked in open drawer", () => {
+    const onToggle = vi.fn();
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} onToggleMobileMenu={onToggle} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
+    // When mobileMenuOpen is true, the hamburger shows X icon; clicking toggles
+    const hamburgerButton = screen.getAllByRole("button")[0];
+    fireEvent.click(hamburgerButton);
 
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const closeButtons = screen.getAllByRole("button");
-      const closeButton = closeButtons.find((btn) => btn.querySelector("svg"));
-
-      if (closeButton) {
-        fireEvent.click(closeButton);
-        // Drawer should be closed
-      }
-    }
+    expect(onToggle).toHaveBeenCalled();
   });
 
   it("should render navigation categories in mobile drawer", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      expect(screen.getByText(/nav.catMonitor/i)).toBeInTheDocument();
-      expect(screen.getByText(/nav.catOps/i)).toBeInTheDocument();
-      expect(screen.getByText(/nav.catAI/i)).toBeInTheDocument();
-    }
+    // Categories use t(labelKey) and mock returns the key as-is
+    expect(screen.getByText("nav.catMonitor")).toBeInTheDocument();
+    expect(screen.getByText("nav.catOps")).toBeInTheDocument();
+    expect(screen.getByText("nav.catAI")).toBeInTheDocument();
   });
 
   it("should expand navigation category when clicked", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catMonitor/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-        // Category should expand
-      }
-    }
+    // "monitor" starts expanded (contains "/"); click "ops" to expand it
+    const categoryButton = screen.getByText("nav.catOps");
+    fireEvent.click(categoryButton);
+    expect(screen.getByText("nav.operations")).toBeInTheDocument();
   });
 
   it("should collapse navigation category when clicked again", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
+    // Click to expand
+    fireEvent.click(screen.getByText("nav.catOps"));
+    expect(screen.getByText("nav.operations")).toBeInTheDocument();
 
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catMonitor/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-        fireEvent.click(categoryButtons[0]);
-        // Category should collapse
-      }
-    }
+    // Re-query the button after re-render, then click again to collapse
+    fireEvent.click(screen.getByText("nav.catOps"));
+    expect(screen.queryByText("nav.operations")).not.toBeInTheDocument();
   });
 
-  it("should render navigation items when category is expanded", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render navigation items when monitor category is expanded", () => {
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catMonitor/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-
-        expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.followUp/i)).toBeInTheDocument();
-      }
-    }
+    // "monitor" category starts expanded because "/" is the active route
+    expect(screen.getByText("nav.dataMonitor")).toBeInTheDocument();
+    expect(screen.getByText("nav.followUp")).toBeInTheDocument();
   });
 
   it("should navigate when navigation item is clicked", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    const onToggle = vi.fn();
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} onToggleMobileMenu={onToggle} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
+    // "monitor" category is expanded by default
+    const dataMonitorLinks = screen.getAllByText("nav.dataMonitor");
+    fireEvent.click(dataMonitorLinks[0]);
 
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catMonitor/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-
-        const dataMonitorLinks = screen.getAllByText(/nav.dataMonitor/i);
-        if (dataMonitorLinks.length > 0) {
-          fireEvent.click(dataMonitorLinks[0]);
-          // Should navigate
-        }
-      }
-    }
+    // Should call onToggleMobileMenu to close drawer after navigation
+    expect(onToggle).toHaveBeenCalled();
   });
 
   it("should show ghost mode indicator when in ghost mode", () => {
-    const { isGhostMode } = require("../lib/supabaseClient");
-    isGhostMode.mockReturnValue(true);
+    vi.mocked(isGhostMode).mockReturnValue(true);
 
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    expect(screen.getByText(/GHOST MODE/i)).toBeInTheDocument();
+    // Ghost badge renders "GHOST" text (not "GHOST MODE")
+    expect(screen.getByText("GHOST")).toBeInTheDocument();
   });
 
   it("should not show ghost mode indicator when not in ghost mode", () => {
-    const { isGhostMode } = require("../lib/supabaseClient");
-    isGhostMode.mockReturnValue(false);
+    vi.mocked(isGhostMode).mockReturnValue(false);
 
-    renderWithRouter(<TopBar {...defaultProps} />);
-
-    expect(screen.queryByText(/GHOST MODE/i)).not.toBeInTheDocument();
+    renderWithRouter(<TopBar {...desktopProps} />);
+    expect(screen.queryByText("GHOST")).not.toBeInTheDocument();
   });
 
-  it("should render user avatar", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render user avatar button", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    const avatars = screen.getAllByRole("img");
-    expect(avatars.length).toBeGreaterThan(0);
+    const avatarBtn = screen.getByTestId("user-avatar-btn");
+    expect(avatarBtn).toBeInTheDocument();
   });
 
-  it("should render notification bell", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render user initials in avatar", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    const bellButtons = screen.getAllByRole("button");
-    const bellButton = bellButtons.find((btn) => btn.querySelector("svg"));
-
-    expect(bellButton).toBeDefined();
+    const initials = screen.getByTestId("user-initials");
+    // userEmail "test@example.com" -> displayName "test" -> initials "TE"
+    expect(initials).toHaveTextContent("TE");
   });
 
-  it("should apply correct styling to top bar", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render notification badge", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    const topBar = screen.getByRole("banner");
-    expect(topBar).toHaveClass("fixed", "top-0", "left-0", "right-0");
+    expect(screen.getByTestId("notification-badge")).toBeInTheDocument();
+    expect(screen.getByTestId("notification-badge")).toHaveTextContent("3");
   });
 
-  it("should handle keyboard navigation", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render brand name on desktop", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.keyDown(hamburgerButton, { key: "Enter" });
-      // Should open drawer
-    }
+    const brandName = screen.getByTestId("brand-name");
+    expect(brandName).toBeInTheDocument();
+    expect(brandName).toHaveTextContent("CP-IM");
   });
 
-  it("should close drawer when clicking outside", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should render brand name on mobile", () => {
+    renderWithRouter(<TopBar {...mobileProps} />);
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const overlay = screen.getByTestId("mobile-drawer-overlay");
-      if (overlay) {
-        fireEvent.click(overlay);
-        // Drawer should close
-      }
-    }
+    const brandName = screen.getByTestId("brand-name");
+    expect(brandName).toBeInTheDocument();
+    expect(brandName).toHaveTextContent("YYC\u00b3");
   });
 
   it("should render all monitor category items", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catMonitor/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-
-        expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.followUp/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.patrol/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.alertRules/i)).toBeInTheDocument();
-      }
-    }
+    // "monitor" category is expanded by default since "/" is the active route
+    expect(screen.getByText("nav.dataMonitor")).toBeInTheDocument();
+    expect(screen.getByText("nav.followUp")).toBeInTheDocument();
+    expect(screen.getByText("nav.patrol")).toBeInTheDocument();
+    expect(screen.getByText("nav.alertRules")).toBeInTheDocument();
   });
 
   it("should render all operations category items", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catOps/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-
-        expect(screen.getByText(/nav.operations/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.fileManager/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.hostFiles/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.database/i)).toBeInTheDocument();
-      }
-    }
+    // Click to expand the "ops" category
+    const opsCategory = screen.getByText("nav.catOps");
+    fireEvent.click(opsCategory);
+    expect(screen.getByText("nav.operations")).toBeInTheDocument();
+    expect(screen.getByText("nav.fileManager")).toBeInTheDocument();
+    expect(screen.getByText("nav.hostFiles")).toBeInTheDocument();
+    expect(screen.getByText("nav.database")).toBeInTheDocument();
   });
 
   it("should render all AI category items", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
-
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
-
-      const categoryButtons = screen.getAllByText(/nav.catAI/i);
-      if (categoryButtons.length > 0) {
-        fireEvent.click(categoryButtons[0]);
-
-        expect(screen.getByText(/nav.aiDecision/i)).toBeInTheDocument();
-        expect(screen.getByText(/modelProvider.title/i)).toBeInTheDocument();
-        expect(screen.getByText(/nav.aiDiagnostics/i)).toBeInTheDocument();
-      }
-    }
+    // Click to expand the "ai" category
+    const aiCategory = screen.getByText("nav.catAI");
+    fireEvent.click(aiCategory);
+    expect(screen.getByText("nav.aiDecision")).toBeInTheDocument();
+    expect(screen.getByText("modelProvider.title")).toBeInTheDocument();
+    expect(screen.getByText("nav.aiDiagnostics")).toBeInTheDocument();
   });
 
-  it("should animate drawer open/close", () => {
-    renderWithRouter(<TopBar {...defaultProps} />);
+  it("should open user menu when avatar is clicked on desktop", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
 
-    const menuButtons = screen.getAllByRole("button");
-    const hamburgerButton = menuButtons.find((btn) => btn.querySelector("svg"));
+    const avatarBtn = screen.getByTestId("user-avatar-btn");
+    fireEvent.click(avatarBtn);
 
-    if (hamburgerButton) {
-      fireEvent.click(hamburgerButton);
+    // User menu should be visible on desktop with i18n keys as labels
+    expect(screen.getAllByText("nav.userMgmt").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("nav.settings").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("common.logout").length).toBeGreaterThan(0);
+  });
 
-      const drawer = screen.getByTestId("mobile-drawer");
-      expect(drawer).toHaveClass("translate-x-0");
-    }
+  it("should render search input on desktop", () => {
+    renderWithRouter(<TopBar {...desktopProps} />);
+    expect(screen.getByTestId("search-input")).toBeInTheDocument();
+  });
+
+  it("should render mobile search input in drawer", () => {
+    renderWithRouter(
+      <TopBar {...mobileProps} mobileMenuOpen={true} />
+    );
+    expect(screen.getByTestId("mobile-search-input")).toBeInTheDocument();
   });
 });

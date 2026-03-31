@@ -1,3 +1,14 @@
+/**
+ * @file: useReportExporter.test.ts
+ * @description: useReportExporter.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useReportExporter } from "../hooks/useReportExporter";

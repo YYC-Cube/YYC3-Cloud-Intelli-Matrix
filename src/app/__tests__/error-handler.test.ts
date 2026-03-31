@@ -1,3 +1,14 @@
+/**
+ * @file: error-handler.test.ts
+ * @description: error-handler.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as errorHandler from "../lib/error-handler";
@@ -449,9 +460,11 @@ describe("error-handler", () => {
     it("should capture unhandledrejection events", () => {
       errorHandler.installGlobalErrorListeners();
 
+      // Use a caught promise to avoid Vitest detecting an actual unhandled rejection
+      const caughtPromise = Promise.reject().catch(() => {});
       const rejectionEvent = new PromiseRejectionEvent("unhandledrejection", {
         reason: new Error("Promise rejection"),
-        promise: Promise.reject(),
+        promise: caughtPromise,
       });
 
       window.dispatchEvent(rejectionEvent);

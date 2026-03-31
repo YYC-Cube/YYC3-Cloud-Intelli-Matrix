@@ -1,16 +1,28 @@
+/**
+ * @file: CommandPalette.test.tsx
+ * @description: CommandPalette.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
+import { render, screen, fireEvent, cleanup, within } from "@testing-library/react";
 import * as React from "react";
 import { CommandPalette } from "../components/CommandPalette";
 
-vi.mock("react-router", () => ({
-  useNavigate: vi.fn(() => vi.fn()),
-}));
+import { useI18n } from "../hooks/useI18n";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
-vi.mock("../hooks/useKeyboardShortcuts", () => ({
-  SHORTCUT_LIST: [],
+const mockNavigate = vi.fn();
+const mockTriggerShortcut = vi.fn();
+
+vi.mock("react-router", () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("../hooks/useI18n", () => ({
@@ -21,69 +33,89 @@ vi.mock("../hooks/useI18n", () => ({
   })),
 }));
 
+vi.mock("../hooks/useKeyboardShortcuts", () => ({
+  useKeyboardShortcuts: vi.fn(() => ({
+    shortcutKeys: "Ctrl+K",
+    triggerShortcut: mockTriggerShortcut,
+    SHORTCUT_LIST: [
+      { id: "search", keys: "Ctrl+K", description: "快速搜索", category: "全局" },
+      { id: "alerts", keys: "Ctrl+Shift+A", description: "告警 / 一键跟进", category: "全局" },
+    ],
+  })),
+}));
+
 describe("CommandPalette", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    cleanup();
   });
 
   it("should render command palette when open", () => {
-    render(
-      React.createElement(CommandPalette, {
-        isOpen: true,
-        onClose: vi.fn(),
-      })
-    );
-    expect(screen.getByPlaceholderText("搜索命令...")).toBeInTheDocument();
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByPlaceholderText("palette.placeholder")).toBeInTheDocument();
   });
 
-  it("should not render when closed", () => {
-    render(
-      React.createElement(CommandPalette, {
-        isOpen: false,
-        onClose: vi.fn(),
-      })
-    );
-    expect(screen.queryByPlaceholderText("搜索命令...")).not.toBeInTheDocument();
+  it("should render search input via test id", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByTestId("palette-input")).toBeInTheDocument();
+  });
+
+  it("should render search placeholder", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByPlaceholderText("palette.placeholder")).toBeInTheDocument();
   });
 
   it("should render navigation items", () => {
-    render(
-      React.createElement(CommandPalette, {
-        isOpen: true,
-        onClose: vi.fn(),
-      })
-    );
-    expect(screen.getByText("实时监控")).toBeInTheDocument();
-    expect(screen.getByText("操作中心")).toBeInTheDocument();
-    expect(screen.getByText("巡查模式")).toBeInTheDocument();
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByText("nav.dataMonitor")).toBeInTheDocument();
+  });
+
+  it("should render shortcut help button", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByTestId("shortcuts-toggle")).toBeInTheDocument();
+  });
+
+  it("should render operation center", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByText("nav.operations")).toBeInTheDocument();
+  });
+
+  it("should render patrol item", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    expect(screen.getByText("nav.patrol")).toBeInTheDocument();
   });
 
   it("should filter items by query", () => {
-    render(
-      React.createElement(CommandPalette, {
-        isOpen: true,
-        onClose: vi.fn(),
-      })
-    );
-    const searchInput = screen.getByPlaceholderText("搜索命令...");
-    fireEvent.change(searchInput, { target: { value: "监控" } });
-    expect(screen.getByText("实时监控")).toBeInTheDocument();
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    const searchInput = screen.getByPlaceholderText("palette.placeholder");
+    // Use a specific term that only matches one item
+    fireEvent.change(searchInput, { target: { value: "nav.fileManager" } });
+    expect(screen.getByText("nav.fileManager")).toBeInTheDocument();
+    expect(screen.queryByText("nav.operations")).not.toBeInTheDocument();
   });
 
   it("should call onClose when close button is clicked", () => {
     const onClose = vi.fn();
-    render(
-      React.createElement(CommandPalette, {
-        isOpen: true,
-        onClose,
-      })
-    );
-    const closeButton = screen.getByRole("button", { name: /关闭/i });
-    fireEvent.click(closeButton);
+    render(React.createElement(CommandPalette, { isOpen: true, onClose }));
+    const closeButtons = screen.getAllByRole("button");
+    // The close button is the last button (not a palette navigation item)
+    expect(closeButtons.length).toBeGreaterThan(0);
+    fireEvent.click(closeButtons[closeButtons.length - 1]);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("should call navigate when item is clicked", () => {
+    render(React.createElement(CommandPalette, { isOpen: true, onClose: vi.fn() }));
+    const item = screen.getByText("nav.dataMonitor");
+    fireEvent.click(item);
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+  });
+
+  it("should not render when closed", () => {
+    render(React.createElement(CommandPalette, { isOpen: false, onClose: vi.fn() }));
+    expect(screen.queryByTestId("command-palette")).not.toBeInTheDocument();
   });
 });

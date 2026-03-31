@@ -12,7 +12,15 @@ const isJsdom = typeof window !== "undefined" && typeof document !== "undefined"
 // jest-dom matchers（仅 jsdom 环境生效）
 if (isJsdom) {
   await import("@testing-library/jest-dom/vitest");
+  // IndexedDB polyfill for jsdom
+  if (typeof indexedDB === "undefined") {
+    const { IDBFactory } = await import("fake-indexeddb");
+    globalThis.indexedDB = new IDBFactory();
+  }
 }
+
+// fake-indexeddb polyfill for jsdom (IndexedDB mock)
+import "fake-indexeddb/auto";
 
 // Mock Observer classes for jsdom
 class MockResizeObserver implements ResizeObserver {

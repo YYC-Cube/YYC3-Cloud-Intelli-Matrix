@@ -25,7 +25,7 @@ import { AlertTriangle, RefreshCw, Home, ChevronDown, ChevronUp, Bug, Copy, Chec
 // ============================================================
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  children?: ReactNode;
   /** 错误边界级别，影响降级 UI 的大小和样式 */
   level?: ErrorBoundaryLevel;
   /** 自定义降级 UI */
@@ -136,7 +136,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { children, level = "page", fallback } = this.props;
 
     if (!hasError) {
-      return children;
+      return children ?? null;
     }
 
     // 自定义 fallback

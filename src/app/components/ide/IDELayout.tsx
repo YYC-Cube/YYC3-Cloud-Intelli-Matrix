@@ -14,17 +14,12 @@
  *   预览模式 (preview): 终端跨越中栏+右栏显示
  *   自由模式 (free):   可拖拽面板系统 (新功能)
  *
- * 使用 react-resizable-panels 实现面板拖拽调节
- * 新增自由模式支持完全自定义拖拽面板布局
+ * 使用自定义 SplitContainer 实现面板拖拽调节 (基于 mouse 事件)
+ * 自由模式支持完全自定义拖拽面板布局
  */
 
 import * as React from "react";
-import { useState, useCallback, useEffect } from "react";
-import {
-  Panel,
-  Group,
-  Separator,
-} from "react-resizable-panels";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useI18n } from "../../hooks/useI18n";
 import { IDETopBar } from "./IDETopBar";
@@ -34,24 +29,153 @@ import { FileExplorer } from "./FileExplorer";
 import { CodePreviewPanel } from "./CodePreviewPanel";
 import { IDETerminal } from "./IDETerminal";
 import { IDEStatusBar } from "./IDEStatusBar";
-import { MOCK_FILE_CONTENTS } from "./ide-mock-data";
+import { MOCK_FILE_CONTENTS, MOCK_NOTIFICATIONS } from "./ide-mock-data";
 import { AI_MODELS } from "./ide-mock-data";
+import { NotificationPanel } from "./NotificationPanel";
+import { IDESettingsPanel } from "./IDESettingsPanel";
+import { DeployDialog } from "./DeployDialog";
+import { ShareDialog } from "./ShareDialog";
 import type { IDEViewMode, IDELayoutMode, OpenTab } from "./ide-types";
 import { LayoutProvider } from "./LayoutContext";
 import { Workspace } from "./Workspace";
 import type { PanelType } from "./ide-layout-types";
 
-/** Resize handle styling */
-function ResizeHandle() {
+// ─── 自定义可分割容器 (替代 react-resizable-panels) ───────────────
+//
+// 基于 /Volumes/Knowledge/ide/PanelManager.tsx 的 SplitContainer 实现
+// 使用直接的 mouse 事件处理拖拽调整，不依赖第三方库
+
+interface SplitContainerProps {
+  direction: "horizontal" | "vertical";
+  children: React.ReactNode;
+  defaultSizes?: number[];
+  minSizes?: number[];
+  className?: string;
+}
+
+/**
+ * SplitContainer — 可拖拽分割容器
+ *
+ * 支持水平/垂直方向分割，子元素之间插入可拖拽的分隔条。
+ * 拖拽时通过 mousedown → mousemove → mouseup 事件链实时调整子元素大小。
+ */
+function SplitContainer({
+  direction,
+  children,
+  defaultSizes: defaultSizesProp,
+  minSizes: minSizesProp,
+  className,
+}: SplitContainerProps) {
+  const childArray = React.Children.toArray(children);
+  const count = childArray.length;
+  const isHorizontal = direction === "horizontal";
+
+  const [sizes, setSizes] = useState<number[]>(
+    defaultSizesProp || Array(count).fill(100 / count),
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragInfo = useRef<{
+    index: number;
+    startPos: number;
+    startSizes: number[];
+  } | null>(null);
+
+  // Sync sizes when children count changes
+  useEffect(() => {
+    setSizes(defaultSizesProp || Array(count).fill(100 / count));
+  }, [count]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleResizeStart = useCallback(
+    (index: number, e: React.MouseEvent) => {
+      e.preventDefault();
+      const startPos = isHorizontal ? e.clientX : e.clientY;
+      dragInfo.current = { index, startPos, startSizes: [...sizes] };
+
+      const handleMove = (ev: MouseEvent) => {
+        if (!dragInfo.current || !containerRef.current) return;
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const totalSize = isHorizontal
+          ? containerRect.width
+          : containerRect.height;
+        const currentPos = isHorizontal ? ev.clientX : ev.clientY;
+        const delta = currentPos - dragInfo.current.startPos;
+        const deltaPct = (delta / totalSize) * 100;
+
+        const newSizes = [...dragInfo.current.startSizes];
+        const minSize = minSizesProp ? (minSizesProp[index] || 5) : 5;
+        const minSizeNext = minSizesProp ? (minSizesProp[index + 1] || 5) : 5;
+
+        newSizes[index] = Math.max(
+          minSize,
+          dragInfo.current.startSizes[index] + deltaPct,
+        );
+        newSizes[index + 1] = Math.max(
+          minSizeNext,
+          dragInfo.current.startSizes[index + 1] - deltaPct,
+        );
+
+        // Clamp: ensure neither panel goes below its minimum
+        if (newSizes[index] < minSize) {
+          newSizes[index + 1] += newSizes[index] - minSize;
+          newSizes[index] = minSize;
+        }
+        if (newSizes[index + 1] < minSizeNext) {
+          newSizes[index] += newSizes[index + 1] - minSizeNext;
+          newSizes[index + 1] = minSizeNext;
+        }
+
+        setSizes(newSizes);
+      };
+
+      const handleUp = () => {
+        dragInfo.current = null;
+        window.removeEventListener("mousemove", handleMove);
+        window.removeEventListener("mouseup", handleUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+
+      document.body.style.cursor = isHorizontal ? "col-resize" : "row-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("mousemove", handleMove);
+      window.addEventListener("mouseup", handleUp);
+    },
+    [sizes, isHorizontal, minSizesProp],
+  );
+
+  const sizeProp = isHorizontal ? "width" : "height";
+  const minSizeProp = isHorizontal ? "minWidth" : "minHeight";
+
   return (
-    <Separator
-      className={`group relative flex items-center justify-center transition-all w-[3px] hover:w-[5px]`}
-      style={{ background: "rgba(0,180,255,0.06)" }}
+    <div
+      ref={containerRef}
+      className={`size-full flex ${isHorizontal ? "flex-row" : "flex-col"} ${className || ""}`}
     >
-      <div
-        className={`rounded-full bg-[rgba(0,212,255,0.15)] group-hover:bg-[rgba(0,212,255,0.4)] transition-all w-[2px] h-8`}
-      />
-    </Separator>
+      {childArray.map((child, i) => (
+        <React.Fragment key={i}>
+          <div
+            style={{
+              [sizeProp]: `${sizes[i] || 100 / count}%`,
+              [minSizeProp]: "60px",
+            }}
+            className="relative overflow-hidden"
+          >
+            {child}
+          </div>
+          {i < count - 1 && (
+            <div
+              onMouseDown={(e) => handleResizeStart(i, e)}
+              className={`flex-shrink-0 z-10 transition-colors ${
+                isHorizontal
+                  ? "w-[3px] cursor-col-resize hover:bg-[rgba(0,212,255,0.25)]"
+                  : "h-[3px] cursor-row-resize hover:bg-[rgba(0,212,255,0.25)]"
+              }`}
+              style={{ background: "rgba(0,180,255,0.1)" }}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
   );
 }
 
@@ -73,6 +197,10 @@ export function IDELayout() {
   const [activeTabId, setActiveTabId] = useState("");
   const [terminalCollapsed, setTerminalCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showDeploy, setShowDeploy] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   // Persist layoutMode to localStorage
   useEffect(() => {
@@ -210,59 +338,47 @@ export function IDELayout() {
    * └──────────┴─────────────┴──────────────────┘
    * 终端仅在右栏(代码编辑器下方)
    */
-  const renderEditModeLayout = () => (
-    <Group orientation="horizontal" className="h-full">
-      {/* Left Panel - AI Chat */}
-      {showLeftPanel && (
-        <>
-          <Panel defaultSize={25} minSize={15} maxSize={40} id="ai-panel-e">
-            <AIChatPanel />
-          </Panel>
-          <ResizeHandle />
-        </>
-      )}
+  const renderEditModeLayout = () => {
+    const panels: React.ReactNode[] = [];
+    const sizes: number[] = [];
+    const mins: number[] = [];
 
-      {/* Center Panel - File Explorer (full height) */}
-      {showCenterPanel && (
-        <>
-          <Panel
-            defaultSize={showLeftPanel ? 45 : 55}
-            minSize={15}
-            maxSize={60}
-            id="explorer-panel-e"
-          >
-            <FileExplorer
-              onFileSelect={handleFileSelect}
-              activeFileId={activeTabId}
-            />
-          </Panel>
-          <ResizeHandle />
-        </>
-      )}
+    if (showLeftPanel) {
+      panels.push(<AIChatPanel key="ai" />);
+      sizes.push(25);
+      mins.push(15);
+    }
+    if (showCenterPanel) {
+      panels.push(
+        <FileExplorer
+          key="explorer"
+          onFileSelect={handleFileSelect}
+          activeFileId={activeTabId}
+        />
+      );
+      sizes.push(showLeftPanel ? 45 : 55);
+      mins.push(15);
+    }
 
-      {/* Right Panel - Code Editor + Terminal (vertical split) */}
-      <Panel
-        defaultSize={showLeftPanel && showCenterPanel ? 30 : showCenterPanel ? 45 : 75}
-        minSize={20}
-        id="right-panel-e"
+    // Right panel: code editor + terminal (vertical split)
+    panels.push(
+      <SplitContainer key="right" direction="vertical"
+        defaultSizes={[terminalCollapsed ? 95 : 70, terminalCollapsed ? 5 : 30]}
+        minSizes={[20, 3]}
       >
-        <Group orientation="vertical" className="h-full">
-          <Panel defaultSize={terminalCollapsed ? 95 : 70} minSize={30} id="code-panel-e">
-            {codeEditorElement}
-          </Panel>
-          <ResizeHandle />
-          <Panel
-            defaultSize={terminalCollapsed ? 5 : 30}
-            minSize={terminalCollapsed ? 3 : 10}
-            maxSize={60}
-            id="terminal-panel-e"
-          >
-            {terminalElement}
-          </Panel>
-        </Group>
-      </Panel>
-    </Group>
-  );
+        {codeEditorElement}
+        {terminalElement}
+      </SplitContainer>
+    );
+    sizes.push(showLeftPanel && showCenterPanel ? 30 : showCenterPanel ? 45 : 75);
+    mins.push(15);
+
+    return (
+      <SplitContainer direction="horizontal" defaultSizes={sizes} minSizes={mins} className="h-full">
+        {panels}
+      </SplitContainer>
+    );
+  };
 
   /**
    * 预览模式布局:
@@ -274,71 +390,55 @@ export function IDELayout() {
    * └──────────┴──────────────────────────────────┘
    * 终端跨越中栏+右栏
    */
-  const renderPreviewModeLayout = () => (
-    <Group orientation="horizontal" className="h-full">
-      {/* Left Panel - AI Chat */}
-      {showLeftPanel && (
-        <>
-          <Panel defaultSize={25} minSize={15} maxSize={40} id="ai-panel-p">
-            <AIChatPanel />
-          </Panel>
-          <ResizeHandle />
-        </>
-      )}
+  const renderPreviewModeLayout = () => {
+    // Build the top area panels (file explorer + code editor)
+    const topPanels: React.ReactNode[] = [];
+    const topSizes: number[] = [];
+    const topMins: number[] = [];
 
-      {/* Main area: Center + Right + Terminal */}
-      <Panel
-        defaultSize={showLeftPanel ? 75 : 100}
-        minSize={40}
-        id="main-panel-p"
+    if (showCenterPanel) {
+      topPanels.push(
+        <FileExplorer
+          key="explorer"
+          onFileSelect={handleFileSelect}
+          activeFileId={activeTabId}
+        />
+      );
+      topSizes.push(40);
+      topMins.push(15);
+    }
+    topPanels.push(<React.Fragment key="code">{codeEditorElement}</React.Fragment>);
+    topSizes.push(showCenterPanel ? 60 : 100);
+    topMins.push(20);
+
+    // Main area: left AI chat + (top editors + bottom terminal)
+    const mainContent = (
+      <SplitContainer direction="vertical"
+        defaultSizes={[terminalCollapsed ? 95 : 70, terminalCollapsed ? 5 : 30]}
+        minSizes={[20, 3]}
       >
-        <Group orientation="vertical" className="h-full">
-          {/* Top: Center + Right horizontal split */}
-          <Panel defaultSize={terminalCollapsed ? 95 : 70} minSize={30} id="editor-area-p">
-            <Group orientation="horizontal" className="h-full">
-              {/* Center Panel - File Explorer */}
-              {showCenterPanel && (
-                <>
-                  <Panel
-                    defaultSize={40}
-                    minSize={15}
-                    maxSize={60}
-                    id="explorer-panel-p"
-                  >
-                    <FileExplorer
-                      onFileSelect={handleFileSelect}
-                      activeFileId={activeTabId}
-                    />
-                  </Panel>
-                  <ResizeHandle />
-                </>
-              )}
+        <SplitContainer direction="horizontal" defaultSizes={topSizes} minSizes={topMins}>
+          {topPanels}
+        </SplitContainer>
+        {terminalElement}
+      </SplitContainer>
+    );
 
-              {/* Right Panel - Code Editor */}
-              <Panel
-                defaultSize={showCenterPanel ? 60 : 100}
-                minSize={25}
-                id="code-panel-p"
-              >
-                {codeEditorElement}
-              </Panel>
-            </Group>
-          </Panel>
+    if (showLeftPanel) {
+      return (
+        <SplitContainer direction="horizontal" defaultSizes={[25, 75]} minSizes={[15, 30]} className="h-full">
+          <AIChatPanel />
+          {mainContent}
+        </SplitContainer>
+      );
+    }
 
-          {/* Bottom - Terminal (spans center+right) */}
-          <ResizeHandle />
-          <Panel
-            defaultSize={terminalCollapsed ? 5 : 30}
-            minSize={terminalCollapsed ? 3 : 15}
-            maxSize={60}
-            id="terminal-panel-p"
-          >
-            {terminalElement}
-          </Panel>
-        </Group>
-      </Panel>
-    </Group>
-  );
+    return (
+      <div className="h-full">
+        {mainContent}
+      </div>
+    );
+  };
 
   /**
    * 自由模式布局:
@@ -367,6 +467,11 @@ export function IDELayout() {
         onBack={handleBack}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}
+        onNotificationsClick={() => setShowNotifications((s) => !s)}
+        onSettingsClick={() => setShowSettings((s) => !s)}
+        onShareClick={() => setShowShare(true)}
+        onDeployClick={() => setShowDeploy(true)}
+        unreadCount={MOCK_NOTIFICATIONS.filter((n) => !n.read).length}
       />
 
       {/* View Switcher with layout mode */}
@@ -418,7 +523,7 @@ export function IDELayout() {
       </div>
 
       {/* Main Content Area - conditional layout based on layoutMode */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {layoutMode === "free" ? renderFreeModeLayout() : layoutMode === "edit" ? renderEditModeLayout() : renderPreviewModeLayout()}
       </div>
 

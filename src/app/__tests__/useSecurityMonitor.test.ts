@@ -1,6 +1,17 @@
+/**
+ * @file: useSecurityMonitor.test.ts
+ * @description: useSecurityMonitor.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useSecurityMonitor } from "../hooks/useSecurityMonitor";
 
 describe("useSecurityMonitor", () => {
@@ -54,22 +65,18 @@ describe("useSecurityMonitor", () => {
     expect(result.current.scanStatus).toBe("scanning");
   });
 
-  it("should complete scan and populate data", async () => {
+  it("should complete scan and populate data", () => {
     const { result } = renderHook(() => useSecurityMonitor());
     
     act(() => {
       result.current.startScan();
     });
     
-    // Fast forward timers
     act(() => {
       vi.advanceTimersByTime(1800);
     });
     
-    await waitFor(() => {
-      expect(result.current.scanStatus).toBe("complete");
-    });
-    
+    expect(result.current.scanStatus).toBe("complete");
     expect(result.current.lastScanTime).not.toBeNull();
     expect(result.current.overallScore).toBeGreaterThan(0);
     expect(result.current.csp).not.toBeNull();
@@ -84,7 +91,7 @@ describe("useSecurityMonitor", () => {
     expect(result.current.dataManagement).not.toBeNull();
   });
 
-  it("should calculate overall risk based on scores", async () => {
+  it("should calculate overall risk based on scores", () => {
     const { result } = renderHook(() => useSecurityMonitor());
     
     act(() => {
@@ -95,15 +102,12 @@ describe("useSecurityMonitor", () => {
       vi.advanceTimersByTime(1800);
     });
     
-    await waitFor(() => {
-      expect(result.current.scanStatus).toBe("complete");
-    });
-    
+    expect(result.current.scanStatus).toBe("complete");
     const risk = result.current.overallRisk;
     expect(["safe", "warning", "danger"]).toContain(risk);
   });
 
-  it("should cleanup expired items", async () => {
+  it("should cleanup expired items", () => {
     const { result } = renderHook(() => useSecurityMonitor());
     
     act(() => {
@@ -114,11 +118,7 @@ describe("useSecurityMonitor", () => {
       vi.advanceTimersByTime(1800);
     });
     
-    await waitFor(() => {
-      expect(result.current.dataManagement).not.toBeNull();
-    });
-    
-    const initialExpired = result.current.dataManagement?.expiredItems || 0;
+    expect(result.current.dataManagement).not.toBeNull();
     
     act(() => {
       result.current.cleanupData("expired");
@@ -127,7 +127,7 @@ describe("useSecurityMonitor", () => {
     expect(result.current.dataManagement?.expiredItems).toBe(0);
   });
 
-  it("should cleanup cache", async () => {
+  it("should cleanup cache", () => {
     const { result } = renderHook(() => useSecurityMonitor());
     
     act(() => {
@@ -138,9 +138,7 @@ describe("useSecurityMonitor", () => {
       vi.advanceTimersByTime(1800);
     });
     
-    await waitFor(() => {
-      expect(result.current.dataManagement).not.toBeNull();
-    });
+    expect(result.current.dataManagement).not.toBeNull();
     
     act(() => {
       result.current.cleanupData("cache");
@@ -149,7 +147,7 @@ describe("useSecurityMonitor", () => {
     expect(result.current.dataManagement?.cacheSize).toBe(0);
   });
 
-  it("should cleanup privacy data", async () => {
+  it("should cleanup privacy data", () => {
     const { result } = renderHook(() => useSecurityMonitor());
     
     act(() => {
@@ -160,9 +158,7 @@ describe("useSecurityMonitor", () => {
       vi.advanceTimersByTime(1800);
     });
     
-    await waitFor(() => {
-      expect(result.current.dataManagement).not.toBeNull();
-    });
+    expect(result.current.dataManagement).not.toBeNull();
     
     act(() => {
       result.current.cleanupData("privacy");

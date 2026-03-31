@@ -362,7 +362,7 @@ export function useModelProvider() {
         },
       ];
       setOllamaModels(mockModels);
-      setOllamaError(`连接失败 (Mock 模式): ${err.message}`);
+      setOllamaError(`连接失败 (Mock 模式): ${(err as Error).message}`);
 
       // Mock 模式也同步
       setProviders((prev) =>

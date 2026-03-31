@@ -1,6 +1,17 @@
+/**
+ * @file: NetworkConfig.test.tsx
+ * @description: NetworkConfig.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { NetworkConfig } from "../components/NetworkConfig";
@@ -37,6 +48,10 @@ vi.mock("../hooks/useNetworkConfig", () => ({
 
 vi.mock("../stores/dashboard-stores", () => ({
   wifiNetworkStore: {
+    getAll: vi.fn(() => []),
+    add: vi.fn(),
+    remove: vi.fn(),
+    update: vi.fn(),
     getState: vi.fn(() => ({
       networks: [],
       autoReconnect: {
@@ -47,16 +62,30 @@ vi.mock("../stores/dashboard-stores", () => ({
     setState: vi.fn(),
   },
   getWifiAutoReconnectConfig: vi.fn(() => ({
+    id: "wifi-ar-config",
     enabled: false,
-    networkId: "",
+    preferStrongestSignal: false,
+    intervalSeconds: 5,
+    maxRetries: 10,
+    preferredSsid: "",
+    lastUpdatedAt: Date.now(),
   })),
-  updateWifiAutoReconnectConfig: vi.fn(),
+  updateWifiAutoReconnectConfig: vi.fn(() => ({
+    id: "wifi-ar-config",
+    enabled: false,
+    preferStrongestSignal: false,
+    intervalSeconds: 5,
+    maxRetries: 10,
+    preferredSsid: "",
+    lastUpdatedAt: Date.now(),
+  })),
 }));
 
 vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
   },
 }));
 
@@ -66,6 +95,7 @@ describe("NetworkConfig", () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
   });
 
@@ -80,13 +110,13 @@ describe("NetworkConfig", () => {
   });
 
   it("should not render when closed", () => {
-    render(
+    const { container } = render(
       React.createElement(NetworkConfig, {
         open: false,
         onClose: vi.fn(),
       })
     );
-    expect(screen.queryByText("网络连接配置")).not.toBeInTheDocument();
+    expect(container.innerHTML).toBe("");
   });
 
   it("should render tabs", () => {
@@ -96,22 +126,24 @@ describe("NetworkConfig", () => {
         onClose: vi.fn(),
       })
     );
-    expect(screen.getByText("自动检测")).toBeInTheDocument();
-    expect(screen.getByText("WiFi 配置")).toBeInTheDocument();
-    expect(screen.getByText("手动配置")).toBeInTheDocument();
-    expect(screen.getByText("连接历史")).toBeInTheDocument();
+    expect(screen.getAllByText("自动检测").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("WiFi 配置").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("手动配置").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("连接历史").length).toBeGreaterThan(0);
   });
 
-  it("should call onClose when close button is clicked", () => {
+  it("should call onClose when backdrop is clicked", () => {
     const onClose = vi.fn();
-    render(
+    const { container } = render(
       React.createElement(NetworkConfig, {
         open: true,
         onClose,
       })
     );
-    const closeButton = screen.getByRole("button", { name: /关闭/i });
-    fireEvent.click(closeButton);
+    // Click the backdrop div (first child of the fixed container)
+    const backdrop = container.querySelector(".fixed > .absolute.inset-0") as HTMLElement;
+    expect(backdrop).toBeTruthy();
+    fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -122,7 +154,8 @@ describe("NetworkConfig", () => {
         onClose: vi.fn(),
       })
     );
-    expect(screen.getByText("192.168.1.100")).toBeInTheDocument();
+    // localIP appears in the auto-detect tab AND in the manual tab input value
+    expect(screen.getAllByText("192.168.1.100").length).toBeGreaterThan(0);
   });
 
   it("should display network interfaces", () => {
@@ -132,7 +165,7 @@ describe("NetworkConfig", () => {
         onClose: vi.fn(),
       })
     );
-    expect(screen.getByText("有线以太网")).toBeInTheDocument();
-    expect(screen.getByText("en0")).toBeInTheDocument();
+    // The interface renders as "{iface.name} ({iface.type})" in a single span
+    expect(screen.getAllByText(/en0.*有线以太网/).length).toBeGreaterThan(0);
   });
 });

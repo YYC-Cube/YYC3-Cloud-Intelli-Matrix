@@ -1,6 +1,17 @@
+/**
+ * @file: useWebSocketDataEnhanced.test.ts
+ * @description: useWebSocketDataEnhanced.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useWebSocketDataEnhanced } from "../hooks/useWebSocketDataEnhanced";
 
 vi.mock("../lib/api-config", () => ({
@@ -56,7 +67,7 @@ class MockWebSocket {
     }, 100);
   }
 
-  send(data: string) {
+  send(_data: string) {
     if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error("WebSocket is not open");
     }
@@ -78,13 +89,16 @@ describe("useWebSocketDataEnhanced", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    // Drain any pending fake timers before switching back to real timers
+    // to prevent setTimeout callbacks from leaking across test boundaries
+    vi.advanceTimersByTime(500);
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("should initialize with default state", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
+
     expect(result.current.connectionState).toBe("connecting");
     expect(result.current.reconnectCount).toBe(0);
     expect(result.current.liveQPS).toBe(3842);
@@ -98,62 +112,51 @@ describe("useWebSocketDataEnhanced", () => {
     expect(result.current.alerts).toEqual([]);
   });
 
-  it("should connect to WebSocket", async () => {
+  it("should connect to WebSocket", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
-    // Initially connecting
+
     expect(result.current.connectionState).toBe("connecting");
-    
-    // Fast forward to allow connection
+
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    
-    await waitFor(() => {
-      expect(result.current.connectionState).toBe("connected");
-    });
+
+    expect(result.current.connectionState).toBe("connected");
   });
 
-  it("should handle manual reconnect", async () => {
+  it("should handle manual reconnect", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
-    // Wait for initial connection
+
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    
-    await waitFor(() => {
-      expect(result.current.connectionState).toBe("connected");
-    });
-    
-    // Manual reconnect
+
+    expect(result.current.connectionState).toBe("connected");
+
     act(() => {
       result.current.manualReconnect();
     });
-    
-    // Reconnect count should be reset
+
     expect(result.current.reconnectCount).toBe(0);
   });
 
   it("should clear alerts", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
-    // Add some alerts manually (simulated)
+
     act(() => {
       // This would normally be done by the WebSocket connection
     });
-    
-    // Clear alerts
+
     act(() => {
       result.current.clearAlerts();
     });
-    
+
     expect(result.current.alerts).toEqual([]);
   });
 
   it("should have nodes data", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
+
     expect(result.current.nodes.length).toBeGreaterThan(0);
     expect(result.current.nodes[0]).toHaveProperty("id");
     expect(result.current.nodes[0]).toHaveProperty("name");
@@ -166,14 +169,14 @@ describe("useWebSocketDataEnhanced", () => {
 
   it("should have last sync time", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
+
     expect(result.current.lastSyncTime).toBeDefined();
     expect(typeof result.current.lastSyncTime).toBe("string");
   });
 
   it("should have QPS trend", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
+
     expect(result.current.qpsTrend).toBeDefined();
     expect(typeof result.current.qpsTrend).toBe("string");
     expect(result.current.qpsTrend).toContain("%");
@@ -181,7 +184,7 @@ describe("useWebSocketDataEnhanced", () => {
 
   it("should have latency trend", () => {
     const { result } = renderHook(() => useWebSocketDataEnhanced());
-    
+
     expect(result.current.latencyTrend).toBeDefined();
     expect(typeof result.current.latencyTrend).toBe("string");
     expect(result.current.latencyTrend).toContain("%");
@@ -189,8 +192,7 @@ describe("useWebSocketDataEnhanced", () => {
 
   it("should cleanup on unmount", () => {
     const { unmount } = renderHook(() => useWebSocketDataEnhanced());
-    
-    // Should not throw error
+
     unmount();
     expect(true).toBe(true);
   });

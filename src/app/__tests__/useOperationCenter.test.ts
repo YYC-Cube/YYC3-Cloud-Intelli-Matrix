@@ -1,3 +1,14 @@
+/**
+ * @file: useOperationCenter.test.ts
+ * @description: useOperationCenter.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
@@ -121,8 +132,8 @@ describe("useOperationCenter", () => {
       await result.current.executeAction(actionId);
     });
     
-    // Verify action was executed (status should change)
-    expect(result.current.isExecuting).toBe(false);
+    // Verify action was executed — isExecuting resets to null after completion
+    expect(result.current.isExecuting).toBeNull();
   });
 
   it("should run template", async () => {

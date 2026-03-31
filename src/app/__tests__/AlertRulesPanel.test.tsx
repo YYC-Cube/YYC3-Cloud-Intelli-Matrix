@@ -1,6 +1,17 @@
+/**
+ * @file: AlertRulesPanel.test.tsx
+ * @description: AlertRulesPanel.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { AlertRulesPanel } from "../components/AlertRulesPanel";
@@ -15,22 +26,28 @@ vi.mock("../hooks/useAlertRules", () => ({
       unresolvedEvents: 0,
       criticalEvents: 0,
     },
-    addRule: vi.fn(),
-    updateRule: vi.fn(),
-    deleteRule: vi.fn(),
+    selectedRule: null,
+    setSelectedRule: vi.fn(),
+    filterSeverity: "all",
+    setFilterSeverity: vi.fn(),
     toggleRule: vi.fn(),
+    deleteRule: vi.fn(),
+    acknowledgeEvent: vi.fn(),
     resolveEvent: vi.fn(),
-    clearEvents: vi.fn(),
+    createRule: vi.fn(),
+    updateRule: vi.fn(),
+    isCreating: false,
+    setIsCreating: vi.fn(),
+    editingRule: null,
+    setEditingRule: vi.fn(),
   })),
 }));
 
 vi.mock("../hooks/useWebSocketData", () => ({
   useWebSocketData: vi.fn(() => ({
-    state: "connected",
-    data: null,
-    error: null,
-    reconnect: vi.fn(),
-    disconnect: vi.fn(),
+    nodes: [],
+    liveLatency: 0,
+    connectionState: "simulated",
   })),
 }));
 
@@ -42,43 +59,41 @@ vi.mock("../hooks/useI18n", () => ({
   })),
 }));
 
+vi.mock("../components/CreateRuleModal", () => ({
+  CreateRuleModal: () => null,
+}));
+
 describe("AlertRulesPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    cleanup();
   });
 
   it("should render alert rules panel page", () => {
     render(React.createElement(AlertRulesPanel));
-    expect(screen.getByText("告警规则")).toBeInTheDocument();
+    expect(screen.getByText("alerts.title")).toBeInTheDocument();
   });
 
   it("should render stats section", () => {
     render(React.createElement(AlertRulesPanel));
-    expect(screen.getByText("总规则数")).toBeInTheDocument();
-    expect(screen.getByText("活跃规则")).toBeInTheDocument();
-    expect(screen.getByText("未解决事件")).toBeInTheDocument();
-    expect(screen.getByText("严重事件")).toBeInTheDocument();
+    expect(screen.getByText("alerts.totalRules")).toBeInTheDocument();
+    expect(screen.getByText("alerts.activeRules")).toBeInTheDocument();
+    expect(screen.getByText("alerts.unresolvedEvents")).toBeInTheDocument();
+    expect(screen.getByText("alerts.criticalEvents")).toBeInTheDocument();
   });
 
   it("should render add rule button", () => {
     render(React.createElement(AlertRulesPanel));
-    const addButtons = screen.getAllByText("添加规则");
+    const addButtons = screen.getAllByText("alerts.createRule");
     expect(addButtons.length).toBeGreaterThan(0);
-  });
-
-  it("should render clear events button", () => {
-    render(React.createElement(AlertRulesPanel));
-    const clearButtons = screen.getAllByText("清空事件");
-    expect(clearButtons.length).toBeGreaterThan(0);
   });
 
   it("should render tabs", () => {
     render(React.createElement(AlertRulesPanel));
-    expect(screen.getByText("规则列表")).toBeInTheDocument();
-    expect(screen.getByText("告警事件")).toBeInTheDocument();
+    expect(screen.getByText("alerts.rulesTab")).toBeInTheDocument();
+    expect(screen.getByText("alerts.eventsTab")).toBeInTheDocument();
   });
 });

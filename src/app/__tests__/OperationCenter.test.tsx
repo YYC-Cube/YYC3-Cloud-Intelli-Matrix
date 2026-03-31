@@ -1,3 +1,14 @@
+/**
+ * @file: OperationCenter.test.tsx
+ * @description: OperationCenter.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -8,16 +19,16 @@ import { OperationCenter } from "../components/OperationCenter";
 vi.mock("../hooks/useOperationCenter", () => ({
   useOperationCenter: vi.fn(() => ({
     categories: [
-      { id: "system", label: "系统操作", icon: "Settings" },
-      { id: "network", label: "网络操作", icon: "Network" },
+      { key: "system", label: "系统操作", icon: "Settings", color: "#ffaa00" },
+      { key: "network", label: "网络操作", icon: "Server", color: "#00d4ff" },
     ],
     activeCategory: "system",
     setActiveCategory: vi.fn(),
     actions: [
-      { id: "1", name: "重启服务", category: "system" },
-      { id: "2", name: "清理缓存", category: "system" },
+      { id: "1", label: "重启服务", category: "system", icon: "RotateCw", status: "pending", description: "test" },
+      { id: "2", label: "清理缓存", category: "system", icon: "Trash2", status: "pending", description: "test" },
     ],
-    isExecuting: false,
+    isExecuting: null,
     executeAction: vi.fn(),
     templates: [],
     runTemplate: vi.fn(),
@@ -29,6 +40,10 @@ vi.mock("../hooks/useOperationCenter", () => ({
     searchQuery: "",
     setSearchQuery: vi.fn(),
   })),
+  CATEGORY_META: [
+    { key: "system", label: "系统操作", icon: "Settings", color: "#ffaa00" },
+    { key: "network", label: "网络操作", icon: "Server", color: "#00d4ff" },
+  ],
 }));
 
 vi.mock("../hooks/useI18n", () => ({
@@ -58,26 +73,26 @@ describe("OperationCenter", () => {
 
   it("should render operation center page", () => {
     render(React.createElement(OperationCenter));
-    expect(screen.getByText("操作中心")).toBeInTheDocument();
+    expect(screen.getByText("operations.title")).toBeInTheDocument();
   });
 
   it("should render quick actions section", () => {
     render(React.createElement(OperationCenter));
-    expect(screen.getByText("快捷操作")).toBeInTheDocument();
+    expect(screen.getAllByText("operations.quickActions").length).toBeGreaterThan(0);
   });
 
   it("should render action count", () => {
     render(React.createElement(OperationCenter));
-    expect(screen.getByText("(2)")).toBeInTheDocument();
+    expect(screen.getAllByText("(2)").length).toBeGreaterThan(0);
   });
 
   it("should render templates section", () => {
     render(React.createElement(OperationCenter));
-    expect(screen.getByText("操作模板")).toBeInTheDocument();
+    expect(screen.getAllByText("操作模板").length).toBeGreaterThan(0);
   });
 
   it("should render log stream section", () => {
     render(React.createElement(OperationCenter));
-    expect(screen.getByText("操作日志")).toBeInTheDocument();
+    expect(screen.getAllByText("操作日志").length).toBeGreaterThan(0);
   });
 });

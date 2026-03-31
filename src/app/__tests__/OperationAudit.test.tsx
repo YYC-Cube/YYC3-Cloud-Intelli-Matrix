@@ -1,3 +1,14 @@
+/**
+ * @file: OperationAudit.test.tsx
+ * @description: OperationAudit.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -44,39 +55,41 @@ describe("OperationAudit", () => {
 
   it("should render operation audit page", () => {
     render(React.createElement(OperationAudit));
-    expect(screen.getByText("操作审计")).toBeInTheDocument();
+    // The component renders using t() keys; the heading uses t("audit.opsTrend") and t("audit.auditLog")
+    expect(screen.getByText("audit.opsTrend")).toBeInTheDocument();
   });
 
   it("should render search input", () => {
     render(React.createElement(OperationAudit));
-    expect(screen.getByPlaceholderText("搜索审计日志...")).toBeInTheDocument();
+    expect(screen.getAllByPlaceholderText("audit.searchLog").length).toBeGreaterThan(0);
   });
 
   it("should render filter buttons", () => {
     render(React.createElement(OperationAudit));
-    expect(screen.getByText("全部")).toBeInTheDocument();
-    expect(screen.getByText("成功")).toBeInTheDocument();
-    expect(screen.getByText("异常")).toBeInTheDocument();
+    expect(screen.getAllByText("audit.filterAll").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.filterSuccess").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.filterAbnormal").length).toBeGreaterThan(0);
   });
 
   it("should render audit logs table", () => {
     render(React.createElement(OperationAudit));
-    expect(screen.getByText("时间")).toBeInTheDocument();
-    expect(screen.getByText("用户")).toBeInTheDocument();
-    expect(screen.getByText("操作")).toBeInTheDocument();
-    expect(screen.getByText("目标")).toBeInTheDocument();
-    expect(screen.getByText("状态")).toBeInTheDocument();
+    expect(screen.getAllByText("audit.colTime").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.colUser").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.colAction").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.colTarget").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.colStatus").length).toBeGreaterThan(0);
   });
 
   it("should render export button", () => {
     render(React.createElement(OperationAudit));
-    const exportButtons = screen.getAllByText("导出JSON");
-    expect(exportButtons.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.export").length).toBeGreaterThan(0);
   });
 
-  it("should render refresh button", () => {
+  it("should render summary cards", () => {
     render(React.createElement(OperationAudit));
-    const refreshButtons = screen.getAllByText("刷新");
-    expect(refreshButtons.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.todayOps").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.abnormalEvents").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.securityEvents").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("audit.activeUsers").length).toBeGreaterThan(0);
   });
 });

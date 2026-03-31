@@ -1,3 +1,14 @@
+/**
+ * @file: useAlertRules.test.ts
+ * @description: useAlertRules.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
@@ -128,7 +139,7 @@ describe("useAlertRules", () => {
         aggregation: { enabled: true, windowMinutes: 5, maxGroupSize: 10 },
         deduplication: { enabled: true, cooldownMinutes: 15 },
         escalation: [
-          { level: 1, delayMinutes: 0, notifyChannels: ["dashboard"] },
+          { level: 1 as const, delayMinutes: 0, notifyChannels: ["dashboard"] },
         ],
         targets: ["GPU-A100-01"],
       };
@@ -251,8 +262,8 @@ describe("useAlertRules", () => {
     it("should evaluate live nodes and create events", async () => {
       const { result } = renderHook(() => useAlertRules({
         liveNodes: [
-          { id: "GPU-A100-01", gpu: 98, mem: 85 },
-          { id: "GPU-A100-02", gpu: 45, mem: 60 },
+          { id: "GPU-A100-01", gpu: 98, mem: 85, temp: 72, status: "online" },
+          { id: "GPU-A100-02", gpu: 45, mem: 60, temp: 55, status: "online" },
         ],
       }));
 
@@ -264,7 +275,7 @@ describe("useAlertRules", () => {
     it("should respect deduplication cooldown", async () => {
       const { result } = renderHook(() => useAlertRules({
         liveNodes: [
-          { id: "GPU-A100-01", gpu: 98, mem: 85 },
+          { id: "GPU-A100-01", gpu: 98, mem: 85, temp: 72, status: "online" },
         ],
       }));
 
@@ -283,7 +294,7 @@ describe("useAlertRules", () => {
     it("should handle live latency data", async () => {
       const { result } = renderHook(() => useAlertRules({
         liveNodes: [
-          { id: "GPU-A100-01", gpu: 80, mem: 70 },
+          { id: "GPU-A100-01", gpu: 80, mem: 70, temp: 65, status: "online" },
         ],
         liveLatency: 2500,
       }));

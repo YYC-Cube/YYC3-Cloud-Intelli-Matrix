@@ -1,8 +1,8 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, dialog } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, shell } from 'electron';
+import path from 'path';
 
-let mainWindow = null;
-let tray = null;
+let mainWindow: Electron.BrowserWindow | null = null;
+let tray: Electron.Tray | null = null;
 
 const isMac = process.platform === 'darwin';
 
@@ -39,10 +39,9 @@ function createWindow() {
     mainWindow = null;
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    if (details.url.startsWith('http:') || details.url.startsWith('https:')) {
-      const { shell } = require('electron');
-      shell.openExternal(details.url);
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
     }
     return { action: 'deny' };
   });

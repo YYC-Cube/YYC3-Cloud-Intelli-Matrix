@@ -1,3 +1,14 @@
+/**
+ * @file: useOperationCenter.test.tsx
+ * @description: useOperationCenter.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 /**
  * useOperationCenter.test.tsx
@@ -22,6 +33,15 @@ vi.mock("sonner", () => ({
     info: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+vi.mock("../lib/yyc3-storage", () => ({
+  idbPut: vi.fn(),
+  idbGetAll: vi.fn(() => Promise.resolve([])),
+  idbDelete: vi.fn(),
+  idbPutMany: vi.fn(),
+  idbClear: vi.fn(),
+  onStorageChange: vi.fn(() => () => {}),
 }));
 
 describe("useOperationCenter", () => {

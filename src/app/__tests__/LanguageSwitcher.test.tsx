@@ -1,6 +1,17 @@
+/**
+ * @file: LanguageSwitcher.test.tsx
+ * @description: LanguageSwitcher.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
@@ -21,6 +32,10 @@ vi.mock("../hooks/useI18n", () => ({
 describe("LanguageSwitcher", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("should render language switcher button", () => {

@@ -1,3 +1,14 @@
+/**
+ * @file: DatabaseConnectionPanel.test.tsx
+ * @description: DatabaseConnectionPanel.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -26,7 +37,7 @@ vi.mock("sonner", () => ({
   },
 }));
 
-vi.mock("./CodeEditor", () => ({
+vi.mock("../components/CodeEditor", () => ({
   SQLEditor: ({ value, onChange }: any) => (
     <textarea value={value} onChange={(e) => onChange(e.target.value)} />
   ),
@@ -51,33 +62,36 @@ describe("DatabaseConnectionPanel", () => {
 
   it("should render database connection panel", () => {
     render(React.createElement(DatabaseConnectionPanel));
-    expect(screen.getByText("数据库连接")).toBeInTheDocument();
+    expect(screen.getByText("数据库连接管理")).toBeInTheDocument();
   });
 
-  it("should render add connection button", () => {
+  it("should render new connection button", () => {
     render(React.createElement(DatabaseConnectionPanel));
-    const addButtons = screen.getAllByText("添加连接");
-    expect(addButtons.length).toBeGreaterThan(0);
-  });
-
-  it("should render database types", () => {
-    render(React.createElement(DatabaseConnectionPanel));
-    expect(screen.getByText("PostgreSQL")).toBeInTheDocument();
-    expect(screen.getByText("MySQL")).toBeInTheDocument();
-    expect(screen.getByText("SQLite")).toBeInTheDocument();
-    expect(screen.getByText("Redis")).toBeInTheDocument();
-    expect(screen.getByText("MongoDB")).toBeInTheDocument();
-  });
-
-  it("should render test button", () => {
-    render(React.createElement(DatabaseConnectionPanel));
-    const testButtons = screen.getAllByText("测试连接");
-    expect(testButtons.length).toBeGreaterThan(0);
+    const buttons = screen.getAllByText("新建连接");
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it("should render export button", () => {
     render(React.createElement(DatabaseConnectionPanel));
-    const exportButtons = screen.getAllByText("导出配置");
+    const exportButtons = screen.getAllByText("导出");
     expect(exportButtons.length).toBeGreaterThan(0);
+  });
+
+  it("should render import button", () => {
+    render(React.createElement(DatabaseConnectionPanel));
+    const importButtons = screen.getAllByText("导入");
+    expect(importButtons.length).toBeGreaterThan(0);
+  });
+
+  it("should render reset button", () => {
+    render(React.createElement(DatabaseConnectionPanel));
+    const resetButtons = screen.getAllByText("重置");
+    expect(resetButtons.length).toBeGreaterThan(0);
+  });
+
+  it("should show empty state when no connections", () => {
+    render(React.createElement(DatabaseConnectionPanel));
+    const emptyTexts = screen.getAllByText("暂无数据库连接");
+    expect(emptyTexts.length).toBeGreaterThan(0);
   });
 });

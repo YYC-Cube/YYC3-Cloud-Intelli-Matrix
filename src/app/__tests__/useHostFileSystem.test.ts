@@ -1,3 +1,14 @@
+/**
+ * @file: useHostFileSystem.test.ts
+ * @description: useHostFileSystem.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
@@ -112,13 +123,13 @@ describe("useHostFileSystem", () => {
     expect(result.current.currentFileVersions).toEqual([]);
   });
 
-  it("should set search query", () => {
+  it("should set search query via searchFiles", async () => {
     const { result } = renderHook(() => useHostFileSystem());
-    
-    act(() => {
-      result.current.setSearchQuery("test");
+
+    await act(async () => {
+      await result.current.searchFiles("test");
     });
-    
+
     expect(result.current.searchQuery).toBe("test");
   });
 

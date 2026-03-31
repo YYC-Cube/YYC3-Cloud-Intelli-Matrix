@@ -1,3 +1,14 @@
+/**
+ * @file: LocalFileManager.test.tsx
+ * @description: LocalFileManager.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -9,9 +20,30 @@ vi.mock("../hooks/useLocalFileSystem", () => ({
   useLocalFileSystem: vi.fn(() => ({
     files: [],
     logs: [],
+    currentItems: [],
+    breadcrumbs: ["~/.yyc3-cloudpivot"],
+    currentPath: "~/.yyc3-cloudpivot",
+    selectedFile: null,
+    logLevelFilter: "all",
+    logSourceFilter: "all",
+    logSearchQuery: "",
+    logSources: [],
+    reports: [],
+    isGenerating: false,
     downloadLogs: vi.fn(),
     executeBackup: vi.fn(),
+    clearCache: vi.fn(),
     clearLogs: vi.fn(),
+    selectFile: vi.fn(),
+    navigateTo: vi.fn(),
+    goUp: vi.fn(),
+    getFileContent: vi.fn(() => ""),
+    saveFileContent: vi.fn(),
+    formatSize: vi.fn((n?: number) => n ? `${n} B` : "--"),
+    generateReport: vi.fn(),
+    setLogLevelFilter: vi.fn(),
+    setLogSourceFilter: vi.fn(),
+    setLogSearchQuery: vi.fn(),
   })),
 }));
 
@@ -31,6 +63,29 @@ vi.mock("../lib/view-context", () => ({
   }),
 }));
 
+vi.mock("../components/GlassCard", () => ({
+  GlassCard: ({ children, className, ...props }: any) => (
+    <div className={className} {...props}>{children}</div>
+  ),
+}));
+
+vi.mock("../components/FileBrowser", () => ({
+  FileBrowser: () => <div data-testid="file-browser">FileBrowser</div>,
+}));
+
+vi.mock("../components/LogViewer", () => ({
+  LogViewer: () => <div data-testid="log-viewer">LogViewer</div>,
+}));
+
+vi.mock("../components/ReportGenerator", () => ({
+  ReportGenerator: () => <div data-testid="report-generator">ReportGenerator</div>,
+}));
+
+vi.mock("../components/CodeEditor", () => ({
+  CodeEditor: () => <div data-testid="code-editor">CodeEditor</div>,
+  getLanguageLabel: vi.fn(() => "Text"),
+}));
+
 describe("LocalFileManager", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,31 +97,32 @@ describe("LocalFileManager", () => {
 
   it("should render local file manager page", () => {
     render(React.createElement(LocalFileManager));
-    expect(screen.getByText("本地文件管理器")).toBeInTheDocument();
+    // i18n mock returns key as-is, so t("fileManager.title") renders as "fileManager.title"
+    expect(screen.getByText("fileManager.title")).toBeInTheDocument();
   });
 
   it("should render tabs", () => {
     render(React.createElement(LocalFileManager));
-    expect(screen.getByText("文件浏览")).toBeInTheDocument();
-    expect(screen.getByText("日志查看器")).toBeInTheDocument();
-    expect(screen.getByText("报告生成器")).toBeInTheDocument();
+    // Tab labels come from t("fileManager.fileBrowse"), t("fileManager.logViewer"), t("fileManager.reportGen")
+    // These appear in both tab buttons and possibly elsewhere, so use getAllByText
+    expect(screen.getAllByText("fileManager.fileBrowse").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("fileManager.logViewer").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("fileManager.reportGen").length).toBeGreaterThan(0);
   });
 
   it("should render download logs button", () => {
     render(React.createElement(LocalFileManager));
-    const downloadButtons = screen.getAllByText("下载日志");
-    expect(downloadButtons.length).toBeGreaterThan(0);
+    // Quick action labels come from t() calls - text may appear in multiple elements
+    expect(screen.getAllByText("fileManager.downloadLogs").length).toBeGreaterThan(0);
   });
 
   it("should render backup button", () => {
     render(React.createElement(LocalFileManager));
-    const backupButtons = screen.getAllByText("执行备份");
-    expect(backupButtons.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("fileManager.executeBackup").length).toBeGreaterThan(0);
   });
 
   it("should render clear logs button", () => {
     render(React.createElement(LocalFileManager));
-    const clearButtons = screen.getAllByText("清空日志");
-    expect(clearButtons.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("fileManager.clearCache").length).toBeGreaterThan(0);
   });
 });

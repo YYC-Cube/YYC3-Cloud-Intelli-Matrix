@@ -13,7 +13,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { AppUser, Locale, AlertData, NodeData } from '../app/types';
+import type { AppUser, Locale, AlertData, NodeData } from '../types';
 
 // ============================================================
 // 用户状态

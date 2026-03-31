@@ -94,3 +94,33 @@ export interface QuickAction {
   description: string;
   color: string;
 }
+
+// ======== Notification Types ========
+
+export type IDENotificationSeverity = "info" | "warning" | "error" | "success";
+
+export interface IDENotification {
+  id: string;
+  title: string;
+  message: string;
+  severity: IDENotificationSeverity;
+  timestamp: string;
+  read: boolean;
+  source: string;
+}
+
+// ======== IDE Settings Types ========
+
+export interface IDESettings {
+  theme: "dark" | "light" | "cyberpunk";
+  fontSize: number;
+  fontFamily: string;
+  tabSize: number;
+  wordWrap: boolean;
+  minimap: boolean;
+  lineNumbers: boolean;
+  autoSave: boolean;
+  autoSaveDelay: number;
+  formatOnSave: boolean;
+  bracketPairColorization: boolean;
+}

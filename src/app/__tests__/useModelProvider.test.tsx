@@ -1,3 +1,14 @@
+/**
+ * @file: useModelProvider.test.tsx
+ * @description: useModelProvider.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 /**
  * useModelProvider.test.tsx

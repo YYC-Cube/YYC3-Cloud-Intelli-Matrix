@@ -1,3 +1,14 @@
+/**
+ * @file: useFollowUp.test.ts
+ * @description: useFollowUp.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
@@ -19,6 +30,7 @@ describe("useFollowUp", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     localStorage.clear();
   });
 
@@ -47,7 +59,7 @@ describe("useFollowUp", () => {
   });
 
   describe("drawer management", () => {
-    it("should open drawer with item", () => {
+    it("should open drawer with item", async () => {
       const { result } = renderHook(() => useFollowUp());
       
       expect(result.current.drawerOpen).toBe(false);
@@ -80,8 +92,9 @@ describe("useFollowUp", () => {
     });
 
     it("should clear drawer item after close delay", async () => {
+      vi.useFakeTimers();
       const { result } = renderHook(() => useFollowUp());
-      
+
       const testItem = result.current.allItems[0];
       act(() => {
         result.current.openDrawer(testItem);
@@ -96,14 +109,12 @@ describe("useFollowUp", () => {
       // Item should still be there immediately
       expect(result.current.drawerItem).toBe(testItem);
 
-      // Wait for animation delay
+      // Advance timers past the 300ms delay
       act(() => {
         vi.advanceTimersByTime(300);
       });
 
-      await waitFor(() => {
-        expect(result.current.drawerItem).toBeNull();
-      });
+      expect(result.current.drawerItem).toBeNull();
     });
   });
 

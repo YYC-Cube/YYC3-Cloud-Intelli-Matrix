@@ -1,3 +1,14 @@
+/**
+ * @file: ModelProviderPanel.test.tsx
+ * @description: ModelProviderPanel.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -12,7 +23,7 @@ vi.mock("../hooks/useModelProvider", () => ({
     ollamaModels: [],
     ollamaLoading: false,
     ollamaError: null,
-    stats: { totalProviders: 0, totalModels: 0, activeProviders: 0 },
+    stats: { total: 0, active: 0, totalProviders: 0, ollamaCount: 0, customProviders: 0 },
     modalOpen: false,
     openModal: vi.fn(),
     closeModal: vi.fn(),
@@ -58,42 +69,44 @@ describe("ModelProviderPanel", () => {
 
   it("should render model provider panel page", () => {
     render(React.createElement(ModelProviderPanel));
-    expect(screen.getByText("模型提供商")).toBeInTheDocument();
+    expect(screen.getByText("modelProvider.title")).toBeInTheDocument();
   });
 
   it("should render add model button", () => {
     render(React.createElement(ModelProviderPanel));
-    const addButtons = screen.getAllByText("添加模型");
+    const addButtons = screen.getAllByText("modelProvider.addModel");
     expect(addButtons.length).toBeGreaterThan(0);
   });
 
   it("should render ollama section", () => {
     render(React.createElement(ModelProviderPanel));
-    expect(screen.getByText("Ollama 本地模型")).toBeInTheDocument();
+    const elems = screen.getAllByText("modelProvider.ollamaLocal");
+    expect(elems.length).toBeGreaterThan(0);
   });
 
   it("should render refresh button", () => {
     render(React.createElement(ModelProviderPanel));
-    const refreshButtons = screen.getAllByText("刷新");
+    const refreshButtons = screen.getAllByText("common.refresh");
     expect(refreshButtons.length).toBeGreaterThan(0);
   });
 
   it("should render export button", () => {
     render(React.createElement(ModelProviderPanel));
-    const exportButtons = screen.getAllByText("导出配置");
+    const exportButtons = screen.getAllByText("导出");
     expect(exportButtons.length).toBeGreaterThan(0);
   });
 
   it("should render import button", () => {
     render(React.createElement(ModelProviderPanel));
-    const importButtons = screen.getAllByText("导入配置");
+    const importButtons = screen.getAllByText("导入");
     expect(importButtons.length).toBeGreaterThan(0);
   });
 
   it("should render stats section", () => {
     render(React.createElement(ModelProviderPanel));
-    expect(screen.getByText("服务商数量")).toBeInTheDocument();
-    expect(screen.getByText("模型总数")).toBeInTheDocument();
-    expect(screen.getByText("活跃服务商")).toBeInTheDocument();
+    expect(screen.getAllByText("modelProvider.totalModels").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("modelProvider.activeModels").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("服务商总数").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("modelProvider.ollamaModels").length).toBeGreaterThan(0);
   });
 });

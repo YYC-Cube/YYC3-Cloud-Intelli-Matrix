@@ -1,3 +1,14 @@
+/**
+ * @file: DataEditorPanel.test.tsx
+ * @description: DataEditorPanel.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -67,39 +78,47 @@ describe("DataEditorPanel", () => {
 
   it("should render data editor panel page", () => {
     render(React.createElement(DataEditorPanel));
-    expect(screen.getByText("数据编辑器")).toBeInTheDocument();
+    // Component renders "数据管理" as the header title
+    expect(screen.getByText("数据管理")).toBeInTheDocument();
   });
 
   it("should render models tab", () => {
     render(React.createElement(DataEditorPanel));
-    expect(screen.getByText("模型管理")).toBeInTheDocument();
+    // Tab label "模型管理" appears in the tab bar
+    const tabs = screen.getAllByText("模型管理");
+    expect(tabs.length).toBeGreaterThan(0);
   });
 
   it("should render nodes tab", () => {
     render(React.createElement(DataEditorPanel));
-    expect(screen.getByText("节点管理")).toBeInTheDocument();
+    const tabs = screen.getAllByText("节点管理");
+    expect(tabs.length).toBeGreaterThan(0);
   });
 
   it("should render agents tab", () => {
     render(React.createElement(DataEditorPanel));
-    expect(screen.getByText("Agent 管理")).toBeInTheDocument();
+    const tabs = screen.getAllByText("Agent 管理");
+    expect(tabs.length).toBeGreaterThan(0);
   });
 
   it("should render export tab", () => {
     render(React.createElement(DataEditorPanel));
-    expect(screen.getByText("配置中心")).toBeInTheDocument();
+    const tabs = screen.getAllByText("配置中心");
+    expect(tabs.length).toBeGreaterThan(0);
   });
 
   it("should render add button", () => {
     render(React.createElement(DataEditorPanel));
-    const addButtons = screen.getAllByText("添加");
+    // Component uses "新增" for the add button
+    const addButtons = screen.getAllByText("新增");
     expect(addButtons.length).toBeGreaterThan(0);
   });
 
-  it("should render save button", () => {
+  it("should render refresh button", () => {
     render(React.createElement(DataEditorPanel));
-    const saveButtons = screen.getAllByText("保存");
-    expect(saveButtons.length).toBeGreaterThan(0);
+    // Refresh button renders "刷新" - use getAllByText since StrictMode may double-render
+    const refreshButtons = screen.getAllByText("刷新");
+    expect(refreshButtons.length).toBeGreaterThan(0);
   });
 
   it("should render reset button", () => {

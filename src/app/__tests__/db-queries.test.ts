@@ -1,3 +1,14 @@
+/**
+ * @file: db-queries.test.ts
+ * @description: db-queries.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as dbQueries from "../lib/db-queries";
@@ -7,6 +18,10 @@ describe("db-queries", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // Reset module-level caches to prevent state pollution across tests
+    dbQueries.resetDbModels();
+    dbQueries.resetDbAgents();
+    dbQueries.resetDbNodes();
   });
 
   afterEach(() => {

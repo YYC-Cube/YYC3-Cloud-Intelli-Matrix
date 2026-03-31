@@ -86,13 +86,13 @@ export function IDEStatusBar({ activeTab, totalErrors, totalWarnings, isOnline }
         {/* Line / Column */}
         {activeTab && (
           <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.55rem" }}>
-            Ln {lines}, Col 1
+            {t("ide.lineCol", { line: lines, col: 1 })}
           </span>
         )}
 
         {/* Indentation */}
         <span className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.55rem" }}>
-          Spaces: 2
+          {t("ide.spaces", { n: 2 })}
         </span>
 
         {/* Encoding */}

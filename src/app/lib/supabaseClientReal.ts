@@ -245,7 +245,7 @@ export async function signUp(email: string, password: string, name?: string) {
 
   return {
     data: {
-      user: toAppUser(data.user),
+      user: data.user ? toAppUser(data.user) : null,
       session: data.session ? toAppSession(data.session) : null,
     },
     error: null,

@@ -112,7 +112,7 @@ export function CodePreviewPanel({
           />
         ) : (
           <div className="flex items-center justify-center h-full text-[rgba(0,212,255,0.2)]" style={{ fontSize: "0.72rem" }}>
-            No active file
+            {t("ide.noActiveFile")}
           </div>
         )}
       </div>

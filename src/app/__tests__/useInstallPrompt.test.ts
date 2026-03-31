@@ -1,7 +1,34 @@
+/**
+ * @file: useInstallPrompt.test.ts
+ * @description: useInstallPrompt.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
+
+/** Helper: dispatch a beforeinstallprompt-like event with mock properties */
+function dispatchBeforeInstallPrompt(mockEvent: {
+  preventDefault?: ReturnType<typeof vi.fn>;
+  prompt: ReturnType<typeof vi.fn>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}) {
+  const preventDefault = mockEvent.preventDefault ?? vi.fn();
+  // Create an event that has preventDefault, prompt, and userChoice directly
+  const event = new Event("beforeinstallprompt") as any;
+  event.preventDefault = preventDefault;
+  event.prompt = mockEvent.prompt;
+  event.userChoice = mockEvent.userChoice;
+  window.dispatchEvent(event);
+  return preventDefault;
+}
 
 describe("useInstallPrompt", () => {
   beforeEach(() => {
@@ -63,15 +90,12 @@ describe("useInstallPrompt", () => {
       expect(result.current.canInstall).toBe(false);
 
       const mockEvent = {
-        preventDefault: vi.fn(),
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       await waitFor(() => {
@@ -83,9 +107,12 @@ describe("useInstallPrompt", () => {
       const preventDefault = vi.fn();
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: { preventDefault },
-        }));
+        const event = new Event("beforeinstallprompt") as any;
+        event.preventDefault = preventDefault;
+        // Add dummy prompt/userChoice so hook can store it
+        event.prompt = vi.fn();
+        event.userChoice = Promise.resolve({ outcome: "accepted" as const });
+        window.dispatchEvent(event);
       });
 
       expect(preventDefault).toHaveBeenCalled();
@@ -98,13 +125,11 @@ describe("useInstallPrompt", () => {
 
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       await waitFor(() => {
@@ -124,13 +149,11 @@ describe("useInstallPrompt", () => {
 
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "dismissed" }),
+        userChoice: Promise.resolve({ outcome: "dismissed" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       await waitFor(() => {
@@ -160,13 +183,11 @@ describe("useInstallPrompt", () => {
 
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       await waitFor(() => {
@@ -187,13 +208,11 @@ describe("useInstallPrompt", () => {
 
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       act(() => {
@@ -211,13 +230,11 @@ describe("useInstallPrompt", () => {
 
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       expect(result.current.canInstall).toBe(false);
@@ -253,7 +270,7 @@ describe("useInstallPrompt", () => {
       act(() => {
         mockMediaQuery.matches = true;
         if (mockMediaQuery.onchange) {
-          mockMediaQuery.onchange({ matches: true } as MediaQueryListEvent);
+          (mockMediaQuery.onchange as any)({ matches: true } as MediaQueryListEvent);
         }
       });
 
@@ -278,18 +295,16 @@ describe("useInstallPrompt", () => {
 
   describe("integration", () => {
     it("should handle complete install workflow", async () => {
-      const { result } = renderHook(() => useInstallPrompt());
+      const { result, unmount } = renderHook(() => useInstallPrompt());
 
       // Trigger beforeinstallprompt
       const mockEvent = {
         prompt: vi.fn(),
-        userChoice: Promise.resolve({ outcome: "accepted" }),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
       };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent);
       });
 
       await waitFor(() => {
@@ -303,27 +318,34 @@ describe("useInstallPrompt", () => {
 
       expect(result.current.canInstall).toBe(false);
 
-      // Clear localStorage and trigger again
+      // Clear localStorage and unmount to reset internal dismissed state
       localStorage.removeItem("pwa_install_dismissed");
+      unmount();
+
+      // Re-render the hook — it will read fresh localStorage (no dismissed flag)
+      const { result: result2 } = renderHook(() => useInstallPrompt());
+
+      const mockEvent2 = {
+        prompt: vi.fn(),
+        userChoice: Promise.resolve({ outcome: "accepted" as const }),
+      };
 
       act(() => {
-        window.dispatchEvent(new CustomEvent("beforeinstallprompt", {
-          detail: mockEvent,
-        }));
+        dispatchBeforeInstallPrompt(mockEvent2);
       });
 
       await waitFor(() => {
-        expect(result.current.canInstall).toBe(true);
+        expect(result2.current.canInstall).toBe(true);
       });
 
       // Install
       const installed = await act(async () => {
-        return await result.current.promptInstall();
+        return await result2.current.promptInstall();
       });
 
       expect(installed).toBe(true);
-      expect(result.current.isInstalled).toBe(true);
-      expect(result.current.canInstall).toBe(false);
+      expect(result2.current.isInstalled).toBe(true);
+      expect(result2.current.canInstall).toBe(false);
     });
   });
 });

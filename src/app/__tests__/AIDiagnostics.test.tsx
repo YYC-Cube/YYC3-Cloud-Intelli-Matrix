@@ -1,3 +1,14 @@
+/**
+ * @file: AIDiagnostics.test.tsx
+ * @description: AIDiagnostics.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";

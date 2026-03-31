@@ -1,3 +1,14 @@
+/**
+ * @file: useTerminal.test.ts
+ * @description: useTerminal.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
@@ -327,8 +338,9 @@ describe("useTerminal", () => {
 
       act(() => {
         result.current.handleInputChange("cp");
-        expect(result.current.completions.length).toBeGreaterThan(0);
       });
+
+      expect(result.current.completions.length).toBeGreaterThan(0);
 
       act(() => {
         result.current.handleInputChange("");
@@ -433,7 +445,7 @@ describe("useTerminal", () => {
       });
 
       expect(result.current.inputValue).toContain(completion);
-      expect(result.current.inputValue).endsWith(" ");
+      expect(result.current.inputValue.endsWith(" ")).toBe(true);
     });
   });
 

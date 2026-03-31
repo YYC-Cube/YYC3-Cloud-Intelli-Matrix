@@ -1,3 +1,14 @@
+/**
+ * @file: useServiceLoop.test.tsx
+ * @description: useServiceLoop.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 /**
  * useServiceLoop.test.tsx
@@ -26,13 +37,33 @@ vi.mock("sonner", () => ({
   },
 }));
 
+// Mock the IndexedDB-backed storage to prevent state pollution across tests
+vi.mock("../lib/yyc3-storage", () => ({
+  idbGetAll: vi.fn().mockResolvedValue([]),
+  idbPut: vi.fn().mockResolvedValue(undefined),
+  idbPutMany: vi.fn().mockResolvedValue(undefined),
+  idbDelete: vi.fn().mockResolvedValue(undefined),
+  idbClear: vi.fn().mockResolvedValue(undefined),
+  idbCount: vi.fn().mockResolvedValue(0),
+  onStorageChange: vi.fn(() => () => {}),
+  ALL_STORES: [],
+  clearAllLocalStorage: vi.fn(),
+}));
+
+// Also mock broadcast-channel to avoid cross-test pollution
+vi.mock("../lib/broadcast-channel", () => ({
+  getSharedChannel: vi.fn(() => null),
+}));
+
 describe("useServiceLoop", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
     cleanup();
+    localStorage.clear();
   });
 
   // ----------------------------------------------------------

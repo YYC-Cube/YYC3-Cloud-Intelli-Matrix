@@ -1,15 +1,34 @@
+/**
+ * @file: PWAInstallPrompt.test.tsx
+ * @description: PWAInstallPrompt.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { PWAInstallPrompt } from "../components/PWAInstallPrompt";
 
 vi.mock("../hooks/useInstallPrompt", () => ({
   useInstallPrompt: vi.fn(),
 }));
 
+vi.mock("../components/YYC3Logo", () => ({
+  YYC3Logo: () => <div data-testid="yyc3-logo" />,
+}));
+
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
 describe("PWAInstallPrompt", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("should not render when already installed", () => {
     vi.mocked(useInstallPrompt).mockReturnValue({
       isInstalled: true,
@@ -48,7 +67,8 @@ describe("PWAInstallPrompt", () => {
 
     expect(screen.getByText("安装 CP-IM Cloud")).toBeInTheDocument();
     expect(screen.getByText("添加到桌面，获得原生应用体验，支持离线使用")).toBeInTheDocument();
-    expect(screen.getByText("安装到桌面")).toBeInTheDocument();
+    const installButtons = screen.getAllByText("安装到桌面");
+    expect(installButtons.length).toBeGreaterThan(0);
   });
 
   it("should call promptInstall when install button is clicked", () => {
@@ -62,8 +82,8 @@ describe("PWAInstallPrompt", () => {
 
     render(<PWAInstallPrompt />);
 
-    const installButton = screen.getByText("安装到桌面");
-    fireEvent.click(installButton);
+    const installBtns = screen.getAllByRole("button", { name: /安装到桌面/ });
+    fireEvent.click(installBtns[0]);
 
     expect(mockPromptInstall).toHaveBeenCalledTimes(1);
   });
@@ -77,10 +97,12 @@ describe("PWAInstallPrompt", () => {
       dismiss: mockDismiss,
     });
 
-    render(<PWAInstallPrompt />);
+    const { container } = render(<PWAInstallPrompt />);
 
-    const closeButton = screen.getByRole("button");
-    fireEvent.click(closeButton);
+    // The close button is the one with "absolute top-2 right-2" classes (contains only X icon)
+    const closeButton = container.querySelector("button.absolute.top-2");
+    expect(closeButton).toBeTruthy();
+    fireEvent.click(closeButton!);
 
     expect(mockDismiss).toHaveBeenCalledTimes(1);
   });

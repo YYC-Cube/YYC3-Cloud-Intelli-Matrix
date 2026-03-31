@@ -1,9 +1,21 @@
+/**
+ * @file: Dashboard.test.tsx
+ * @description: Dashboard.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { Dashboard } from "../components/Dashboard";
+import { ViewContext } from "../lib/view-context";
 
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
@@ -52,6 +64,11 @@ vi.mock("../lib/view-context", () => ({
     isTablet: false,
     isDesktop: true,
   }),
+  useView: vi.fn(() => ({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+  })),
 }));
 
 vi.mock("../hooks/useI18n", () => ({
@@ -65,15 +82,19 @@ vi.mock("../hooks/useI18n", () => ({
 vi.mock("../stores/dashboard-stores", () => ({
   modelPerfStore: {
     getState: vi.fn(() => ({ data: [] })),
+    getAll: vi.fn(() => []),
   },
   modelDistStore: {
     getState: vi.fn(() => ({ data: [] })),
+    getAll: vi.fn(() => []),
   },
   radarStore: {
     getState: vi.fn(() => ({ data: [] })),
+    getAll: vi.fn(() => []),
   },
   recentOpsStore: {
     getState: vi.fn(() => ({ data: [] })),
+    getAll: vi.fn(() => []),
   },
 }));
 
@@ -83,37 +104,41 @@ describe("Dashboard", () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
   });
 
   it("should render dashboard page", () => {
     render(React.createElement(Dashboard));
-    expect(screen.getByText("实时监控")).toBeInTheDocument();
+    // The component renders stat cards and sections using t() keys
+    expect(screen.getByText("monitor.throughputChart")).toBeInTheDocument();
   });
 
   it("should render chart tabs on mobile", () => {
-    const { ViewContext } = require("../lib/view-context");
-    ViewContext.mockReturnValue({
-      isMobile: true,
-      isTablet: false,
-      isDesktop: false,
-    });
+    // Wrap Dashboard with mobile ViewContext provider
+    const mobileViewValue = { breakpoint: "sm" as const, isMobile: true, isTablet: false, isDesktop: false, width: 375, isTouch: true };
+    const MobileWrapper = ({ children }: { children: React.ReactNode }) => (
+      React.createElement(ViewContext.Provider, { value: mobileViewValue }, children)
+    );
 
-    render(React.createElement(Dashboard));
-    expect(screen.getByText("雷达图")).toBeInTheDocument();
-    expect(screen.getByText("性能趋势")).toBeInTheDocument();
-    expect(screen.getByText("预测分析")).toBeInTheDocument();
+    render(React.createElement(Dashboard), { wrapper: MobileWrapper });
+    // ChartTabBar renders t() keys for tabs
+    expect(screen.getByText("monitor.radarTab")).toBeInTheDocument();
+    expect(screen.getByText("monitor.performanceTab")).toBeInTheDocument();
+    expect(screen.getByText("monitor.predictionTab")).toBeInTheDocument();
   });
 
   it("should render refresh button", () => {
     render(React.createElement(Dashboard));
-    const refreshButtons = screen.getAllByText("刷新");
+    // The refresh button renders t("monitor.refresh") text (but only on non-mobile)
+    const refreshButtons = screen.getAllByText("monitor.refresh");
     expect(refreshButtons.length).toBeGreaterThan(0);
   });
 
-  it("should render maximize button", () => {
+  it("should render panorama button", () => {
     render(React.createElement(Dashboard));
-    const maximizeButtons = screen.getAllByText("全屏");
-    expect(maximizeButtons.length).toBeGreaterThan(0);
+    // The panorama/view-all button renders t("monitor.panorama") text (non-mobile)
+    const panoramaButtons = screen.getAllByText("monitor.panorama");
+    expect(panoramaButtons.length).toBeGreaterThan(0);
   });
 });

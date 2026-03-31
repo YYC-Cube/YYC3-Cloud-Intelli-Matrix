@@ -1,3 +1,14 @@
+/**
+ * @file: network-utils.test.ts
+ * @description: network-utils.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as networkUtils from "../lib/network-utils";
@@ -52,6 +63,7 @@ describe("network-utils", () => {
       const storedConfig: Partial<NetworkConfig> = {
         serverAddress: "192.168.1.100",
         port: "8080",
+        wsUrl: "ws://192.168.1.100:8080/ws",
       };
 
       localStorage.setItem("network_config", JSON.stringify(storedConfig));
@@ -139,12 +151,14 @@ describe("network-utils", () => {
 
       const mockSetLocalDescription = vi.fn().mockResolvedValue(undefined);
 
-      global.RTCPeerConnection = vi.fn().mockImplementation(() => ({
-        createDataChannel: vi.fn(),
-        createOffer: mockCreateOffer,
-        setLocalDescription: mockSetLocalDescription,
-        close: vi.fn(),
-      })) as any;
+      global.RTCPeerConnection = vi.fn().mockImplementation(function() {
+        return {
+          createDataChannel: vi.fn(),
+          createOffer: mockCreateOffer,
+          setLocalDescription: mockSetLocalDescription,
+          close: vi.fn(),
+        };
+      }) as any;
 
       const ip = await networkUtils.getLocalIP();
 
@@ -158,12 +172,14 @@ describe("network-utils", () => {
 
       const mockSetLocalDescription = vi.fn().mockResolvedValue(undefined);
 
-      global.RTCPeerConnection = vi.fn().mockImplementation(() => ({
-        createDataChannel: vi.fn(),
-        createOffer: mockCreateOffer,
-        setLocalDescription: mockSetLocalDescription,
-        close: vi.fn(),
-      })) as any;
+      global.RTCPeerConnection = vi.fn().mockImplementation(function() {
+        return {
+          createDataChannel: vi.fn(),
+          createOffer: mockCreateOffer,
+          setLocalDescription: mockSetLocalDescription,
+          close: vi.fn(),
+        };
+      }) as any;
 
       const ip = await networkUtils.getLocalIP();
 
@@ -189,12 +205,14 @@ describe("network-utils", () => {
 
       const mockSetLocalDescription = vi.fn().mockResolvedValue(undefined);
 
-      global.RTCPeerConnection = vi.fn().mockImplementation(() => ({
-        createDataChannel: vi.fn(),
-        createOffer: mockCreateOffer,
-        setLocalDescription: mockSetLocalDescription,
-        close: vi.fn(),
-      })) as any;
+      global.RTCPeerConnection = vi.fn().mockImplementation(function() {
+        return {
+          createDataChannel: vi.fn(),
+          createOffer: mockCreateOffer,
+          setLocalDescription: mockSetLocalDescription,
+          close: vi.fn(),
+        };
+      }) as any;
 
       const interfaces = await networkUtils.getNetworkInterfaces();
 
@@ -257,13 +275,12 @@ describe("network-utils", () => {
 
   describe("testWebSocketConnection", () => {
     it("should return success when connection opens", async () => {
-      const mockWebSocket = vi.fn().mockImplementation(() => {
+      const instance: any = { close: vi.fn() };
+      const mockWebSocket = vi.fn().mockImplementation(function(this: any) {
         setTimeout(() => {
-          mockWebSocket.mock.instances[0].onopen();
+          instance.onopen();
         }, 10);
-        return {
-          close: vi.fn(),
-        };
+        return instance;
       });
 
       global.WebSocket = mockWebSocket as any;
@@ -275,13 +292,12 @@ describe("network-utils", () => {
     });
 
     it("should return failure on connection error", async () => {
-      const mockWebSocket = vi.fn().mockImplementation(() => {
+      const instance: any = { close: vi.fn() };
+      const mockWebSocket = vi.fn().mockImplementation(function(this: any) {
         setTimeout(() => {
-          mockWebSocket.mock.instances[0].onerror();
+          instance.onerror();
         }, 10);
-        return {
-          close: vi.fn(),
-        };
+        return instance;
       });
 
       global.WebSocket = mockWebSocket as any;
@@ -293,13 +309,12 @@ describe("network-utils", () => {
     });
 
     it("should return failure on connection close", async () => {
-      const mockWebSocket = vi.fn().mockImplementation(() => {
+      const instance: any = { close: vi.fn() };
+      const mockWebSocket = vi.fn().mockImplementation(function(this: any) {
         setTimeout(() => {
-          mockWebSocket.mock.instances[0].onclose({ reason: "Connection closed" });
+          instance.onclose({ reason: "Connection closed" });
         }, 10);
-        return {
-          close: vi.fn(),
-        };
+        return instance;
       });
 
       global.WebSocket = mockWebSocket as any;
@@ -311,9 +326,11 @@ describe("network-utils", () => {
     });
 
     it("should timeout after specified duration", async () => {
-      const mockWebSocket = vi.fn().mockImplementation(() => ({
-        close: vi.fn(),
-      }));
+      const mockWebSocket = vi.fn().mockImplementation(function(this: any) {
+        return {
+          close: vi.fn(),
+        };
+      });
 
       global.WebSocket = mockWebSocket as any;
 
@@ -324,7 +341,7 @@ describe("network-utils", () => {
     });
 
     it("should handle WebSocket constructor error", async () => {
-      global.WebSocket = vi.fn().mockImplementation(() => {
+      global.WebSocket = vi.fn().mockImplementation(function(this: any) {
         throw new Error("Invalid URL");
       }) as any;
 
@@ -357,8 +374,16 @@ describe("network-utils", () => {
     });
 
     it("should timeout after specified duration", async () => {
-      global.fetch = vi.fn().mockImplementation(() => {
-        return new Promise(() => {});
+      global.fetch = vi.fn().mockImplementation((_url: string, options: any) => {
+        return new Promise((_resolve, reject) => {
+          if (options?.signal) {
+            options.signal.addEventListener("abort", () => {
+              const err = new Error("The operation was aborted.");
+              err.name = "AbortError";
+              reject(err);
+            });
+          }
+        });
       }) as any;
 
       const result = await networkUtils.testHTTPConnection("http://localhost:8080", 100);

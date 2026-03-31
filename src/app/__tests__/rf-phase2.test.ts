@@ -253,6 +253,7 @@ describe("RF-007: useAlertRules 复用 usePersistedList", () => {
 
   it("useAlertRules 不再直接导入底层 idbGetAll/idbPut", async () => {
     try {
+      // @ts-expect-error -- Vite ?raw import
       const source = await import("../hooks/useAlertRules?raw") as any;
       if (typeof source.default === "string") {
         // 验证不包含直接的 idbGetAll/idbPut 导入

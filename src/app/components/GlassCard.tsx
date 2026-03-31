@@ -1,3 +1,14 @@
+/**
+ * @file: GlassCard.tsx
+ * @description: GlassCard.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 import * as React from "react";
 import { forwardRef } from "react";
 

@@ -4,7 +4,7 @@
  * IDE 页面 Mock 数据
  */
 
-import type { IDEFile, IDEProject, ChatMessage, GitChange, GitCommit, GitBranch } from "./ide-types";
+import type { IDEFile, IDEProject, ChatMessage, GitChange, GitCommit, GitBranch, IDENotification } from "./ide-types";
 
 export const MOCK_FILE_TREE: IDEFile[] = [
   {
@@ -542,4 +542,16 @@ export const MOCK_GIT_COMMITS: GitCommit[] = [
   { id: "cm-6", hash: "f1b6e3c", message: "chore: update dependencies, fix lint warnings", author: "YYC3 Dev", date: "8 hr ago", branch: "develop", filesChanged: 2, additions: 15, deletions: 10 },
   { id: "cm-7", hash: "g8c4a2d", message: "feat(monitor): add GPU temperature heatmap", author: "YYC3 Dev", date: "1 day ago", branch: "main", filesChanged: 3, additions: 156, deletions: 0 },
   { id: "cm-8", hash: "h5d9b1e", message: "fix(security): patch CSP header configuration", author: "YYC3 Dev", date: "1 day ago", branch: "main", filesChanged: 1, additions: 4, deletions: 2 },
+];
+
+// ======== Notification Mock Data ========
+
+export const MOCK_NOTIFICATIONS: IDENotification[] = [
+  { id: "notif-1", title: "Build Succeeded", message: "Production build completed in 3.42s", severity: "success", timestamp: "2 min ago", read: false, source: "CI/CD" },
+  { id: "notif-2", title: "GPU Alert", message: "GPU-H100-02 memory usage at 98%", severity: "error", timestamp: "5 min ago", read: false, source: "Monitor" },
+  { id: "notif-3", title: "New Commit", message: "feat(ide): add model selector to top bar", severity: "info", timestamp: "10 min ago", read: false, source: "Git" },
+  { id: "notif-4", title: "Pull Request Merged", message: "PR #42: fix(patrol): correct health check interval", severity: "success", timestamp: "30 min ago", read: true, source: "GitHub" },
+  { id: "notif-5", title: "Storage Warning", message: "NAS-Storage-01 capacity reached 85.8%", severity: "warning", timestamp: "1 hr ago", read: true, source: "Monitor" },
+  { id: "notif-6", title: "Dependency Update", message: "3 dependencies have security updates available", severity: "warning", timestamp: "2 hr ago", read: true, source: "npm" },
+  { id: "notif-7", title: "AI Model Offline", message: "DeepSeek-V3 is currently unavailable", severity: "error", timestamp: "3 hr ago", read: true, source: "AI Service" },
 ];

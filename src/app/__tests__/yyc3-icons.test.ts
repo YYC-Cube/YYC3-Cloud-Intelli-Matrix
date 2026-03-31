@@ -1,3 +1,14 @@
+/**
+ * @file: yyc3-icons.test.ts
+ * @description: yyc3-icons.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 import { describe, it, expect } from "vitest";
 import { icons, iconsCDN } from "../lib/yyc3-icons";
 
@@ -66,9 +77,9 @@ describe("yyc3-icons", () => {
       expect(icons.logo512).toBe("/yyc3-icons/Web App/android-chrome-512.png");
     });
 
-    it("should have all 32 icon paths", () => {
+    it("should have all 45 icon paths (32 unique + 13 aliases)", () => {
       const iconKeys = Object.keys(icons);
-      expect(iconKeys.length).toBe(32);
+      expect(iconKeys.length).toBe(45);
     });
   });
 
@@ -81,11 +92,11 @@ describe("yyc3-icons", () => {
     });
 
     it("should have all Web App icon CDN paths", () => {
-      expect(iconsCDN.favicon16).toContain("Web%20App/favicon-16.png");
-      expect(iconsCDN.favicon32).toContain("Web%20App/favicon-32.png");
-      expect(iconsCDN.webAppChrome192).toContain("Web%20App/android-chrome-192.png");
-      expect(iconsCDN.webAppChrome512).toContain("Web%20App/android-chrome-512.png");
-      expect(iconsCDN.webAppAppleTouch).toContain("Web%20App/apple-touch-icon.png");
+      expect(iconsCDN.favicon16).toContain("Web App/favicon-16.png");
+      expect(iconsCDN.favicon32).toContain("Web App/favicon-32.png");
+      expect(iconsCDN.webAppChrome192).toContain("Web App/android-chrome-192.png");
+      expect(iconsCDN.webAppChrome512).toContain("Web App/android-chrome-512.png");
+      expect(iconsCDN.webAppAppleTouch).toContain("Web App/apple-touch-icon.png");
     });
 
     it("should have all iOS icon CDN paths", () => {
@@ -129,9 +140,9 @@ describe("yyc3-icons", () => {
       expect(iconsCDN.watchOSHome).toContain("Home%20Screen.png");
     });
 
-    it("should have all 32 CDN icon paths", () => {
+    it("should have all 45 CDN icon paths (32 unique + 13 aliases)", () => {
       const iconKeys = Object.keys(iconsCDN);
-      expect(iconKeys.length).toBe(32);
+      expect(iconKeys.length).toBe(45);
     });
   });
 

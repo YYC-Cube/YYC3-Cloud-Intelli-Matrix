@@ -1,3 +1,14 @@
+/**
+ * @file: usePatrol.test.ts
+ * @description: usePatrol.test.ts description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [type]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
@@ -70,10 +81,9 @@ describe("usePatrol", () => {
     const { result } = renderHook(() => usePatrol());
     const initialEnabled = result.current.schedule.enabled;
     act(() => {
-      result.current.toggleAutoPatrol();
+      result.current.toggleAutoPatrol(!initialEnabled);
     });
-    // The toggle function doesn't take parameters, it just flips the enabled state
-    // We can verify the function was called successfully
-    expect(result.current.schedule.enabled).toBeDefined();
+    // Verify the enabled state was toggled
+    expect(result.current.schedule.enabled).toBe(!initialEnabled);
   });
 });

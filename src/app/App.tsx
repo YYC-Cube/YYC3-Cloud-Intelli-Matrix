@@ -1,3 +1,14 @@
+/**
+ * @file: App.tsx
+ * @description: App.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 import React, { useState, useEffect, useCallback } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./routes";
@@ -41,7 +52,8 @@ if (typeof window !== "undefined") {
 
   // Layer 0: legacy window.onerror — return true to fully swallow the error
   const _prevOnerror = window.onerror;
-  window.onerror = function (message, source, _lineno, _colno, error) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  window.onerror = function (this: Window & typeof globalThis, message, source, _lineno, _colno, error) {
     const name = error?.name || error?.constructor?.name || "";
     const msg = String(message || "");
     const src = String(source || "");
@@ -50,7 +62,7 @@ if (typeof window !== "undefined") {
       return true; // suppress completely
     }
     if (typeof _prevOnerror === "function") {
-      return (_prevOnerror as typeof window.onerror).apply(this, arguments as unknown as Parameters<NonNullable<typeof window.onerror>>);
+      return _prevOnerror.call(this, message, source, _lineno, _colno, error);
     }
     return false;
   };

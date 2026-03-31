@@ -77,7 +77,7 @@ export function formatSize(bytes: number): string {
 }
 
 /** 判断文件是否为文本类型 */
-function isTextFile(name: string): boolean {
+export function isTextFile(name: string): boolean {
   const textExts = new Set([
     "txt", "md", "json", "yaml", "yml", "toml", "xml", "csv", "tsv",
     "log", "ini", "cfg", "conf", "env", "sh", "bash", "zsh",
@@ -92,7 +92,7 @@ function isTextFile(name: string): boolean {
 }
 
 /** 判断文件是否为图片类型 */
-function isImageFile(name: string): boolean {
+export function isImageFile(name: string): boolean {
   return new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "bmp"]).has(getExtension(name));
 }
 
@@ -313,7 +313,7 @@ export function useHostFileSystem() {
 
     try {
       setLoading(true);
-      const handle = await (window as { showDirectoryPicker?: (options: { mode: string }) => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker({
+      const handle = await (window as unknown as { showDirectoryPicker?: (options: { mode: string }) => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker!({
         mode: "readwrite",
       });
       rootRef.current = handle;

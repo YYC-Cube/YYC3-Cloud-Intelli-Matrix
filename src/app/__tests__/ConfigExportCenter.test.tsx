@@ -1,6 +1,17 @@
+/**
+ * @file: ConfigExportCenter.test.tsx
+ * @description: ConfigExportCenter.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { ConfigExportCenter } from "../components/ConfigExportCenter";
@@ -55,12 +66,12 @@ describe("ConfigExportCenter", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    cleanup();
   });
 
   it("should render config export center page", () => {
     render(React.createElement(ConfigExportCenter));
-    expect(screen.getByText("配置导入导出")).toBeInTheDocument();
+    expect(screen.getByText("配置中心")).toBeInTheDocument();
   });
 
   it("should render export modules", () => {
@@ -73,19 +84,19 @@ describe("ConfigExportCenter", () => {
 
   it("should render export button", () => {
     render(React.createElement(ConfigExportCenter));
-    const exportButtons = screen.getAllByText("导出配置");
+    const exportButtons = screen.getAllByText("导出选中");
     expect(exportButtons.length).toBeGreaterThan(0);
   });
 
   it("should render import button", () => {
     render(React.createElement(ConfigExportCenter));
-    const importButtons = screen.getAllByText("导入配置");
+    const importButtons = screen.getAllByText("粘贴导入");
     expect(importButtons.length).toBeGreaterThan(0);
   });
 
   it("should render reset button", () => {
     render(React.createElement(ConfigExportCenter));
-    const resetButtons = screen.getAllByText("重置配置");
+    const resetButtons = screen.getAllByText("恢复默认");
     expect(resetButtons.length).toBeGreaterThan(0);
   });
 });

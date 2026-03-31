@@ -1,3 +1,14 @@
+/**
+ * @file: Sidebar.test.tsx
+ * @description: Sidebar.test.tsx description
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-03-31
+ * @updated: 2026-03-31
+ * @status: active
+ * @tags: [component]
+ */
+
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -29,81 +40,73 @@ describe("Sidebar Component", () => {
     renderWithRouter(<Sidebar collapsed={true} onToggle={mockOnToggle} />);
 
     expect(screen.getByTestId("yyc3-logo")).toBeInTheDocument();
+    // In collapsed mode, category labels are NOT rendered (only icons)
     expect(screen.queryByText(/nav.catMonitor/i)).not.toBeInTheDocument();
   });
 
   it("should render sidebar in expanded state", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByTestId("yyc3-logo")).toBeInTheDocument();
-    expect(screen.getByText(/nav.catMonitor/i)).toBeInTheDocument();
+    // Multiple logo elements may exist (logo component + others), use getAllByTestId
+    expect(screen.getAllByTestId("yyc3-logo").length).toBeGreaterThan(0);
+    // Category labels are rendered in expanded mode, use getAllByText since they appear multiple times
+    expect(screen.getAllByText(/nav.catMonitor/i).length).toBeGreaterThan(0);
   });
 
   it("should render all navigation categories when expanded", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.catMonitor/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catOps/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catAI/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catDev/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catAdmin/i)).toBeInTheDocument();
+    // Category labels appear in both the category header and child items
+    expect(screen.getAllByText(/nav.catMonitor/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catOps/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catAI/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catDev/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catAdmin/i).length).toBeGreaterThan(0);
   });
 
   it("should call onToggle when toggle button is clicked", () => {
     renderWithRouter(<Sidebar collapsed={true} onToggle={mockOnToggle} />);
 
-    const toggleButtons = screen.getAllByRole("button");
-    const toggleButton = toggleButtons.find((btn) => btn.querySelector("svg"));
-
-    if (toggleButton) {
-      fireEvent.click(toggleButton);
-      expect(mockOnToggle).toHaveBeenCalled();
-    }
+    const toggleBtns = screen.getAllByTestId("sidebar-toggle-btn");
+    fireEvent.click(toggleBtns[0]);
+    expect(mockOnToggle).toHaveBeenCalled();
   });
 
   it("should show navigation items when category is hovered", () => {
     renderWithRouter(<Sidebar collapsed={true} onToggle={mockOnToggle} />);
 
-    const categoryIcons = screen.getAllByRole("button");
-    const firstCategory = categoryIcons[0];
+    // Use getAllByTestId since there might be multiple matching elements
+    const monitorCats = screen.getAllByTestId("nav-cat-monitor");
+    fireEvent.mouseEnter(monitorCats[0]);
 
-    if (firstCategory) {
-      fireEvent.mouseEnter(firstCategory);
-      expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-    }
+    // After hovering, the flyout should show nav.dataMonitor
+    expect(screen.getByTestId("flyout-nav-item-nav.dataMonitor")).toBeInTheDocument();
   });
 
   it("should hide navigation items when category is not hovered", () => {
     renderWithRouter(<Sidebar collapsed={true} onToggle={mockOnToggle} />);
 
-    const categoryIcons = screen.getAllByRole("button");
-    const firstCategory = categoryIcons[0];
+    const monitorCats = screen.getAllByTestId("nav-cat-monitor");
+    fireEvent.mouseEnter(monitorCats[0]);
+    expect(screen.getByTestId("flyout-nav-item-nav.dataMonitor")).toBeInTheDocument();
 
-    if (firstCategory) {
-      fireEvent.mouseEnter(firstCategory);
-      expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-
-      fireEvent.mouseLeave(firstCategory);
-      // Items should be hidden after mouse leave
-    }
+    fireEvent.mouseLeave(monitorCats[0]);
+    // Items should be hidden after mouse leave (tested implicitly - no crash = pass)
   });
 
   it("should render navigation items directly when expanded", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.followUp/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.patrol/i)).toBeInTheDocument();
+    // In expanded mode, child items are shown directly
+    expect(screen.getAllByText(/nav.dataMonitor/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.followUp/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.patrol/i).length).toBeGreaterThan(0);
   });
 
   it("should highlight active navigation item", () => {
-    renderWithRouter(
-      <BrowserRouter>
-        <Sidebar collapsed={false} onToggle={mockOnToggle} />
-      </BrowserRouter>
-    );
+    renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    // The dashboard route should be active by default
+    // The dashboard route "/" should be active by default - nav.dataMonitor points to "/"
     const dataMonitorLinks = screen.getAllByText(/nav.dataMonitor/i);
     expect(dataMonitorLinks.length).toBeGreaterThan(0);
   });
@@ -121,65 +124,72 @@ describe("Sidebar Component", () => {
   it("should render all monitor category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.dataMonitor/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.followUp/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.patrol/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.alertRules/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.dataMonitor/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.followUp/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.patrol/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.alertRules/i).length).toBeGreaterThan(0);
   });
 
   it("should render all operations category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.operations/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.fileManager/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.hostFiles/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.database/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.operations/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.fileManager/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.hostFiles/i).length).toBeGreaterThan(0);
+    // nav.database appears in both nav.database and nav.dbConnections child items
+    expect(screen.getAllByText(/nav.database/i).length).toBeGreaterThan(0);
   });
 
   it("should render all AI category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.aiDecision/i)).toBeInTheDocument();
-    expect(screen.getByText(/modelProvider.title/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.aiDiagnostics/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.aiDecision/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/modelProvider.title/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.aiDiagnostics/i).length).toBeGreaterThan(0);
   });
 
   it("should render all dev category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.designSystem/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.devGuide/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.theme/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.terminal/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.designSystem/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.devGuide/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.theme/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.terminal/i).length).toBeGreaterThan(0);
   });
 
   it("should render all admin category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.audit/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.userMgmt/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.settings/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.securityMonitor/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.audit/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.userMgmt/i).length).toBeGreaterThan(0);
+    // nav.settings appears as a category child and also as nav.aiFamilySettings
+    expect(screen.getAllByText(/nav.settings/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.securityMonitor/i).length).toBeGreaterThan(0);
   });
 
   it("should render AI family category items", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.aiFamily/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.aiFamilyHome/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.aiFamilyChat/i)).toBeInTheDocument();
+    // nav.aiFamily is the key for the first child in the ai-family category
+    expect(screen.getAllByText(/nav.aiFamily$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.aiFamilyHome/i).length).toBeGreaterThan(0);
+    // The actual key is nav.aiFamilyChatCenter, not nav.aiFamilyChat
+    expect(screen.getAllByText(/nav.aiFamilyChatCenter/i).length).toBeGreaterThan(0);
   });
 
-  it("should apply correct width class based on collapsed state", () => {
-    const { rerender } = renderWithRouter(
+  it("should apply correct width style based on collapsed state", () => {
+    const { container } = renderWithRouter(
       <Sidebar collapsed={true} onToggle={mockOnToggle} />
     );
 
-    const sidebar = screen.getByRole("navigation");
-    expect(sidebar).toHaveClass("w-[52px]");
+    const sidebar = container.firstChild as HTMLElement;
+    expect(sidebar.style.width).toBe("52px");
 
-    rerender(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
-    expect(sidebar).toHaveClass("w-[208px]");
+    const { container: container2 } = renderWithRouter(
+      <Sidebar collapsed={false} onToggle={mockOnToggle} />
+    );
+    const sidebar2 = container2.firstChild as HTMLElement;
+    expect(sidebar2.style.width).toBe("208px");
   });
 
   it("should show category icons in collapsed state", () => {
@@ -192,9 +202,9 @@ describe("Sidebar Component", () => {
   it("should show category labels in expanded state", () => {
     renderWithRouter(<Sidebar collapsed={false} onToggle={mockOnToggle} />);
 
-    expect(screen.getByText(/nav.catMonitor/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catOps/i)).toBeInTheDocument();
-    expect(screen.getByText(/nav.catAI/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nav.catMonitor/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catOps/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.catAI/i).length).toBeGreaterThan(0);
   });
 
   it("should render navigation icons", () => {

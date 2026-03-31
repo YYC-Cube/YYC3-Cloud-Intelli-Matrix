@@ -8,7 +8,7 @@
 import * as React from "react";
 import { useState } from "react";
 import {
-  FolderOpen, Bell, Settings, Github, Share2, Rocket,
+  FolderOpen, Bell, Settings, GitBranch, Share2, Rocket,
   Zap, ChevronDown, Bot, Circle,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
@@ -44,7 +44,7 @@ export function IDETopBar({
     { icon: FolderOpen, label: t("ide.explorer"), color: "#00d4ff", onClick: onExplorerClick },
     { icon: Bell, label: t("ide.notifications"), color: "#00d4ff", onClick: onNotificationsClick, badge: unreadCount },
     { icon: Settings, label: t("ide.settings"), color: "#00d4ff", onClick: onSettingsClick },
-    { icon: Github, label: "GitHub", color: "#00d4ff", onClick: onGithubClick },
+    { icon: GitBranch, label: "GitHub", color: "#00d4ff", onClick: onGithubClick },
     { icon: Share2, label: t("ide.share"), color: "#00d4ff", onClick: onShareClick },
     { icon: Rocket, label: t("ide.deploy"), color: "#00ff88", onClick: onDeployClick },
   ];

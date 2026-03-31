@@ -92,7 +92,7 @@ function SplitContainer({
       dragInfo.current = { index, startPos, startSizes: [...sizes] };
 
       const handleMove = (ev: MouseEvent) => {
-        if (!dragInfo.current || !containerRef.current) return;
+        if (!dragInfo.current || !containerRef.current) {return;}
         const containerRect = containerRef.current.getBoundingClientRect();
         const totalSize = isHorizontal
           ? containerRect.width

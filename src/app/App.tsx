@@ -52,7 +52,7 @@ if (typeof window !== "undefined") {
 
   // Layer 0: legacy window.onerror — return true to fully swallow the error
   const _prevOnerror = window.onerror;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   window.onerror = function (this: Window & typeof globalThis, message, source, _lineno, _colno, error) {
     const name = error?.name || error?.constructor?.name || "";
     const msg = String(message || "");

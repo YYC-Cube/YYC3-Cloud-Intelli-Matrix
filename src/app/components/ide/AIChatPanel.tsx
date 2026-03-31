@@ -9,7 +9,7 @@ import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Bot, User, Send, Image as ImageIcon,
-  FileCode, Link, Figma, Clipboard, Plus,
+  FileCode, Link, Sigma, Clipboard, Plus,
   Sparkles, Code2, Bug, Zap, TestTube, RefreshCw,
   Lightbulb, Wand2, Copy, Check,
 } from "lucide-react";
@@ -111,7 +111,7 @@ export function AIChatPanel() {
     { icon: ImageIcon, label: t("ide.uploadImage"), color: "#ff6b9d" },
     { icon: FileCode, label: t("ide.codeSnippet"), color: "#00d4ff" },
     { icon: Link, label: t("ide.githubLink"), color: "#7b61ff" },
-    { icon: Figma, label: t("ide.figmaFile"), color: "#00ff88" },
+    { icon: Sigma, label: t("ide.figmaFile"), color: "#00ff88" },
     { icon: Clipboard, label: t("ide.clipboard"), color: "#ffaa00" },
   ];
 

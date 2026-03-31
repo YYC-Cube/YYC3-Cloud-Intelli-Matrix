@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { X, Share2, Copy, Check, Lock, Eye, Edit3, Shield } from "lucide-react";
+import { X, Share2, Copy, Check, Eye, Edit3, Shield } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
 
 interface ShareDialogProps {
@@ -21,7 +21,7 @@ export function ShareDialog({ isOpen, onClose }: ShareDialogProps) {
   const [permission, setPermission] = useState<SharePermission>("readonly");
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   const shareUrl = "https://yyc3.cloud/ide/share/proj-abc123";
 

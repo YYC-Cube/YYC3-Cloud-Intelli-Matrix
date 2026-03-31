@@ -44,7 +44,7 @@ export function DeployDialog({ isOpen, onClose }: DeployDialogProps) {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   const handleDeploy = () => {
     setStatus("building");

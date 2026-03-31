@@ -42,7 +42,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
     );
   }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <>

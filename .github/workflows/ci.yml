@@ -315,7 +315,7 @@
             exit 1
         - name: Slack notification (optional)
           if: always() && secrets.SLACK_WEBHOOK_URL != ''
-          uses: slackapi/slack-github-action@v1
+          uses: slackapi/slack-github-action@v3
           with:
             payload: |
               {

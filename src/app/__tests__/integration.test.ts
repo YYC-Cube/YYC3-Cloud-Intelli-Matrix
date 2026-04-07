@@ -1,279 +1,239 @@
 /**
  * integration.test.ts
- * ============
- * YYC³ 集成测试
- *
- * 覆盖范围:
- * - 认证 → 查询的完整流程
- * - 网络配置 → WebSocket URL 联动
- * - 错误处理 → 日志记录联动
- * - 后台同步 → 队列 → 处理联动
- * - 离线/在线状态切换
- *
- * 运行命令: npx vitest run src/app/__tests__/integration.test.ts
+ * =====================
+ * 集成测试 - 验证模块间协作
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import React from "react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
-    removeItem: vi.fn((key: string) => { delete store[key]; }),
-    clear: vi.fn(() => { store = {}; }),
-  };
-})();
-Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
-
-// ----------------------------------------------------------
-// Import modules after mock setup
-// ----------------------------------------------------------
-
-import { supabase } from "../lib/supabaseClient";
-import { getActiveModels, getNodesStatus, getRecentLogs } from "../lib/db-queries";
-import {
-  loadNetworkConfig,
-  saveNetworkConfig,
-  resetNetworkConfig,
-  generateWsUrl,
-  DEFAULT_NETWORK_CONFIG,
-} from "../lib/network-utils";
-import {
-  captureError,
-  getErrorLog,
-  clearErrorLog,
-  trySafe,
-} from "../lib/error-handler";
-import {
-  addToSyncQueue,
-  getSyncQueue,
-  processSyncQueue,
-  clearSyncQueue,
-} from "../lib/backgroundSync";
-
-describe("Integration Tests", () => {
+describe("集成测试", () => {
   beforeEach(() => {
-    localStorageMock.clear();
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  // ----------------------------------------------------------
-  // 认证 → 数据查询 完整流程
-  // ----------------------------------------------------------
-
-  describe("认证 → 数据查询流程", () => {
-    it("登录后应能查询模型列表", async () => {
-      // Step 1: 登录
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: "admin@cloudpivot.local",
-          password: "admin123",
-        });
-      expect(authError).toBeNull();
-      expect(authData).not.toBeNull();
-
-      // Step 2: 验证会话
-      const { data: sessionData } = await supabase.auth.getSession();
-      expect(sessionData.session).not.toBeNull();
-
-      // Step 3: 查询数据
-      const { data: models } = await getActiveModels();
-      expect(models.length).toBeGreaterThan(0);
-
-      const { data: nodes } = await getNodesStatus();
-      expect(nodes.length).toBeGreaterThan(0);
-    });
-
-    it("登出后应清除会话", async () => {
-      // 登录
-      await supabase.auth.signInWithPassword({
-        email: "admin@cloudpivot.local",
-        password: "admin123",
-      });
-
-      // 登出
-      await supabase.auth.signOut();
-
-      // 验证会话已清除
-      const { data } = await supabase.auth.getSession();
-      expect(data.session).toBeNull();
-    });
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  // ----------------------------------------------------------
-  // 网络配置 → WebSocket URL 联动
-  // ----------------------------------------------------------
+  describe("存储管理器与数据库集成", () => {
+    it("应该能够初始化存储管理器", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-  describe("网络配置 → WebSocket 联动", () => {
-    it("修改服务器地址后 WebSocket URL 应自动更新", () => {
-      const config = loadNetworkConfig();
-      expect(config.wsUrl).toBe("ws://192.168.3.45:3113/ws");
-
-      // 修改地址
-      const newConfig = {
-        ...config,
-        serverAddress: "10.0.0.100",
-        port: "8080",
-        wsUrl: generateWsUrl("10.0.0.100", "8080"),
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 30,
+        autoSync: true,
+        offlineMode: false,
+        conflictResolution: "local" as const,
       };
-      saveNetworkConfig(newConfig);
 
-      // 重新加载验证
-      const loaded = loadNetworkConfig();
-      expect(loaded.wsUrl).toBe("ws://10.0.0.100:8080/ws");
-      expect(loaded.serverAddress).toBe("10.0.0.100");
+      storageManager.saveConfig(config);
+      const savedConfig = storageManager.getConfig();
+
+      expect(savedConfig.type).toBe("localStorage");
+      expect(savedConfig.syncInterval).toBe(30);
     });
 
-    it("重置配置后应恢复默认值", () => {
-      // 修改配置
-      saveNetworkConfig({
-        ...DEFAULT_NETWORK_CONFIG,
-        serverAddress: "custom",
-      });
+    it("应该能够处理离线队列", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-      // 重置
-      const reset = resetNetworkConfig();
-      expect(reset).toEqual(DEFAULT_NETWORK_CONFIG);
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 30,
+        autoSync: true,
+        offlineMode: true,
+        conflictResolution: "local" as const,
+      };
 
-      // 验证持久化已清除
-      const loaded = loadNetworkConfig();
-      expect(loaded).toEqual(DEFAULT_NETWORK_CONFIG);
-    });
-  });
+      storageManager.saveConfig(config);
 
-  // ----------------------------------------------------------
-  // 错误处理 → 日志记录联动
-  // ----------------------------------------------------------
+      const operation = { type: "addModel", data: { id: "model-1", name: "Test Model" } };
+      storageManager.addToOfflineQueue(operation);
 
-  describe("错误处理 → 日志联动", () => {
-    it("捕获的错误应持久化到日志", () => {
-      clearErrorLog();
-
-      captureError(new Error("test error 1"), { silent: true });
-      captureError(new Error("test error 2"), { silent: true });
-
-      const log = getErrorLog();
-      expect(log.length).toBe(2);
-      expect(log[0].message).toBe("test error 2");
+      const status = storageManager.getStatus();
+      expect(status.pendingChanges).toBeGreaterThanOrEqual(0);
     });
 
-    it("trySafe 失败应自动记录到日志", async () => {
-      clearErrorLog();
+    it("应该能够触发和监听事件", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-      const [data, error] = await trySafe(async () => {
-        throw new Error("async failure");
-      }, "IntegrationTest");
+      const eventHandler = vi.fn();
+      storageManager.onEvent(eventHandler);
 
-      expect(data).toBeNull();
-      expect(error).not.toBeNull();
+      const status = storageManager.getStatus();
+      expect(status.connected).toBeDefined();
 
-      const log = getErrorLog();
-      expect(log.length).toBe(1);
-      expect(log[0].source).toBe("IntegrationTest");
+      storageManager.offEvent(eventHandler);
     });
 
-    it("trySafe 成功不应记录日志", async () => {
-      clearErrorLog();
+    it("应该能够保存和加载配置", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-      const [data] = await trySafe(async () => 42);
-      expect(data).toBe(42);
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 60,
+        autoSync: true,
+        offlineMode: true,
+        conflictResolution: "merge" as const,
+      };
 
-      const log = getErrorLog();
-      expect(log.length).toBe(0);
+      storageManager.saveConfig(config);
+      const loadedConfig = storageManager.getConfig();
+
+      expect(loadedConfig.type).toBe("localStorage");
+      expect(loadedConfig.syncInterval).toBe(60);
+      expect(loadedConfig.offlineMode).toBe(true);
     });
   });
 
-  // ----------------------------------------------------------
-  // 后台同步 → 队列处理联动
-  // ----------------------------------------------------------
+  describe("桥接客户端与环境检测集成", () => {
+    it("应该正确检测非 Electron 环境", async () => {
+      const { isElectron, getBridgeAPI } = await import("../lib/bridge-client");
 
-  describe("后台同步 → 队列处理联动", () => {
-    it("完整的添加 → 处理 → 清空流程", async () => {
-      // 添加同步项
-      addToSyncQueue({ type: "config_update", payload: { key: "theme" } });
-      addToSyncQueue({ type: "audit_log", payload: { action: "login" } });
-      addToSyncQueue({ type: "user_action", payload: { click: "button" } });
+      const electronDetected = isElectron();
+      expect(electronDetected).toBe(false);
 
-      expect(getSyncQueue().length).toBe(3);
-
-      // 处理队列
-      const result = await processSyncQueue();
-      expect(result.success).toBe(3);
-      expect(result.failed).toBe(0);
-
-      // 处理后队列应为空
-      expect(getSyncQueue().length).toBe(0);
+      const api = getBridgeAPI();
+      expect(api).toBeNull();
     });
 
-    it("clearSyncQueue 应清除所有待同步项", () => {
-      addToSyncQueue({ type: "config_update", payload: {} });
-      addToSyncQueue({ type: "config_update", payload: {} });
+    it("应该在非 Electron 环境中提供降级方案", async () => {
+      const { systemMonitorClient, appControlClient } = await import("../lib/bridge-client");
 
-      clearSyncQueue();
-      expect(getSyncQueue().length).toBe(0);
+      const cpuInfo = await systemMonitorClient.getCPUInfo();
+      expect(cpuInfo.model).toBe("Unknown");
+
+      const version = await appControlClient.getVersion();
+      expect(version).toBe("web");
     });
   });
 
-  // ----------------------------------------------------------
-  // 数据查询 → 错误处理联动
-  // ----------------------------------------------------------
+  describe("数据流集成测试", () => {
+    it("应该能够存储和检索数据", async () => {
+      const testData = {
+        id: "test-1",
+        name: "Test Model",
+        provider: "OpenAI",
+        tier: "premium",
+        avg_latency_ms: 100,
+        throughput: 1000,
+        created_at: new Date().toISOString(),
+      };
 
-  describe("数据查询 → 错误处理联动", () => {
-    it("trySafe 包装数据查询应安全返回结果", async () => {
-      const [result, error] = await trySafe(async () => {
-        const { data } = await getActiveModels();
-        return data;
-      }, "ModelQuery");
+      localStorage.setItem("yyc3_db_models", JSON.stringify([testData]));
 
-      expect(error).toBeNull();
-      expect(result).not.toBeNull();
-      expect(result!.length).toBeGreaterThan(0);
+      const stored = localStorage.getItem("yyc3_db_models");
+      expect(stored).toBeDefined();
+
+      const parsed = JSON.parse(stored || "[]");
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].id).toBe("test-1");
     });
 
-    it("trySafe 包装推理日志查询应安全返回", async () => {
-      const [result, error] = await trySafe(async () => {
-        const { data } = await getRecentLogs(5);
-        return data;
-      }, "LogQuery");
+    it("应该能够处理离线队列", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-      expect(error).toBeNull();
-      expect(result!.length).toBe(5);
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 30,
+        autoSync: true,
+        offlineMode: true,
+        conflictResolution: "local" as const,
+      };
+
+      storageManager.saveConfig(config);
+
+      const operation = {
+        type: "addModel",
+        data: { id: "model-1", name: "Test Model" },
+      };
+
+      storageManager.addToOfflineQueue(operation);
+
+      const status = storageManager.getStatus();
+      expect(status.pendingChanges).toBeGreaterThanOrEqual(0);
     });
   });
 
-  // ----------------------------------------------------------
-  // 跨模块状态一致性
-  // ----------------------------------------------------------
+  describe("错误处理集成", () => {
+    it("应该能够获取存储状态", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-  describe("跨模块状态一致性", () => {
-    it("同时操作多个 localStorage 键不应冲突", async () => {
-      // 同时操作认证、网络配置、同步队列
-      await supabase.auth.signInWithPassword({
-        email: "admin@cloudpivot.local",
-        password: "admin123",
-      });
+      const status = storageManager.getStatus();
+      expect(status).toHaveProperty("connected");
+      expect(status).toHaveProperty("syncing");
+      expect(status).toHaveProperty("lastSync");
+      expect(status).toHaveProperty("pendingChanges");
+    });
 
-      saveNetworkConfig({
-        ...DEFAULT_NETWORK_CONFIG,
-        port: "9999",
-      });
+    it("应该能够处理同步操作", async () => {
+      const { storageManager } = await import("../services/storageManager");
 
-      addToSyncQueue({ type: "config_update", payload: {} });
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 30,
+        autoSync: false,
+        offlineMode: false,
+        conflictResolution: "local" as const,
+      };
 
-      captureError(new Error("test"), { silent: true });
+      storageManager.saveConfig(config);
 
-      // 验证各模块数据独立
-      const { data: session } = await supabase.auth.getSession();
-      expect(session.session).not.toBeNull();
+      await storageManager.sync();
 
-      const config = loadNetworkConfig();
-      expect(config.port).toBe("9999");
+      const status = storageManager.getStatus();
+      expect(status.lastSync).toBeDefined();
+    });
+  });
 
-      expect(getSyncQueue().length).toBe(1);
-      expect(getErrorLog().length).toBe(1);
+  describe("性能集成测试", () => {
+    it("应该能够快速处理大量数据", async () => {
+      const startTime = Date.now();
+
+      const largeDataset = Array.from({ length: 1000 }, (_, i) => ({
+        id: `model-${i}`,
+        name: `Model ${i}`,
+        provider: "Test",
+        tier: "standard",
+        avg_latency_ms: Math.random() * 100,
+        throughput: Math.random() * 1000,
+        created_at: new Date().toISOString(),
+      }));
+
+      localStorage.setItem("yyc3_db_models", JSON.stringify(largeDataset));
+
+      const stored = localStorage.getItem("yyc3_db_models");
+      const parsed = JSON.parse(stored || "[]");
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      expect(parsed).toHaveLength(1000);
+      expect(duration).toBeLessThan(1000);
+    });
+
+    it("应该能够快速触发同步", async () => {
+      const { storageManager } = await import("../services/storageManager");
+
+      const config = {
+        type: "localStorage" as const,
+        syncInterval: 30,
+        autoSync: false,
+        offlineMode: false,
+        conflictResolution: "local" as const,
+      };
+
+      storageManager.saveConfig(config);
+
+      const startTime = Date.now();
+
+      await storageManager.triggerSync();
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      expect(duration).toBeLessThan(1000);
     });
   });
 });

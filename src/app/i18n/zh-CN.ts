@@ -46,6 +46,7 @@ const zhCN = {
   nav: {
     dataMonitor: "数据监控",
     followUp: "一键跟进",
+    followUpManager: "跟进任务管理",
     patrol: "巡查模式",
     operations: "操作中心",
     fileManager: "文件管理",
@@ -311,6 +312,67 @@ const zhCN = {
       stable: "稳定",
       declining: "下降",
     },
+  },
+
+  // ======== 存储管理 ========
+  storage: {
+    manager: {
+      title: "存储管理",
+      description: "配置存储选项和同步设置"
+    },
+    config: {
+      title: "存储配置",
+      description: "选择存储类型并配置相关参数",
+      storageType: "存储类型",
+      selectStorageType: "选择存储类型",
+      localStorage: "本地存储",
+      database: "数据库存储",
+      databaseConfig: "数据库配置",
+      syncSettings: "同步设置",
+      syncInterval: "同步间隔",
+      autoSync: "自动同步",
+      offlineMode: "离线模式",
+      conflictResolution: "冲突解决策略",
+      selectConflictResolution: "选择冲突解决策略",
+      localWins: "本地优先",
+      remoteWins: "远程优先",
+      merge: "合并"
+    },
+    sync: {
+      status: "同步状态",
+      statusDescription: "查看存储同步的当前状态和历史记录",
+      inProgress: "同步中...",
+      completed: "同步完成",
+      failed: "同步失败",
+      lastSync: "上次同步: {{time}}",
+      manual: "手动同步",
+      history: "同步历史",
+      details: "详细信息",
+      noHistory: "暂无同步历史",
+      pendingChanges: "待同步更改",
+      storageType: "存储类型",
+      syncInterval: "同步间隔",
+      autoSync: "自动同步",
+      offlineMode: "离线模式"
+    },
+    status: {
+      disconnected: "未连接",
+      syncing: "同步中",
+      synced: "已同步",
+      ready: "就绪"
+    },
+    network: {
+      online: "在线",
+      offline: "离线"
+    },
+    offline: {
+      modeActive: "离线模式已激活",
+      pendingChanges: "有 {{count}} 个更改等待同步",
+      operationAdded: "离线操作已添加",
+      queueProcessed: "离线队列已处理",
+      processingQueue: "正在处理离线队列",
+      processingDescription: "正在同步 {{count}} 个离线操作"
+    }
   },
 
   // ======== 命令面板 ========

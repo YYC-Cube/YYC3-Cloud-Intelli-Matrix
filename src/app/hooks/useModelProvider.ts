@@ -135,8 +135,9 @@ function loadProviders(): ModelProviderDef[] {
     if (raw) {
       const saved: ModelProviderDef[] = JSON.parse(raw);
       // 合并策略: 以 localStorage 为准, 但确保新增内置服务商被补入
+      // 注意: 已删除的模型不会自动恢复，只有新增的内置服务商会被补入
       const savedIds = new Set(saved.map((p) => p.id));
-      const missing = BUILTIN_PROVIDERS.filter((bp) => !savedIds.has(bp.id));
+      const missing = BUILTIN_PROVIDERS.filter((bp) => !savedIds.has(bp.id)).map((bp) => ({ ...bp }));
       return [...saved, ...missing];
     }
     // 首次启动: 写入默认值
@@ -235,8 +236,8 @@ export function useModelProvider() {
 
   const removeProvider = useCallback((id: ModelProviderId) => {
     setProviders((prev) => {
-      const target = prev.find((p) => p.id === id);
-      if (target?.isBuiltin) {return prev;} // 内置服务商不可删除
+      // 所有服务商都可以删除（包括内置的）
+      // 删除后不会自动恢复，想恢复需要手动添加
       return prev.filter((p) => p.id !== id);
     });
     // 同步删除该服务商下的已配置模型

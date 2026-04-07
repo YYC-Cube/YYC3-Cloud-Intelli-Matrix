@@ -399,7 +399,7 @@ export function FamilyUISettings() {
       } catch { /* noop */ }
     }
     return { totalSize, items };
-  }, [config]); // re-calc on config change as proxy for storage change
+  }, [config, ALL_STORAGE_KEYS]); // re-calc on config change as proxy for storage change
 
   const handleExportAll = useCallback(() => {
     const allData: Record<string, unknown> = {};
@@ -423,7 +423,7 @@ export function FamilyUISettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, []);
+  }, [ALL_STORAGE_KEYS]);
 
   const handleImportAll = useCallback(() => {
     const input = document.createElement("input");
@@ -586,7 +586,7 @@ export function FamilyUISettings() {
                   </span>
                 </div>
                 <div className="space-y-2">
-                  {ECOSYSTEM_LINKS.map((link, i) => (
+                  {ECOSYSTEM_LINKS.map((link, _i) => (
                     <LinkNodeCard
                       key={link.id}
                       node={link}
@@ -690,7 +690,7 @@ export function FamilyUISettings() {
                   <div className="text-white/40 mb-2" style={{ fontSize: "0.65rem" }}>家人排序</div>
                   <div className="flex flex-wrap gap-1.5">
                     {FAMILY_MEMBERS.map(m => {
-                      const rgb = hexToRgb(m.color);
+                      const _rgb = hexToRgb(m.color);
                       return (
                         <div
                           key={m.id}

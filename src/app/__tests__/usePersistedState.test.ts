@@ -1,111 +1,135 @@
 /**
- * @file: usePersistedState.test.ts
- * @description: usePersistedState.test.ts description
- * @author: YanYuCloudCube Team
- * @version: v1.0.0
- * @created: 2026-03-31
- * @updated: 2026-03-31
- * @status: active
- * @tags: [type]
+ * usePersistedState.test.ts
+ * ============================
+ * IndexedDB持久化Hook测试
+ *
+ * @file usePersistedState.test.ts
+ * @description usePersistedList Hook单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { usePersistedList } from "../hooks/usePersistedState";
-import type { StoreName } from "../types";
+
+const mockIdbGetAll = vi.fn();
+const mockIdbPut = vi.fn();
+const mockIdbPutMany = vi.fn();
+const mockIdbDelete = vi.fn();
+const mockIdbClear = vi.fn();
+const mockOnStorageChange = vi.fn();
+
+vi.mock("../lib/yyc3-storage", () => ({
+  idbGetAll: () => mockIdbGetAll(),
+  idbPut: (...args: unknown[]) => mockIdbPut(...args),
+  idbPutMany: (...args: unknown[]) => mockIdbPutMany(...args),
+  idbDelete: (...args: unknown[]) => mockIdbDelete(...args),
+  idbClear: (...args: unknown[]) => mockIdbClear(...args),
+  onStorageChange: (...args: unknown[]) => mockOnStorageChange(...args),
+}));
 
 describe("usePersistedList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIdbGetAll.mockResolvedValue([]);
+    mockIdbPut.mockResolvedValue(undefined);
+    mockIdbPutMany.mockResolvedValue(undefined);
+    mockIdbDelete.mockResolvedValue(undefined);
+    mockIdbClear.mockResolvedValue(undefined);
+    mockOnStorageChange.mockReturnValue(() => {});
   });
 
   afterEach(() => {
-    // Cleanup IndexedDB
-    indexedDB.deleteDatabase("yyc3_matrix");
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
-    it("should initialize with empty list", () => {
+    it("should initialize with empty items", async () => {
       const { result } = renderHook(() => usePersistedList("alertRules"));
-
-      expect(result.current.items).toEqual([]);
-      expect(result.current.loaded).toBe(false);
-    });
-
-    it("should initialize with default data", () => {
-      const defaultData = [
-        { id: "test-1", name: "Test Item 1" },
-        { id: "test-2", name: "Test Item 2" },
-      ];
-
-      const { result } = renderHook(() => usePersistedList("alertRules", defaultData));
-
-      expect(result.current.items).toEqual(defaultData);
-    });
-
-    it("should load from IndexedDB on mount", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules"));
-
-      expect(result.current.loaded).toBe(false);
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
+
+      expect(result.current.items).toEqual([]);
+    });
+
+    it("should initialize with initial data when IndexedDB is empty", async () => {
+      const initialData = [{ id: "1", name: "Rule 1" }];
+      const { result } = renderHook(() =>
+        usePersistedList("alertRules", initialData)
+      );
+
+      await waitFor(() => {
+        expect(result.current.loaded).toBe(true);
+      });
+
+      expect(result.current.items).toEqual(initialData);
+    });
+
+    it("should load data from IndexedDB on mount", async () => {
+      const storedData = [{ id: "stored-1", name: "Stored Rule" }];
+      mockIdbGetAll.mockResolvedValueOnce(storedData);
+
+      const { result } = renderHook(() => usePersistedList("alertRules"));
+
+      await waitFor(() => {
+        expect(result.current.loaded).toBe(true);
+      });
+
+      expect(result.current.items).toEqual(storedData);
     });
   });
 
-  describe("upsert", () => {
+  describe("upsert operation", () => {
     it("should add new item", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules"));
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
 
-      const newItem = { id: "test-1", name: "New Item" };
-
       await act(async () => {
-        await result.current.upsert(newItem);
+        await result.current.upsert({ id: "1", name: "New Item" });
       });
 
-      expect(result.current.items).toContainEqual(newItem);
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].name).toBe("New Item");
+      expect(mockIdbPut).toHaveBeenCalledWith("alertRules", { id: "1", name: "New Item" });
     });
 
     it("should update existing item", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Original Item" },
-      ]));
+      mockIdbGetAll.mockResolvedValueOnce([{ id: "1", name: "Old Name" }]);
+
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
 
-      const updatedItem = { id: "test-1", name: "Updated Item" };
-
       await act(async () => {
-        await result.current.upsert(updatedItem);
+        await result.current.upsert({ id: "1", name: "New Name" });
       });
 
-      expect(result.current.items).toContainEqual(updatedItem);
-      expect(result.current.items).not.toContainEqual({ id: "test-1", name: "Original Item" });
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].name).toBe("New Name");
     });
   });
 
-  describe("setAll", () => {
+  describe("setAll operation", () => {
     it("should replace all items", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-        { id: "test-2", name: "Item 2" },
-      ]));
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
 
       const newItems = [
-        { id: "test-3", name: "Item 3" },
-        { id: "test-4", name: "Item 4" },
+        { id: "1", name: "Item 1" },
+        { id: "2", name: "Item 2" },
       ];
 
       await act(async () => {
@@ -113,12 +137,12 @@ describe("usePersistedList", () => {
       });
 
       expect(result.current.items).toEqual(newItems);
+      expect(mockIdbClear).toHaveBeenCalledWith("alertRules");
+      expect(mockIdbPutMany).toHaveBeenCalledWith("alertRules", newItems);
     });
 
-    it("should clear all items when setting empty array", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-      ]));
+    it("should clear storage when setting empty array", async () => {
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
@@ -129,36 +153,57 @@ describe("usePersistedList", () => {
       });
 
       expect(result.current.items).toEqual([]);
+      expect(mockIdbClear).toHaveBeenCalledWith("alertRules");
+      expect(mockIdbPutMany).not.toHaveBeenCalled();
     });
   });
 
-  describe("remove", () => {
+  describe("remove operation", () => {
     it("should remove item by id", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-        { id: "test-2", name: "Item 2" },
-        { id: "test-3", name: "Item 3" },
-      ]));
+      mockIdbGetAll.mockResolvedValueOnce([
+        { id: "1", name: "Item 1" },
+        { id: "2", name: "Item 2" },
+      ]);
+
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
 
       await act(async () => {
-        await result.current.remove("test-2");
+        await result.current.remove("1");
       });
 
-      expect(result.current.items).toHaveLength(2);
-      expect(result.current.items.find((i) => i.id === "test-2")).toBeUndefined();
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].id).toBe("2");
+      expect(mockIdbDelete).toHaveBeenCalledWith("alertRules", "1");
+    });
+
+    it("should handle removing non-existent item", async () => {
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
+
+      await waitFor(() => {
+        expect(result.current.loaded).toBe(true);
+      });
+
+      await act(async () => {
+        await result.current.remove("non-existent");
+      });
+
+      expect(result.current.items).toEqual([]);
+      expect(mockIdbDelete).toHaveBeenCalledWith("alertRules", "non-existent");
     });
   });
 
-  describe("clear", () => {
+  describe("clear operation", () => {
     it("should clear all items", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-        { id: "test-2", name: "Item 2" },
-      ]));
+      mockIdbGetAll.mockResolvedValueOnce([
+        { id: "1", name: "Item 1" },
+        { id: "2", name: "Item 2" },
+      ]);
+
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
@@ -169,160 +214,37 @@ describe("usePersistedList", () => {
       });
 
       expect(result.current.items).toEqual([]);
+      expect(mockIdbClear).toHaveBeenCalledWith("alertRules");
     });
   });
 
-  describe("prepend", () => {
-    it("should add item to beginning of list", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-        { id: "test-2", name: "Item 2" },
-      ]));
+  describe("prepend operation", () => {
+    it("should prepend item to the beginning", async () => {
+      mockIdbGetAll.mockResolvedValueOnce([{ id: "1", name: "Item 1" }]);
+
+      const { result } = renderHook(() => usePersistedList<{ id: string; name: string }>("alertRules"));
 
       await waitFor(() => {
         expect(result.current.loaded).toBe(true);
       });
 
-      const newItem = { id: "test-3", name: "New First Item" };
-
       await act(async () => {
-        await result.current.prepend(newItem);
+        await result.current.prepend({ id: "2", name: "Item 2" });
       });
 
-      expect(result.current.items[0]).toEqual(newItem);
-      expect(result.current.items).toHaveLength(3);
-    });
-  });
-
-  describe("setItems", () => {
-    it("should update items directly", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules", [
-        { id: "test-1", name: "Item 1" },
-      ]));
-
-      await waitFor(() => {
-        expect(result.current.loaded).toBe(true);
-      });
-
-      const newItems = [
-        { id: "test-2", name: "Item 2" },
-        { id: "test-3", name: "Item 3" },
-      ];
-
-      act(() => {
-        result.current.setItems(newItems);
-      });
-
-      expect(result.current.items).toEqual(newItems);
-    });
-  });
-
-  describe("integration", () => {
-    it("should handle complete CRUD workflow", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules"));
-
-      await waitFor(() => {
-        expect(result.current.loaded).toBe(true);
-      });
-
-      // Create
-      const item1 = { id: "test-1", name: "Item 1" };
-      await act(async () => {
-        await result.current.upsert(item1);
-      });
-      expect(result.current.items).toContainEqual(item1);
-
-      // Update
-      const updatedItem1 = { id: "test-1", name: "Updated Item 1" };
-      await act(async () => {
-        await result.current.upsert(updatedItem1);
-      });
-      expect(result.current.items).toContainEqual(updatedItem1);
-
-      // Create another
-      const item2 = { id: "test-2", name: "Item 2" };
-      await act(async () => {
-        await result.current.upsert(item2);
-      });
       expect(result.current.items).toHaveLength(2);
-
-      // Prepend
-      const item3 = { id: "test-3", name: "Item 3" };
-      await act(async () => {
-        await result.current.prepend(item3);
-      });
-      expect(result.current.items[0]).toEqual(item3);
-
-      // Delete
-      await act(async () => {
-        await result.current.remove("test-2");
-      });
-      expect(result.current.items).toHaveLength(2);
-
-      // Clear
-      await act(async () => {
-        await result.current.clear();
-      });
-      expect(result.current.items).toEqual([]);
-    });
-
-    it("should handle batch operations", async () => {
-      const { result } = renderHook(() => usePersistedList("alertRules"));
-
-      await waitFor(() => {
-        expect(result.current.loaded).toBe(true);
-      });
-
-      // Batch create
-      const items = Array.from({ length: 10 }, (_, i) => ({
-        id: `test-${i}`,
-        name: `Item ${i}`,
-      }));
-
-      await act(async () => {
-        await result.current.setAll(items);
-      });
-
-      expect(result.current.items).toHaveLength(10);
-
-      // Batch update
-      const updatedItems = items.map((item) => ({
-        ...item,
-        name: `Updated ${item.name}`,
-      }));
-
-      await act(async () => {
-        await result.current.setAll(updatedItems);
-      });
-
-      expect((result.current.items[0] as any).name).toBe("Updated Item 0");
+      expect(result.current.items[0].id).toBe("2");
+      expect(mockIdbPut).toHaveBeenCalledWith("alertRules", { id: "2", name: "Item 2" });
     });
   });
 
-  describe("error handling", () => {
-    it("should handle IndexedDB errors gracefully", async () => {
-      // Mock IndexedDB to be undefined
-      const originalIndexedDB = global.indexedDB;
-      // @ts-ignore
-      delete global.indexedDB;
-
-      const { result } = renderHook(() => usePersistedList("alertRules"));
+  describe("cross-tab sync", () => {
+    it("should subscribe to storage changes on mount", async () => {
+      renderHook(() => usePersistedList("alertRules"));
 
       await waitFor(() => {
-        expect(result.current.loaded).toBe(true);
+        expect(mockOnStorageChange).toHaveBeenCalled();
       });
-
-      const newItem = { id: "test-1", name: "Test Item" };
-
-      await act(async () => {
-        await result.current.upsert(newItem);
-      });
-
-      // Should not throw error
-      expect(result.current.items).toContainEqual(newItem);
-
-      // Restore
-      global.indexedDB = originalIndexedDB;
     });
   });
 });

@@ -8,7 +8,7 @@
 import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Terminal, Plus, X, ChevronUp, ChevronDown, Maximize2, Minimize2,
+  Terminal, Plus, X, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
 
@@ -26,7 +26,7 @@ interface TerminalTab {
   cwd: string;
 }
 
-const DEFAULT_LINES: TerminalLine[] = [
+const _DEFAULT_LINES: TerminalLine[] = [
   { type: "info", content: "YYC³ Cloud Terminal v2.4.0" },
   { type: "info", content: "Type 'help' for available commands. Tab for autocomplete." },
   { type: "input", content: "$ yyc3 status" },

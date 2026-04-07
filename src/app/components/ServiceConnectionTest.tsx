@@ -694,7 +694,7 @@ export function ServiceConnectionTest() {
   }, [testNetwork, testWebSocket, testAIProvider, testDB, configuredModels, providers, dbConnections, proxyUrl]);
 
   // Run single test
-  const runSingleTest = useCallback(async (testId: string) => {
+  const _runSingleTest = useCallback(async (testId: string) => {
     // Parse the test type
     if (testId === "network-general") {
       const res = await testNetwork();

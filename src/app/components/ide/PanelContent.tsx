@@ -18,7 +18,7 @@ interface PanelContentProps {
 }
 
 export function PanelContent({ panel }: PanelContentProps) {
-  const { activePanelId } = useLayoutContext();
+  const { activePanelId: _activePanelId } = useLayoutContext();
 
   const renderContent = () => {
     switch (panel.type) {

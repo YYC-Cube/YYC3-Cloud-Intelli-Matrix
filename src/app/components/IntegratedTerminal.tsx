@@ -226,7 +226,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
     if (tabs.length === 0) {
       setTabs([{ id: "tab-1", label: "cpim", createdAt: Date.now() }]);
     }
-  }, []);
+  }, [tabs.length]);
 
   const addTab = useCallback(() => {
     if (tabs.length >= MAX_TABS) {return;}

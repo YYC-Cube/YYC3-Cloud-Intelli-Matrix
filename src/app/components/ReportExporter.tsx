@@ -8,8 +8,7 @@
 
 import React from "react";
 import {
-  FileBarChart, Download, FileJson, FileSpreadsheet, Printer,
-  Clock, TrendingUp, TrendingDown, Minus, RefreshCw,
+  FileBarChart, Download, FileJson, FileSpreadsheet, Printer, TrendingUp, TrendingDown, Minus, RefreshCw,
   ChevronRight, BarChart3, Shield, ClipboardList, Layers,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
@@ -73,7 +72,7 @@ export function ReportExporter() {
   ];
 
   // Chart data from report
-  const chartData = report?.performanceHistory.map((p, i) => ({
+  const chartData = report?.performanceHistory.map((p, _i) => ({
     time: new Date(p.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
     gpu: Number(p.gpuUsage.toFixed(1)),
     cpu: Number(p.cpuUsage.toFixed(1)),

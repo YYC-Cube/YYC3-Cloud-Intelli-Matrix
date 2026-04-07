@@ -10,21 +10,18 @@
 import * as React from "react";
 import { useState, useCallback, useContext } from "react";
 import {
-  Database, Plus, Trash2, Play, Plug, Unplug, Search,
-  Table2, HardDrive, Download, Upload, RefreshCcw,
+  Database, Plus, Trash2, Play, Plug, Unplug,
+  Table2, HardDrive, RefreshCcw,
   ChevronRight, ChevronDown, Key, Eye, EyeOff, X,
   Scan, AlertTriangle, CheckCircle2, Loader2, Copy,
-  History, Zap, BookOpen, TestTube, Settings2,
-  Edit3, Check, XCircle,
+  History, BookOpen, TestTube,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useLocalDatabase } from "../hooks/useLocalDatabase";
-import type { SQLTemplate } from "../types";
 import { SQLEditor } from "./CodeEditor";
 import { InlineEditableTable } from "./InlineEditableTable";
 import { ViewContext } from "../lib/view-context";
-import type { DatabaseType, DBConnection } from "../types";
-import { toast } from "sonner";
+import type { DatabaseType } from "../types";
 
 // ── 样式常量 ──
 const textPrimary = "#e0f0ff";
@@ -49,7 +46,7 @@ export function DatabaseManager() {
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateFilter, setTemplateFilter] = useState<string>("all");
-  const [editingConn, setEditingConn] = useState<string | null>(null);
+  const [_editingConn, _setEditingConn] = useState<string | null>(null);
 
   /** Execute SQL directly from InlineEditableTable (for UPDATE operations) */
   const executeInlineSQL = useCallback(async (sql: string): Promise<{ ok: boolean; error?: string; affectedRows?: number }> => {

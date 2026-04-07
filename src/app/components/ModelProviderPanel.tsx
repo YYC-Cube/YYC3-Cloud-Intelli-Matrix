@@ -12,7 +12,7 @@
 
 import React, { useContext, useState } from "react";
 import {
-  Plus, Trash2, Plug, Server, Cpu, Key,
+  Plus, Trash2, Plug, Server, Cpu,
   CheckCircle, AlertCircle, HelpCircle, RefreshCw,
   Edit3, Download, Upload, Globe, ChevronDown, ChevronUp,
 } from "lucide-react";
@@ -53,7 +53,7 @@ export function ModelProviderPanel() {
     removeProvider,
     resetProvider,
     addModelToProvider,
-    removeModelFromProvider,
+    removeModelFromProvider: _removeModelFromProvider,
     exportConfig,
     importConfig,
   } = useModelProvider();
@@ -309,15 +309,17 @@ export function ModelProviderPanel() {
                   >
                     <Edit3 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
                   </button>
-                  {!p.isBuiltin && (
-                    <button
-                      onClick={() => removeProvider(p.id)}
-                      className="p-1.5 rounded-lg hover:bg-[rgba(255,51,102,0.08)] transition-all"
-                      title="删除服务商"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.5)]" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      if (confirm(`确定要删除服务商「${p.label}」吗？\n删除后可在「自定义服务商」中重新添加。`)) {
+                        removeProvider(p.id);
+                      }
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-[rgba(255,51,102,0.08)] transition-all"
+                    title="删除服务商"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.5)]" />
+                  </button>
                 </div>
               </div>
             ))}

@@ -19,7 +19,7 @@ import {
   BarChart3, Layers, Database, Route, FileCode2,
   CheckCircle2, AlertTriangle, XCircle, Shield,
   ChevronDown, ChevronRight, GitBranch, Package,
-  TestTube2, Cpu, Globe, Palette, Eye,
+  TestTube2, Cpu, Globe, Eye,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
@@ -339,7 +339,7 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
 /* ── 主组件 ────────────────────────────────────────── */
 
 export function ArchitectureAudit() {
-  const { t } = useI18n();
+  const { t: _t } = useI18n();
   const [activeTab, setActiveTab] = useState<"overview" | "routes" | "stores" | "tests" | "checklist" | "gaps">("overview");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 

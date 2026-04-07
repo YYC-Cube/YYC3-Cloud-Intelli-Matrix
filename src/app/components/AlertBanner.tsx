@@ -7,8 +7,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router";
-import {
-  Bell, AlertTriangle, XCircle, ChevronRight, Shield,
+import { AlertTriangle, XCircle, ChevronRight,
 } from "lucide-react";
 
 // Mock alert summary (matches useFollowUp data)

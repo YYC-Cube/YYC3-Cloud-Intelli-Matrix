@@ -4,30 +4,46 @@
  * AI Family 音乐 & 新闻空间
  * 音乐播放器 · 行业资讯 · AI 智能推荐
  *
- * 重构: 使用 shared.ts + FadeIn + FamilyPageHeader
+ * v4.0.0 - 真实音频播放集成
+ * - Web Audio API 音频引擎
+ * - 频率数据驱动可视化
+ * - 支持演示模式/文件模式
+ * - 语音命令控制播放
+ * - 情感感知与可视化
+ *
+ * 重构: 使用 useAudioEngine 实现真实音频播放
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Music, Newspaper, Play, Pause, SkipForward, SkipBack,
   Volume2, VolumeX, Heart, Shuffle, Repeat, List, Rss,
-  ExternalLink, Sparkles,
+  ExternalLink, Sparkles, Mic, Brain, Wand2, LayoutGrid, ListMusic, Plus,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
+import { VoiceMusicControlPanel } from "./VoiceMusicControlPanel";
+import { EmotionVisualizer } from "./EmotionVisualizer";
+import { CoverFlow, type MusicTrack as CoverFlowTrack } from "./CoverFlow";
+import { type EmotionType } from "./EmotionRipple";
+import { VinylPhotoPlayer, MVPlayerOverlay } from "./VinylPhotoPlayer";
+import { CreationStudio } from "./CreationStudio";
+import musicEventBus, { type MusicCommand } from "../../lib/MusicEventBus";
+import { type ParsedCommand } from "../../lib/VoiceCommandParser";
+import { useEmotionMusic } from "../../hooks/useEmotionMusic";
+import { useAudioEngine, type AudioTrack } from "../../hooks/useAudioEngine";
+import smartPlaylistGenerator, { type TrackInfo, type PlaylistConfig } from "../../lib/SmartPlaylistGenerator";
+import { MUSIC_LIBRARY, type MusicTrack, DMUSIC_PHOTOS, DMUSIC_VIDEOS } from "../../lib/dmusic-resources";
 
-// ═══ 音乐数据 ═══
-const PLAYLIST = [
-  { id: 1, title: "Family AI — 智慧工坊", artist: "YYC3 Family", duration: "4:32", color: "#FF69B4" },
-  { id: 2, title: "Deep Focus · 深海专注", artist: "AI Ambient", duration: "6:15", color: "#00d4ff" },
-  { id: 3, title: "Code Flow · 编程心流", artist: "Digital Waves", duration: "5:48", color: "#00FF88" },
-  { id: 4, title: "Dawn Break · 晨曦微光", artist: "Nature Synth", duration: "4:05", color: "#FFD700" },
-  { id: 5, title: "Cyber Night · 赛博之夜", artist: "Neon Dreams", duration: "5:20", color: "#BF00FF" },
-  { id: 6, title: "Thinking Space · 思考空间", artist: "AI Ambient", duration: "7:00", color: "#00BFFF" },
-  { id: 7, title: "Victory Loop · 成功循环", artist: "Epic Sound", duration: "3:55", color: "#FF7043" },
-  { id: 8, title: "Gentle Rain · 温柔细雨", artist: "Nature Synth", duration: "8:30", color: "#C0C0C0" },
-];
+const EMOTION_COLORS: Record<string, string> = {
+  happy: "#FFD700",
+  sad: "#4169E1",
+  energetic: "#FF4500",
+  calm: "#00CED1",
+  love: "#FF69B4",
+  neutral: "#9370DB",
+};
 
 const NEWS_ITEMS = [
   { id: "n1", title: "OpenAI 发布 GPT-5 技术报告，推理能力大幅跃升", source: "AI前沿", time: "30分钟前", category: "AI", color: "#00d4ff" },
@@ -40,53 +56,246 @@ const NEWS_ITEMS = [
   { id: "n8", title: "Rust 在系统编程领域市场份额突破15%", source: "编程语言", time: "昨天", category: "语言", color: "#E8E8E8" },
 ];
 
-function formatTime(progress: number, duration: string): string {
-  const parts = duration.split(":");
-  const totalSecs = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-  const currentSecs = Math.floor(totalSecs * progress / 100);
-  const m = Math.floor(currentSecs / 60);
-  const s = currentSecs % 60;
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function formatProgress(currentTime: number, duration: number): string {
+  const m = Math.floor(currentTime / 60);
+  const s = Math.floor(currentTime % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export function FamilyMusic() {
   const [activeTab, setActiveTab] = useState<"music" | "news">("music");
-  const [currentTrack, setCurrentTrack] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(75);
-  const [muted, setMuted] = useState(false);
-  const [liked, setLiked] = useState<Set<number>>(new Set([1]));
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [showVoicePanel, setShowVoicePanel] = useState(false);
+  const [lastVoiceCommand, setLastVoiceCommand] = useState<ParsedCommand | null>(null);
+  const [showEmotionPanel, setShowEmotionPanel] = useState(false);
+  const [smartPlaylist, setSmartPlaylist] = useState<PlaylistConfig | null>(null);
+  const [viewMode, setViewMode] = useState<"coverflow" | "list">("list");
+  const [showCreationStudio, setShowCreationStudio] = useState(false);
+  const [showMVPlayer, setShowMVPlayer] = useState(false);
+  const [playlist, setPlaylist] = useState<MusicTrack[]>(MUSIC_LIBRARY);
 
-  const track = PLAYLIST[currentTrack];
+  const currentTrackData = playlist[currentTrackIndex];
 
-  const barHeights = useMemo(() => {
-    return Array.from({ length: 12 }).map((_, i) => {
-      return isPlaying ? 20 + Math.random() * 80 : 15 + (i % 3) * 10;
+  const audioTrack: AudioTrack = useMemo(() => {
+    if (!currentTrackData) {
+      return {
+        id: "empty",
+        title: "无歌曲",
+        artist: "请选择歌曲",
+        duration: 180,
+        color: "#9370DB",
+      };
+    }
+    return {
+      id: currentTrackData.id,
+      title: currentTrackData.title,
+      artist: currentTrackData.artist,
+      duration: currentTrackData.duration,
+      color: EMOTION_COLORS[currentTrackData.emotion] || "#9370DB",
+      audioUrl: currentTrackData.audioUrl,
+    };
+  }, [currentTrackData]);
+
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    frequencyData,
+    audioEnergy,
+    bassEnergy,
+    audioMode,
+    play,
+    pause,
+    togglePlayPause,
+    seek,
+    setVolume,
+    loadTrack,
+  } = useAudioEngine({
+    track: audioTrack,
+    initialVolume: 0.75,
+    onTrackEnd: () => {
+      setCurrentTrackIndex((prev) => (prev + 1) % playlist.length);
+    },
+  });
+
+  const coverFlowTracks: CoverFlowTrack[] = useMemo(() => {
+    return playlist.map((t) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artist,
+      color: EMOTION_COLORS[t.emotion] || "#9370DB",
+    }));
+  }, [playlist]);
+
+  const selectedMusicTrack = useMemo(() => {
+    return coverFlowTracks[currentTrackIndex] || null;
+  }, [coverFlowTracks, currentTrackIndex]);
+
+  const {
+    emotionHistory,
+  } = useEmotionMusic({
+    autoDetect: true,
+    trackEmotionHistory: true,
+  });
+
+  const currentEmotionType: EmotionType = useMemo(() => {
+    if (!currentTrackData) {return "neutral";}
+    const emotionMap: Record<string, EmotionType> = {
+      happy: "happy",
+      sad: "sad",
+      energetic: "energetic",
+      calm: "calm",
+      love: "happy",
+      neutral: "neutral",
+    };
+    return emotionMap[currentTrackData.emotion] || "neutral";
+  }, [currentTrackData]);
+
+  const handleVoiceCommand = useCallback((command: ParsedCommand) => {
+    setLastVoiceCommand(command);
+    
+    setTimeout(() => {
+      setLastVoiceCommand(null);
+    }, 3000);
+  }, []);
+
+  const handleCoverFlowSelect = useCallback((track: CoverFlowTrack) => {
+    const index = playlist.findIndex((t) => t.id === track.id);
+    if (index !== -1) {
+      setCurrentTrackIndex(index);
+      const selectedTrack = playlist[index];
+      const newAudioTrack: AudioTrack = {
+        id: selectedTrack.id,
+        title: selectedTrack.title,
+        artist: selectedTrack.artist,
+        duration: selectedTrack.duration,
+        color: EMOTION_COLORS[selectedTrack.emotion] || "#9370DB",
+        audioUrl: selectedTrack.audioUrl,
+      };
+      loadTrack(newAudioTrack);
+      play();
+    }
+  }, [playlist, loadTrack, play]);
+
+  const generateSmartPlaylist = useCallback(() => {
+    const tracks: TrackInfo[] = playlist.map((t) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artist,
+      duration: formatDuration(t.duration),
+      color: EMOTION_COLORS[t.emotion] || "#9370DB",
+      genre: t.genre || "pop",
+      tempo: t.emotion === "energetic" ? 140 : t.emotion === "calm" ? 60 : 100,
+      energy: t.emotion === "energetic" ? 80 : t.emotion === "calm" ? 20 : 50,
+      valence: t.emotion === "happy" ? 75 : t.emotion === "sad" ? 30 : 50,
+    }));
+
+    const generatedPlaylist = smartPlaylistGenerator.generatePlaylist(tracks, emotionHistory, {
+      maxTracks: 8,
+      shuffle: false,
     });
-  }, [isPlaying]);
+
+    setSmartPlaylist(generatedPlaylist);
+  }, [playlist, emotionHistory]);
+
+  const executeCommand = useCallback((cmd: MusicCommand) => {
+    switch (cmd) {
+      case "play":
+        play();
+        break;
+      case "pause":
+        pause();
+        break;
+      case "toggle":
+        togglePlayPause();
+        break;
+      case "next":
+        setCurrentTrackIndex((prev) => {
+          const next = (prev + 1) % playlist.length;
+          const selectedTrack = playlist[next];
+          const newAudioTrack: AudioTrack = {
+            id: selectedTrack.id,
+            title: selectedTrack.title,
+            artist: selectedTrack.artist,
+            duration: selectedTrack.duration,
+            color: EMOTION_COLORS[selectedTrack.emotion] || "#9370DB",
+            audioUrl: selectedTrack.audioUrl,
+          };
+          loadTrack(newAudioTrack);
+          play();
+          return next;
+        });
+        break;
+      case "previous":
+        setCurrentTrackIndex((prev) => {
+          const next = (prev - 1 + playlist.length) % playlist.length;
+          const selectedTrack = playlist[next];
+          const newAudioTrack: AudioTrack = {
+            id: selectedTrack.id,
+            title: selectedTrack.title,
+            artist: selectedTrack.artist,
+            duration: selectedTrack.duration,
+            color: EMOTION_COLORS[selectedTrack.emotion] || "#9370DB",
+            audioUrl: selectedTrack.audioUrl,
+          };
+          loadTrack(newAudioTrack);
+          play();
+          return next;
+        });
+        break;
+      case "volume_up":
+        setVolume(Math.min(1, volume + 0.1));
+        break;
+      case "volume_down":
+        setVolume(Math.max(0, volume - 0.1));
+        break;
+      case "mute":
+        setVolume(0);
+        break;
+      case "unmute":
+        setVolume(0.75);
+        break;
+      case "like":
+        if (currentTrackData) {
+          setLiked((prev) => new Set(prev).add(currentTrackData.id));
+        }
+        break;
+      case "shuffle":
+        break;
+      default:
+        break;
+    }
+  }, [play, pause, togglePlayPause, loadTrack, setVolume, volume, currentTrackData, playlist]);
 
   useEffect(() => {
-    if (!isPlaying) { return; }
-    const t = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          setCurrentTrack(c => (c + 1) % PLAYLIST.length);
-          return 0;
-        }
-        return p + 0.5;
-      });
-    }, 300);
-    return () => clearInterval(t);
-  }, [isPlaying]);
+    const unsubscribe = musicEventBus.subscribe("music:command", (event) => {
+      if (event.type === "music:command") {
+        executeCommand(event.payload.command);
+      }
+    });
 
-  const toggleLike = (id: number) => {
+    return () => unsubscribe();
+  }, [executeCommand]);
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const toggleLike = (id: string) => {
     setLiked(prev => {
       const next = new Set(prev);
       if (next.has(id)) {next.delete(id);} else {next.add(id);}
       return next;
     });
   };
+
+  const currentTrackColor = currentTrackData ? (EMOTION_COLORS[currentTrackData.emotion] || "#9370DB") : "#9370DB";
 
   return (
     <div className="min-h-full pb-8">
@@ -122,75 +331,119 @@ export function FamilyMusic() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 播放器 */}
             <div className="lg:col-span-1">
-              <GlassCard className="p-6" glowColor={`${track.color}08`}>
-                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-5" style={{ background: `radial-gradient(circle, ${track.color}15 0%, rgba(4,10,22,0.9) 70%)`, border: `1px solid ${track.color}20` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex items-end gap-1 h-16">
-                      {barHeights.map((h, i) => {
-                        return (
-                          <div
-                            key={i}
-                            className="w-2 rounded-t transition-all"
-                            style={{
-                              height: `${h}%`,
-                              background: `linear-gradient(to top, ${track.color}60, ${track.color}15)`,
-                              transitionDuration: isPlaying ? "0.3s" : "0.5s",
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
+              <GlassCard className="p-6" glowColor={`${currentTrackColor}08`}>
+                {/* AI 音乐助手控制栏 */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#FFD700]" />
+                    <span className="text-white/60 text-xs">AI 音乐助手</span>
                   </div>
-                  <div className="absolute bottom-3 left-3">
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[rgba(0,0,0,0.5)]">
-                      <Sparkles className="w-3 h-3 text-[#FFD700]" />
-                      <span className="text-[rgba(255,215,0,0.7)]" style={{ fontSize: "0.55rem" }}>AI 推荐</span>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setShowEmotionPanel(!showEmotionPanel)}
+                      className={`p-2 rounded-lg transition-all ${
+                        showEmotionPanel
+                          ? "bg-purple-500/20 text-purple-300"
+                          : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                      }`}
+                      title="情感感知"
+                    >
+                      <Brain className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setShowVoicePanel(!showVoicePanel)}
+                      className={`p-2 rounded-lg transition-all ${
+                        showVoicePanel
+                          ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                          : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                      }`}
+                      title="语音控制"
+                    >
+                      <Mic className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
+                {/* 情感感知面板 */}
+                {showEmotionPanel && (
+                  <div className="mb-4">
+                    <EmotionVisualizer compact={false} showRecommendations />
+                  </div>
+                )}
+
+                {/* 语音控制面板 */}
+                {showVoicePanel && (
+                  <div className="mb-4">
+                    <VoiceMusicControlPanel
+                      compact
+                      onCommand={handleVoiceCommand}
+                    />
+                    {lastVoiceCommand && (
+                      <div className="mt-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-300 text-xs">
+                            已执行: {lastVoiceCommand.command}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <VinylPhotoPlayer
+                  photos={DMUSIC_PHOTOS}
+                  coverUrl={currentTrackData?.coverUrl}
+                  isPlaying={isPlaying}
+                  audioEnergy={audioEnergy}
+                  trackTitle={currentTrackData?.title}
+                  artist={currentTrackData?.artist}
+                  hasVideo={!!currentTrackData?.videoUrl || DMUSIC_VIDEOS.length > 0}
+                  onOpenVideo={() => setShowMVPlayer(true)}
+                />
+
                 <div className="text-center mb-4">
-                  <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.95rem" }}>{track.title}</h3>
-                  <p className="text-[rgba(224,240,255,0.4)] mt-1" style={{ fontSize: "0.72rem" }}>{track.artist}</p>
+                  <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.95rem" }}>{currentTrackData.title}</h3>
+                  <p className="text-[rgba(224,240,255,0.4)] mt-1" style={{ fontSize: "0.72rem" }}>{currentTrackData.artist}</p>
                 </div>
 
                 <div className="mb-4">
-                  <div className="h-1 rounded-full bg-[rgba(0,40,80,0.3)] cursor-pointer overflow-hidden" onClick={e => {
+                  <div className="h-1 rounded-full bg-[rgba(0,40,80,0.3)] cursor-pointer overflow-hidden" onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setProgress((e.clientX - rect.left) / rect.width * 100);
+                    const clickProgress = (e.clientX - rect.left) / rect.width;
+                    seek(clickProgress * duration);
                   }}>
-                    <div className="h-full rounded-full" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${track.color}, ${track.color}60)` }} />
+                    <div className="h-full rounded-full" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${currentTrackColor}, ${currentTrackColor}60)` }} />
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.55rem" }}>{formatTime(progress, track.duration)}</span>
-                    <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.55rem" }}>{track.duration}</span>
+                    <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.55rem" }}>{formatProgress(currentTime, duration)}</span>
+                    <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.55rem" }}>{formatDuration(duration)}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-center gap-5">
                   <Shuffle className="w-4 h-4 text-[rgba(224,240,255,0.25)] cursor-pointer hover:text-[rgba(224,240,255,0.6)] transition-colors" />
-                  <SkipBack className="w-5 h-5 text-[rgba(224,240,255,0.5)] cursor-pointer hover:text-[#e0f0ff] transition-colors" onClick={() => { setCurrentTrack(c => (c - 1 + PLAYLIST.length) % PLAYLIST.length); setProgress(0); }} />
+                  <SkipBack className="w-5 h-5 text-[rgba(224,240,255,0.5)] cursor-pointer hover:text-[#e0f0ff] transition-colors" onClick={() => executeCommand("previous")} />
                   <button
-                    onClick={() => setIsPlaying(!isPlaying)}
+                    onClick={togglePlayPause}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
-                    style={{ background: `${track.color}20`, border: `2px solid ${track.color}50`, boxShadow: isPlaying ? `0 0 20px ${track.color}20` : "none" }}
+                    style={{ background: `${currentTrackColor}20`, border: `2px solid ${currentTrackColor}50`, boxShadow: isPlaying ? `0 0 20px ${currentTrackColor}20` : "none" }}
                   >
-                    {isPlaying ? <Pause className="w-5 h-5" style={{ color: track.color }} /> : <Play className="w-5 h-5 ml-0.5" style={{ color: track.color }} />}
+                    {isPlaying ? <Pause className="w-5 h-5" style={{ color: currentTrackColor }} /> : <Play className="w-5 h-5 ml-0.5" style={{ color: currentTrackColor }} />}
                   </button>
-                  <SkipForward className="w-5 h-5 text-[rgba(224,240,255,0.5)] cursor-pointer hover:text-[#e0f0ff] transition-colors" onClick={() => { setCurrentTrack(c => (c + 1) % PLAYLIST.length); setProgress(0); }} />
+                  <SkipForward className="w-5 h-5 text-[rgba(224,240,255,0.5)] cursor-pointer hover:text-[#e0f0ff] transition-colors" onClick={() => executeCommand("next")} />
                   <Repeat className="w-4 h-4 text-[rgba(224,240,255,0.25)] cursor-pointer hover:text-[rgba(224,240,255,0.6)] transition-colors" />
                 </div>
 
                 <div className="flex items-center gap-2 mt-4 px-4">
-                  <button onClick={() => setMuted(!muted)} className="text-[rgba(224,240,255,0.3)]">
-                    {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  <button onClick={() => setVolume(volume > 0 ? 0 : 0.75)} className="text-[rgba(224,240,255,0.3)]">
+                    {volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                   </button>
-                  <div className="flex-1 h-1 rounded-full bg-[rgba(0,40,80,0.3)] cursor-pointer" onClick={e => {
+                  <div className="flex-1 h-1 rounded-full bg-[rgba(0,40,80,0.3)] cursor-pointer" onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setVolume(Math.round((e.clientX - rect.left) / rect.width * 100));
-                    setMuted(false);
+                    setVolume((e.clientX - rect.left) / rect.width);
                   }}>
-                    <div className="h-full rounded-full bg-[rgba(0,212,255,0.4)]" style={{ width: `${muted ? 0 : volume}%` }} />
+                    <div className="h-full rounded-full bg-[rgba(0,212,255,0.4)]" style={{ width: `${volume * 100}%` }} />
                   </div>
                 </div>
               </GlassCard>
@@ -198,49 +451,140 @@ export function FamilyMusic() {
 
             {/* 播放列表 */}
             <div className="lg:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <List className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
-                <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>播放列表</h3>
-                <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.65rem" }}>{PLAYLIST.length} 首</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <List className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
+                  <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>播放列表</h3>
+                  <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.65rem" }}>{playlist.length} 首</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setViewMode("coverflow")}
+                    className={`p-2 rounded-lg transition-all ${
+                      viewMode === "coverflow"
+                        ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                    }`}
+                    title="3D 封面流"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-lg transition-all ${
+                      viewMode === "list"
+                        ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                    }`}
+                    title="列表视图"
+                  >
+                    <ListMusic className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={generateSmartPlaylist}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all"
+                    style={{ fontSize: "0.7rem" }}
+                    title="基于情感历史生成智能播放列表"
+                  >
+                    <Wand2 className="w-3.5 h-3.5" />
+                    智能生成
+                  </button>
+                  <button
+                    onClick={() => setShowCreationStudio(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 transition-all"
+                    style={{ fontSize: "0.7rem" }}
+                    title="AI 创作工坊"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    AI 创作
+                  </button>
+                </div>
               </div>
-              <div className="space-y-2">
-                {PLAYLIST.map((t, i) => {
-                  const isCurrent = i === currentTrack;
-                  return (
-                    <FadeIn delay={i * 0.04} key={t.id}>
-                      <GlassCard
-                        className={`p-3 cursor-pointer group transition-all ${isCurrent ? "" : "hover:bg-[rgba(0,40,80,0.15)]"}`}
-                        onClick={() => { setCurrentTrack(i); setProgress(0); setIsPlaying(true); }}
-                        glowColor={isCurrent ? `${t.color}06` : undefined}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 text-center shrink-0">
-                            {isCurrent && isPlaying ? (
-                              <div className="flex items-end justify-center gap-0.5 h-4">
-                                {[0, 1, 2].map(j => (
-                                  <div key={j} className="w-1 rounded-t animate-pulse" style={{ height: `${40 + Math.random() * 60}%`, background: t.color, animationDelay: `${j * 0.15}s` }} />
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.72rem" }}>{i + 1}</span>
-                            )}
+
+              {/* 智能播放列表结果 */}
+              {smartPlaylist && (
+                <div className="mb-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Wand2 className="w-3.5 h-3.5 text-purple-400" />
+                      <span className="text-purple-300 text-xs font-medium">{smartPlaylist.name}</span>
+                    </div>
+                    <span className="text-purple-300/60" style={{ fontSize: "0.6rem" }}>
+                      {smartPlaylist.tracks.length} 首 · {Math.floor(smartPlaylist.duration / 60)}分钟
+                    </span>
+                  </div>
+                  <p className="text-purple-300/60" style={{ fontSize: "0.65rem" }}>{smartPlaylist.description}</p>
+                </div>
+              )}
+
+              {/* CoverFlow 3D 展示 */}
+              {viewMode === "coverflow" && (
+                <FadeIn>
+                  <GlassCard className="p-4 mb-4" glowColor={`${currentTrackColor}05`}>
+                    <CoverFlow
+                      tracks={coverFlowTracks}
+                      onTrackSelect={handleCoverFlowSelect}
+                      selectedTrack={selectedMusicTrack}
+                      isPlaying={isPlaying}
+                    />
+                  </GlassCard>
+                </FadeIn>
+              )}
+
+              {/* 列表视图 */}
+              {viewMode === "list" && (
+                <div className="space-y-2">
+                  {playlist.map((t, i) => {
+                    const isCurrent = i === currentTrackIndex;
+                    const trackColor = EMOTION_COLORS[t.emotion] || "#9370DB";
+                    return (
+                      <FadeIn delay={i * 0.04} key={t.id}>
+                        <GlassCard
+                          className={`p-3 cursor-pointer group transition-all ${isCurrent ? "" : "hover:bg-[rgba(0,40,80,0.15)]"}`}
+                          onClick={() => {
+                            setCurrentTrackIndex(i);
+                            const newAudioTrack: AudioTrack = {
+                              id: t.id,
+                              title: t.title,
+                              artist: t.artist,
+                              duration: t.duration,
+                              color: trackColor,
+                              audioUrl: t.audioUrl,
+                            };
+                            loadTrack(newAudioTrack);
+                            play();
+                          }}
+                          glowColor={isCurrent ? `${trackColor}06` : undefined}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 text-center shrink-0">
+                              {isCurrent && isPlaying ? (
+                                <div className="flex items-end justify-center gap-0.5 h-4">
+                                  {[0, 1, 2].map(j => (
+                                    <div key={j} className="w-1 rounded-t animate-pulse" style={{ height: `${40 + Math.random() * 60}%`, background: trackColor, animationDelay: `${j * 0.15}s` }} />
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.72rem" }}>{i + 1}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`truncate ${isCurrent ? "" : "text-[rgba(224,240,255,0.7)]"}`} style={{ fontSize: "0.8rem", color: isCurrent ? trackColor : undefined }}>
+                                {t.title}
+                              </p>
+                              <p className="text-[rgba(224,240,255,0.3)] truncate" style={{ fontSize: "0.6rem" }}>{t.artist}</p>
+                            </div>
+                            <button onClick={e => { e.stopPropagation(); toggleLike(t.id); }} className="shrink-0 p-1">
+                              <Heart className="w-3.5 h-3.5 transition-colors" style={{ color: liked.has(t.id) ? "#FF69B4" : "rgba(224,240,255,0.15)", fill: liked.has(t.id) ? "#FF69B4" : "none" }} />
+                            </button>
+                            <span className="text-[rgba(224,240,255,0.2)] shrink-0" style={{ fontSize: "0.65rem" }}>{formatDuration(t.duration)}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`truncate ${isCurrent ? "" : "text-[rgba(224,240,255,0.7)]"}`} style={{ fontSize: "0.8rem", color: isCurrent ? t.color : undefined }}>
-                              {t.title}
-                            </p>
-                            <p className="text-[rgba(224,240,255,0.3)] truncate" style={{ fontSize: "0.6rem" }}>{t.artist}</p>
-                          </div>
-                          <button onClick={e => { e.stopPropagation(); toggleLike(t.id); }} className="shrink-0 p-1">
-                            <Heart className="w-3.5 h-3.5 transition-colors" style={{ color: liked.has(t.id) ? "#FF69B4" : "rgba(224,240,255,0.15)", fill: liked.has(t.id) ? "#FF69B4" : "none" }} />
-                          </button>
-                          <span className="text-[rgba(224,240,255,0.2)] shrink-0" style={{ fontSize: "0.65rem" }}>{t.duration}</span>
-                        </div>
-                      </GlassCard>
-                    </FadeIn>
-                  );
-                })}
-              </div>
+                        </GlassCard>
+                      </FadeIn>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -275,6 +619,28 @@ export function FamilyMusic() {
           </div>
         )}
       </div>
+
+      <CreationStudio
+        isOpen={showCreationStudio}
+        onClose={() => setShowCreationStudio(false)}
+        playlist={playlist}
+        currentTrackIndex={currentTrackIndex}
+        onCreateTrack={(track) => {
+          setPlaylist((prev) => [...prev, track]);
+        }}
+      />
+
+      <MVPlayerOverlay
+        isOpen={showMVPlayer}
+        onClose={() => setShowMVPlayer(false)}
+        videoUrl={currentTrackData?.videoUrl || (DMUSIC_VIDEOS.length > 0 ? DMUSIC_VIDEOS[currentTrackIndex % DMUSIC_VIDEOS.length] : null)}
+        trackTitle={currentTrackData?.title || "D-Music"}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+        duration={duration}
+        onSeek={(pct) => seek(pct * duration)}
+        formatTime={formatDuration}
+      />
     </div>
   );
 }

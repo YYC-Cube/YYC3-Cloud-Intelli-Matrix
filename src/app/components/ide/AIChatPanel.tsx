@@ -10,7 +10,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Bot, User, Send, Image as ImageIcon,
   FileCode, Link, Sigma, Clipboard, Plus,
-  Sparkles, Code2, Bug, Zap, TestTube, RefreshCw,
+  Sparkles, Bug, Zap, TestTube, RefreshCw,
   Lightbulb, Wand2, Copy, Check,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
@@ -36,7 +36,7 @@ function generateMockResponse(prompt: string): string {
     return "发现 **2 个潜在问题**：\n\n🔴 **Issue 1**: `useEffect` 缺少依赖项 `count`，可能导致闭包问题\n```tsx\nuseEffect(() => {\n  // Fix: add count to deps\n}, [count]);\n```\n\n🟡 **Issue 2**: 未处理 `null` 边界情况\n```tsx\nif (!data) return <Loading />;\n```\n\n修复后代码应该可以正常运行。";
   }
   if (prompt.includes("优化") || prompt.includes("optimize")) {
-    return "🚀 **性能优化建议**：\n\n1. **Memoize** 计算密集的函数：\n```tsx\nconst result = useMemo(() => compute(data), [data]);\n```\n\n2. **虚拟滚动**: 列表超过 100 项时使用虚拟化\n3. **Code Splitting**: 使用 `React.lazy` 延迟加载\n4. **避免重渲��**: 使用 `React.memo` 包裹纯展示组件\n\n预计优化后渲染时间降低 **40-60%**。";
+    return "🚀 **性能优化建议**：\n\n1. **Memoize** 计算密集的函数：\n```tsx\nconst result = useMemo(() => compute(data), [data]);\n```\n\n2. **虚拟滚动**: 列表超过 100 项时使用虚拟化\n3. **Code Splitting**: 使用 `React.lazy` 延迟加载\n4. **避免重渲染**: 使用 `React.memo` 包裹纯展示组件\n\n预计优化后渲染时间降低 **40-60%**。";
   }
   if (prompt.includes("测试") || prompt.includes("test")) {
     return "已生成 **Vitest 单元测试**：\n\n```tsx\nimport { render, screen } from '@testing-library/react';\nimport { describe, it, expect } from 'vitest';\nimport { NodeStatusCard } from './NodeStatusCard';\n\ndescribe('NodeStatusCard', () => {\n  it('renders node ID', () => {\n    render(<NodeStatusCard node={mockNode} />);\n    expect(screen.getByText('GPU-A100-01')).toBeDefined();\n  });\n\n  it('displays GPU utilization', () => {\n    render(<NodeStatusCard node={mockNode} />);\n    expect(screen.getByText('87%')).toBeDefined();\n  });\n\n  it('applies warning style for high temp', () => {\n    const hot = { ...mockNode, temp: 85 };\n    render(<NodeStatusCard node={hot} />);\n    // assert warning class applied\n  });\n});\n```\n\n覆盖了核心渲染和边界情况。";

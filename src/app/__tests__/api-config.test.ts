@@ -20,12 +20,36 @@ import {
 } from "../lib/api-config";
 import type { APIEndpoints } from "../types";
 
+let mockChannel: {
+  postMessage: ReturnType<typeof vi.fn>;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+  messageHandlers: Array<(event: MessageEvent) => void>;
+} | null = null;
+
 vi.mock("../lib/broadcast-channel", () => ({
-  getSharedChannel: vi.fn(() => ({
-    postMessage: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  })),
+  getSharedChannel: vi.fn(() => {
+    if (!mockChannel) {
+      mockChannel = {
+        postMessage: vi.fn(),
+        addEventListener: vi.fn((type: string, handler: (event: MessageEvent) => void) => {
+          if (type === "message") {
+            mockChannel!.messageHandlers.push(handler);
+          }
+        }),
+        removeEventListener: vi.fn((type: string, handler: (event: MessageEvent) => void) => {
+          if (type === "message") {
+            const idx = mockChannel!.messageHandlers.indexOf(handler);
+            if (idx >= 0) {
+              mockChannel!.messageHandlers.splice(idx, 1);
+            }
+          }
+        }),
+        messageHandlers: [],
+      };
+    }
+    return mockChannel;
+  }),
 }));
 
 describe("api-config", () => {
@@ -33,6 +57,7 @@ describe("api-config", () => {
     vi.clearAllMocks();
     localStorage.clear();
     resetAPIConfig();
+    mockChannel = null;
   });
 
   afterEach(() => {
@@ -63,6 +88,12 @@ describe("api-config", () => {
       expect(config.fsBase).toBe("/custom/fs");
       expect(config.enableBackend).toBe(true);
     });
+
+    it("should handle corrupted localStorage data", () => {
+      localStorage.setItem("yyc3_api_endpoints", "invalid-json");
+      const config = getAPIConfig();
+      expect(config.fsBase).toBe("/api/fs");
+    });
   });
 
   describe("setAPIConfig", () => {
@@ -80,6 +111,31 @@ describe("api-config", () => {
       expect(saved).toBeDefined();
       const parsed = JSON.parse(saved as string);
       expect(parsed.aiBase).toBe("https://custom.ai.com/v1");
+    });
+
+    it("should handle localStorage quota errors gracefully", () => {
+      const originalSetItem = localStorage.setItem;
+      localStorage.setItem = vi.fn(() => {
+        throw new Error("QuotaExceededError");
+      });
+      
+      expect(() => setAPIConfig({ fsBase: "/new/fs" })).not.toThrow();
+      
+      localStorage.setItem = originalSetItem;
+    });
+
+    it("should handle listener errors gracefully", () => {
+      const errorListener = vi.fn(() => {
+        throw new Error("ListenerError");
+      });
+      const normalListener = vi.fn();
+      
+      onAPIConfigChange(errorListener);
+      onAPIConfigChange(normalListener);
+      
+      expect(() => setAPIConfig({ fsBase: "/new/fs" })).not.toThrow();
+      expect(errorListener).toHaveBeenCalled();
+      expect(normalListener).toHaveBeenCalled();
     });
 
     it("should merge with existing config", () => {
@@ -115,6 +171,17 @@ describe("api-config", () => {
       expect(localStorage.getItem("yyc3_api_endpoints")).toBeDefined();
       resetAPIConfig();
       expect(localStorage.getItem("yyc3_api_endpoints")).toBeNull();
+    });
+
+    it("should handle localStorage errors gracefully", () => {
+      const originalRemoveItem = localStorage.removeItem;
+      localStorage.removeItem = vi.fn(() => {
+        throw new Error("StorageError");
+      });
+      
+      expect(() => resetAPIConfig()).not.toThrow();
+      
+      localStorage.removeItem = originalRemoveItem;
     });
 
     it("should notify listeners", () => {
@@ -158,6 +225,40 @@ describe("api-config", () => {
       setAPIConfig({ fsBase: "/new/fs" });
       expect(listener1).toHaveBeenCalled();
       expect(listener2).toHaveBeenCalled();
+    });
+
+    it("should handle broadcast messages from other tabs", () => {
+      const listener = vi.fn();
+      onAPIConfigChange(listener);
+      
+      const newConfig: APIEndpoints = {
+        fsBase: "/broadcast/fs",
+        dbBase: "/api/db",
+        wsEndpoint: "ws://localhost:3113/ws",
+        aiBase: "https://api.openai.com/v1",
+        clusterBase: "/api/cluster",
+        enableBackend: true,
+        timeout: 20000,
+        maxRetries: 3,
+      };
+      
+      mockChannel!.messageHandlers.forEach(handler => {
+        handler({ data: { type: "config_update", config: newConfig } } as MessageEvent);
+      });
+      
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ fsBase: "/broadcast/fs" }));
+      expect(getAPIConfig().fsBase).toBe("/broadcast/fs");
+    });
+
+    it("should ignore non-config-update messages", () => {
+      const listener = vi.fn();
+      onAPIConfigChange(listener);
+      
+      mockChannel!.messageHandlers.forEach(handler => {
+        handler({ data: { type: "other_type", config: {} } } as MessageEvent);
+      });
+      
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 

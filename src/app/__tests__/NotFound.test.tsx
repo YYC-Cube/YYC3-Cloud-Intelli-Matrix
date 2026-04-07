@@ -91,4 +91,20 @@ describe("NotFound", () => {
     const footerElements = screen.getAllByText("notFound.footer");
     expect(footerElements.length).toBeGreaterThan(0);
   });
+
+  it("should handle mouse enter/leave on go back button", () => {
+    render(<NotFound />);
+    const goBackButtons = screen.getAllByText("notFound.goBack");
+    fireEvent.mouseEnter(goBackButtons[0]);
+    fireEvent.mouseLeave(goBackButtons[0]);
+    expect(goBackButtons[0]).toBeInTheDocument();
+  });
+
+  it("should handle mouse enter/leave on go home button", () => {
+    render(<NotFound />);
+    const goHomeButtons = screen.getAllByText("notFound.goHome");
+    fireEvent.mouseEnter(goHomeButtons[0]);
+    fireEvent.mouseLeave(goHomeButtons[0]);
+    expect(goHomeButtons[0]).toBeInTheDocument();
+  });
 });

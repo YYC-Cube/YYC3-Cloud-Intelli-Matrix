@@ -117,6 +117,138 @@ describe("useTerminal", () => {
       expect(result.current.history[1].output).toContain("节点列表");
     });
 
+    it("should execute cpim node restart command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim node restart");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("重启节点");
+    });
+
+    it("should execute cpim node restart --force command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim node restart --force");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("强制");
+    });
+
+    it("should execute cpim model list command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim model list");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("已部署模型");
+    });
+
+    it("should execute cpim model deploy command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim model deploy LLaMA-70B");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("部署模型");
+    });
+
+    it("should execute cpim patrol run command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim patrol run");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("巡查");
+    });
+
+    it("should execute cpim patrol run --full command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim patrol run --full");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("完整模式");
+    });
+
+    it("should execute cpim patrol history command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim patrol history");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("巡查历史");
+    });
+
+    it("should execute cpim report command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim report");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("生成报告");
+    });
+
+    it("should execute cpim report --type health command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim report --type health");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("健康");
+    });
+
+    it("should execute cpim config list command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim config list");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("系统配置");
+    });
+
+    it("should execute cpim config get command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim config get patrol.interval");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("patrol.interval");
+    });
+
+    it("should execute cpim config set command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cpim config set patrol.interval 30");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].output).toContain("已更新");
+    });
+
     it("should execute cpim alerts command", () => {
       const { result } = renderHook(() => useTerminal());
 
@@ -128,17 +260,6 @@ describe("useTerminal", () => {
       expect(result.current.history[1].output).toContain("告警列表");
     });
 
-    it("should execute cpim patrol command", () => {
-      const { result } = renderHook(() => useTerminal());
-
-      act(() => {
-        result.current.execute("cpim patrol");
-      });
-
-      expect(result.current.history).toHaveLength(2);
-      expect(result.current.history[1].output).toContain("巡查状态");
-    });
-
     it("should execute ls command", () => {
       const { result } = renderHook(() => useTerminal());
 
@@ -148,6 +269,28 @@ describe("useTerminal", () => {
 
       expect(result.current.history).toHaveLength(2);
       expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute ls with directory", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("ls logs");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute ls with invalid directory", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("ls invalid");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("error");
     });
 
     it("should execute pwd command", () => {
@@ -183,6 +326,94 @@ describe("useTerminal", () => {
       expect(result.current.history[1].status).toBe("success");
     });
 
+    it("should execute uptime command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("uptime");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute neofetch command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("neofetch");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute fastfetch command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("fastfetch");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute htop command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("htop");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute top command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("top");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute ping command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("ping");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute ping with host", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("ping 192.168.3.1");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute df command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("df");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
     it("should execute echo command", () => {
       const { result } = renderHook(() => useTerminal());
 
@@ -192,6 +423,116 @@ describe("useTerminal", () => {
 
       expect(result.current.history).toHaveLength(2);
       expect(result.current.history[1].output).toBe("hello world");
+    });
+
+    it("should execute cat command with patrol.json", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat configs/patrol.json");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute cat command with alerts.json", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat configs/alerts.json");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute cat command with templates.json", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat configs/templates.json");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute cat command with env.json", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat configs/env.json");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute cat command with invalid file", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat invalid.json");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("error");
+    });
+
+    it("should execute cat command without file", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cat");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("error");
+    });
+
+    it("should execute cd command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("cd /logs");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("success");
+    });
+
+    it("should execute history command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("history");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute exit command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("exit");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
+    });
+
+    it("should execute quit command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.execute("quit");
+      });
+
+      expect(result.current.history).toHaveLength(2);
+      expect(result.current.history[1].status).toBe("info");
     });
   });
 
@@ -436,6 +777,40 @@ describe("useTerminal", () => {
 
       act(() => {
         result.current.handleInputChange("cpim s");
+      });
+
+      const completion = result.current.completions[0];
+
+      act(() => {
+        result.current.applyCompletion(completion);
+      });
+
+      expect(result.current.inputValue).toContain(completion);
+      expect(result.current.inputValue.endsWith(" ")).toBe(true);
+    });
+
+    it("should apply completion for ls command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.handleInputChange("ls l");
+      });
+
+      const completion = result.current.completions[0];
+
+      act(() => {
+        result.current.applyCompletion(completion);
+      });
+
+      expect(result.current.inputValue).toContain(completion);
+      expect(result.current.inputValue.endsWith(" ")).toBe(true);
+    });
+
+    it("should apply completion for cat command", () => {
+      const { result } = renderHook(() => useTerminal());
+
+      act(() => {
+        result.current.handleInputChange("cat c");
       });
 
       const completion = result.current.completions[0];

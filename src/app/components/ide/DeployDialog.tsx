@@ -6,7 +6,7 @@
 
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { X, Rocket, Check, AlertCircle, Loader2 } from "lucide-react";
+import { X, Rocket, Check, Loader2 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
 
 interface DeployDialogProps {

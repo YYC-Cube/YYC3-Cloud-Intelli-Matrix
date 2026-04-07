@@ -165,4 +165,66 @@ describe("FileBrowser", () => {
       expect(screen.getByText("空目录")).toBeInTheDocument();
     });
   });
+
+  describe("时间格式化", () => {
+    it("应显示'刚刚'对于小于1分钟的文件", () => {
+      const recentItem: FileItem = {
+        id: "recent",
+        name: "recent.txt",
+        type: "file",
+        path: "~/.yyc3-cloudpivot/recent.txt",
+        modifiedAt: Date.now() - 30000,
+      };
+      render(
+        <FileBrowser items={[recentItem]} breadcrumbs={breadcrumbs} onSelect={onSelect}
+          onNavigate={onNavigate} onGoUp={onGoUp} formatSize={formatSize} canGoUp={false} />
+      );
+      expect(screen.getByText("刚刚")).toBeInTheDocument();
+    });
+
+    it("应显示'X分钟前'对于小于1小时的文件", () => {
+      const item: FileItem = {
+        id: "minutes",
+        name: "minutes.txt",
+        type: "file",
+        path: "~/.yyc3-cloudpivot/minutes.txt",
+        modifiedAt: Date.now() - 30 * 60 * 1000,
+      };
+      render(
+        <FileBrowser items={[item]} breadcrumbs={breadcrumbs} onSelect={onSelect}
+          onNavigate={onNavigate} onGoUp={onGoUp} formatSize={formatSize} canGoUp={false} />
+      );
+      expect(screen.getByText("30分钟前")).toBeInTheDocument();
+    });
+
+    it("应显示'X小时前'对于小于24小时的文件", () => {
+      const item: FileItem = {
+        id: "hours",
+        name: "hours.txt",
+        type: "file",
+        path: "~/.yyc3-cloudpivot/hours.txt",
+        modifiedAt: Date.now() - 5 * 60 * 60 * 1000,
+      };
+      render(
+        <FileBrowser items={[item]} breadcrumbs={breadcrumbs} onSelect={onSelect}
+          onNavigate={onNavigate} onGoUp={onGoUp} formatSize={formatSize} canGoUp={false} />
+      );
+      expect(screen.getByText("5小时前")).toBeInTheDocument();
+    });
+
+    it("应显示'X天前'对于大于24小时的文件", () => {
+      const item: FileItem = {
+        id: "days",
+        name: "days.txt",
+        type: "file",
+        path: "~/.yyc3-cloudpivot/days.txt",
+        modifiedAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+      };
+      render(
+        <FileBrowser items={[item]} breadcrumbs={breadcrumbs} onSelect={onSelect}
+          onNavigate={onNavigate} onGoUp={onGoUp} formatSize={formatSize} canGoUp={false} />
+      );
+      expect(screen.getByText("3天前")).toBeInTheDocument();
+    });
+  });
 });

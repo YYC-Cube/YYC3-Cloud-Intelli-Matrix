@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { icons, iconsCDN } from "../lib/yyc3-icons";
+import { icons, iconsCDN, handleIconError } from "../lib/yyc3-icons";
 
 describe("yyc3-icons", () => {
   describe("icons (local paths)", () => {
@@ -164,6 +164,38 @@ describe("yyc3-icons", () => {
       Object.values(iconsCDN).forEach((path) => {
         expect(path).toMatch(/^https:\/\/raw\.githubusercontent\.com\//);
       });
+    });
+  });
+
+  describe("handleIconError", () => {
+    it("should return a function", () => {
+      const handler = handleIconError("favicon16");
+      expect(typeof handler).toBe("function");
+    });
+
+    it("should set img.src to CDN path when src differs", () => {
+      const handler = handleIconError("favicon16");
+      const mockImg = {
+        src: "/local/path.png",
+      };
+      const mockEvent = {
+        currentTarget: mockImg,
+      } as unknown as React.SyntheticEvent<HTMLImageElement>;
+      handler(mockEvent);
+      expect(mockImg.src).toBe(iconsCDN.favicon16);
+    });
+
+    it("should not change src when already using CDN path", () => {
+      const handler = handleIconError("favicon16");
+      const cdnSrc = iconsCDN.favicon16;
+      const mockImg = {
+        src: cdnSrc,
+      };
+      const mockEvent = {
+        currentTarget: mockImg,
+      } as unknown as React.SyntheticEvent<HTMLImageElement>;
+      handler(mockEvent);
+      expect(mockImg.src).toBe(cdnSrc);
     });
   });
 });

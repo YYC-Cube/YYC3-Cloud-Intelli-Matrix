@@ -41,10 +41,15 @@ import { DataEditorPanel } from "./components/DataEditorPanel";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
 import { EnvConfigEditor } from "./components/EnvConfigEditor";
 import { DatabaseConnectionPanel } from "./components/DatabaseConnectionPanel";
+import { ConnectionMonitorPanel } from "./components/ConnectionMonitorPanel";
+import { StorageManager } from "./components/StorageManager";
 import { ArchitectureAudit } from "./components/ArchitectureAudit";
 import { AIFamilyPage } from "./components/AIFamilyPage";
 import { AIFamilyRouter } from "./components/ai-family/AIFamilyRouter";
 import { ServiceConnectionTest } from "./components/ServiceConnectionTest";
+import { FollowUpManager } from "./components/FollowUpManager";
+import { ConfigCenter } from "./components/ConfigCenter";
+import { VariableCenter } from "./components/VariableCenter";
 import { NotFound } from "./components/NotFound";
 
 // ────────────────────────────────────────────
@@ -58,6 +63,7 @@ export const router = createHashRouter([
     children: [
       { index: true, Component: DataMonitoring },
       { path: "follow-up", Component: FollowUpPanel },
+      { path: "follow-up-manager", Component: FollowUpManager },
       { path: "patrol", Component: PatrolDashboard },
       { path: "operations", Component: OperationCenter },
       { path: "files", Component: LocalFileManager },
@@ -84,10 +90,14 @@ export const router = createHashRouter([
       { path: "performance", Component: PerformanceMonitor },
       { path: "env-config", Component: EnvConfigEditor },
       { path: "db-connections", Component: DatabaseConnectionPanel },
+      { path: "connection-monitor", Component: ConnectionMonitorPanel },
       { path: "architecture", Component: ArchitectureAudit },
       { path: "ai-family", Component: AIFamilyPage },
       { path: "ai-family/:subpage", Component: AIFamilyRouter },
       { path: "connection-test", Component: ServiceConnectionTest },
+      { path: "storage", Component: StorageManager },
+      { path: "config-center", Component: ConfigCenter },
+      { path: "variables", Component: VariableCenter },
       { path: "*", Component: NotFound },
     ],
   },

@@ -7,7 +7,7 @@
 import * as React from "react";
 import { useState, useCallback } from "react";
 import {
-  X, Bell, Check, CheckCheck, AlertCircle, AlertTriangle,
+  X, Bell, Check, CheckCheck, AlertTriangle,
   Info, XCircle,
 } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";

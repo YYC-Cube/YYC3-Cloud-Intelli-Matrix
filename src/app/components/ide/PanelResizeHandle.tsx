@@ -9,111 +9,131 @@
  * @tags: [ide],[layout],[panel]
  */
 
-import * as React from 'react';
-import { useCallback } from 'react';
+import * as React from "react";
+import { useCallback, useRef, useEffect } from "react";
 
 interface PanelResizeHandleProps {
-  direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+  direction: "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
   onMouseDown: (e: React.MouseEvent) => void;
 }
 
 export function PanelResizeHandle({ direction, onMouseDown }: PanelResizeHandleProps) {
+  const isResizing = useRef(false);
+
   const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
-    // 阻止默认行为
+    if (!isResizing.current) {
+      return;
+    }
     e.preventDefault();
   }, []);
 
-  const handleGlobalMouseUp = useCallback(() => {
-    window.removeEventListener('mousemove', handleGlobalMouseMove);
-    window.removeEventListener('mouseup', handleGlobalMouseUp);
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isResizing.current = false;
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+
+    return () => {
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
   }, [handleGlobalMouseMove]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     onMouseDown(e);
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
+    isResizing.current = true;
+
+    const handleGlobalMouseUp = () => {
+      isResizing.current = false;
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
   };
 
   const getStyle = () => {
     const baseStyle = {
-      position: 'absolute' as const,
+      position: "absolute" as const,
       zIndex: 10,
-      background: 'transparent',
-      transition: 'background 0.2s',
+      background: "transparent",
+      transition: "background 0.2s",
     };
 
     switch (direction) {
-      case 'e':
+      case "e":
         return {
           ...baseStyle,
           right: 0,
           top: 0,
-          width: '4px',
-          height: '100%',
-          cursor: 'ew-resize',
+          width: "4px",
+          height: "100%",
+          cursor: "ew-resize",
         };
-      case 'w':
+      case "w":
         return {
           ...baseStyle,
           left: 0,
           top: 0,
-          width: '4px',
-          height: '100%',
-          cursor: 'ew-resize',
+          width: "4px",
+          height: "100%",
+          cursor: "ew-resize",
         };
-      case 's':
+      case "s":
         return {
           ...baseStyle,
           bottom: 0,
           left: 0,
-          width: '100%',
-          height: '4px',
-          cursor: 'ns-resize',
+          width: "100%",
+          height: "4px",
+          cursor: "ns-resize",
         };
-      case 'n':
+      case "n":
         return {
           ...baseStyle,
           top: 0,
           left: 0,
-          width: '100%',
-          height: '4px',
-          cursor: 'ns-resize',
+          width: "100%",
+          height: "4px",
+          cursor: "ns-resize",
         };
-      case 'se':
+      case "se":
         return {
           ...baseStyle,
           right: 0,
           bottom: 0,
-          width: '8px',
-          height: '8px',
-          cursor: 'nwse-resize',
+          width: "8px",
+          height: "8px",
+          cursor: "nwse-resize",
         };
-      case 'sw':
+      case "sw":
         return {
           ...baseStyle,
           left: 0,
           bottom: 0,
-          width: '8px',
-          height: '8px',
-          cursor: 'nesw-resize',
+          width: "8px",
+          height: "8px",
+          cursor: "nesw-resize",
         };
-      case 'ne':
+      case "ne":
         return {
           ...baseStyle,
           right: 0,
           top: 0,
-          width: '8px',
-          height: '8px',
-          cursor: 'nesw-resize',
+          width: "8px",
+          height: "8px",
+          cursor: "nesw-resize",
         };
-      case 'nw':
+      case "nw":
         return {
           ...baseStyle,
           left: 0,
           top: 0,
-          width: '8px',
-          height: '8px',
-          cursor: 'nwse-resize',
+          width: "8px",
+          height: "8px",
+          cursor: "nwse-resize",
         };
       default:
         return baseStyle;

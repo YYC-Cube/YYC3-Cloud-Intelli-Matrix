@@ -31,10 +31,6 @@ import { IDETerminal } from "./IDETerminal";
 import { IDEStatusBar } from "./IDEStatusBar";
 import { MOCK_FILE_CONTENTS, MOCK_NOTIFICATIONS } from "./ide-mock-data";
 import { AI_MODELS } from "./ide-mock-data";
-import { NotificationPanel } from "./NotificationPanel";
-import { IDESettingsPanel } from "./IDESettingsPanel";
-import { DeployDialog } from "./DeployDialog";
-import { ShareDialog } from "./ShareDialog";
 import type { IDEViewMode, IDELayoutMode, OpenTab } from "./ide-types";
 import { LayoutProvider } from "./LayoutContext";
 import { Workspace } from "./Workspace";
@@ -197,10 +193,10 @@ export function IDELayout() {
   const [activeTabId, setActiveTabId] = useState("");
   const [terminalCollapsed, setTerminalCollapsed] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showDeploy, setShowDeploy] = useState(false);
-  const [showShare, setShowShare] = useState(false);
+  const [_showNotifications, setShowNotifications] = useState(false);
+  const [_showSettings, setShowSettings] = useState(false);
+  const [_showDeploy, setShowDeploy] = useState(false);
+  const [_showShare, setShowShare] = useState(false);
 
   // Persist layoutMode to localStorage
   useEffect(() => {
@@ -262,11 +258,8 @@ export function IDELayout() {
     );
   }, []);
 
-  const handleAddPanel = useCallback((type: PanelType) => {
-    // 此方法仅在自由模式下使用，通过 LayoutProvider 的 addPanel 方法添加面板
-    console.log('Adding panel in layout mode:', layoutMode, 'type:', type);
-    // 编辑模式和预览模式下，面板由固定布局控制
-    // 自由模式下，面板由 LayoutContext 管理
+  const _handleAddPanel = useCallback((type: PanelType) => {
+    console.info('Adding panel in layout mode:', layoutMode, 'type:', type);
   }, [layoutMode]);
 
   // Keyboard shortcuts
@@ -463,7 +456,7 @@ export function IDELayout() {
     >
       {/* Top Bar */}
       <IDETopBar
-        projectName={t("ide.title")}
+        projectName="YYC-IDE"
         onBack={handleBack}
         selectedModel={selectedModel}
         onModelChange={setSelectedModel}

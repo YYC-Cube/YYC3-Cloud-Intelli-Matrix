@@ -14,8 +14,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  X, Send, Sparkles, Settings, ChevronUp,
-  Zap, Server, Database, Shield, RotateCcw, Play, Square, Copy, Check,
+  X, Send, Sparkles, Settings,
+  Zap, Server, Database, Shield, RotateCcw, Play, Copy, Check,
   Cpu, HardDrive, Activity, Network, Layers, Key, Sliders, MessageSquare,
   BookOpen, Command, Minimize2, Maximize2, Trash2
 } from "lucide-react";
@@ -166,6 +166,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     if (!selectedModel && availableModels.length > 0) {
       setSelectedModel(availableModels[0].id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableModels, selectedModel]);
 
   // Scroll to bottom on new messages

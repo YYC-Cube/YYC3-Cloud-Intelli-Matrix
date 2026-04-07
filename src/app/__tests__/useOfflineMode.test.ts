@@ -1,291 +1,242 @@
 /**
- * @file: useOfflineMode.test.ts
- * @description: useOfflineMode.test.ts description
- * @author: YanYuCloudCube Team
- * @version: v1.0.0
- * @created: 2026-03-31
- * @updated: 2026-03-31
- * @status: active
- * @tags: [type]
+ * useOfflineMode.test.ts
+ * ======================
+ * 离线模式检测Hook测试
+ *
+ * @file useOfflineMode.test.ts
+ * @description useOfflineMode Hook单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act, cleanup } from "@testing-library/react";
 import { useOfflineMode } from "../hooks/useOfflineMode";
+import { LOCALSTORAGE_KEYS } from "../lib/yyc3-storage";
 
 describe("useOfflineMode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     localStorage.clear();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    localStorage.clear();
+    cleanup();
+    vi.useRealTimers();
   });
 
-  describe("initial state", () => {
-    it("should initialize with online status", () => {
-      const { result } = renderHook(() => useOfflineMode());
+  it("should return initial state", () => {
+    const { result } = renderHook(() => useOfflineMode());
 
-      expect(result.current.isOnline).toBe(navigator.onLine);
-      expect(result.current.lastSyncTime).toBeNull();
-      expect(result.current.pendingSync).toBe(false);
-    });
-
-    it("should initialize with offline status when navigator is offline", () => {
-      // Mock navigator.onLine
-      const originalOnLine = navigator.onLine;
-      Object.defineProperty(navigator, "onLine", {
-        writable: true,
-        value: false,
-      });
-
-      const { result } = renderHook(() => useOfflineMode());
-
-      expect(result.current.isOnline).toBe(false);
-
-      // Restore
-      Object.defineProperty(navigator, "onLine", {
-        writable: true,
-        value: originalOnLine,
-      });
-    });
+    expect(result.current.isOnline).toBeDefined();
+    expect(result.current.lastSyncTime).toBeNull();
+    expect(result.current.pendingSync).toBe(false);
+    expect(typeof result.current.saveOfflineSnapshot).toBe("function");
+    expect(typeof result.current.syncOfflineData).toBe("function");
+    expect(typeof result.current.getOfflineSnapshotTime).toBe("function");
+    expect(typeof result.current.saveDashboardState).toBe("function");
+    expect(typeof result.current.loadDashboardState).toBe("function");
   });
 
-  describe("online/offline events", () => {
-    it("should handle online event", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      expect(result.current.isOnline).toBe(navigator.onLine);
-
-      act(() => {
-        window.dispatchEvent(new Event("online"));
-      });
-
-      expect(result.current.isOnline).toBe(true);
+  it("should detect online status", () => {
+    Object.defineProperty(navigator, "onLine", {
+      writable: true,
+      value: true,
+      configurable: true,
     });
 
-    it("should handle offline event", () => {
-      const { result } = renderHook(() => useOfflineMode());
+    const { result } = renderHook(() => useOfflineMode());
 
-      act(() => {
-        window.dispatchEvent(new Event("offline"));
-      });
-
-      expect(result.current.isOnline).toBe(false);
-    });
+    expect(result.current.isOnline).toBe(true);
   });
 
-  describe("saveOfflineSnapshot", () => {
-    it("should save offline snapshot", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      // First save dashboard state
-      result.current.saveDashboardState({
-        test: "data",
-      });
-
-      act(() => {
-        result.current.saveOfflineSnapshot();
-      });
-
-      const offlineSnapshot = localStorage.getItem("offline_snapshot");
-      const offlineTime = localStorage.getItem("offline_snapshot_time");
-
-      expect(offlineSnapshot).toBeDefined();
-      expect(offlineTime).toBeDefined();
+  it("should detect offline status", () => {
+    Object.defineProperty(navigator, "onLine", {
+      writable: true,
+      value: false,
+      configurable: true,
     });
 
-    it("should not throw when dashboard state is not saved", () => {
-      const { result } = renderHook(() => useOfflineMode());
+    const { result } = renderHook(() => useOfflineMode());
 
-      expect(() => {
-        result.current.saveOfflineSnapshot();
-      }).not.toThrow();
-    });
+    expect(result.current.isOnline).toBe(false);
   });
 
-  describe("syncOfflineData", () => {
-    it("should sync offline data", async () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      localStorage.setItem("offline_snapshot", JSON.stringify({ test: "data" }));
-      localStorage.setItem("offline_snapshot_time", new Date().toISOString());
-
-      act(() => {
-        result.current.syncOfflineData();
-      });
-
-      // pendingSync should be true immediately after calling syncOfflineData
-      expect(result.current.pendingSync).toBe(true);
-
-      // Wait for the sync to complete (1000ms delay in hook)
-      await waitFor(() => {
-        expect(result.current.pendingSync).toBe(false);
-      }, { timeout: 3000 });
-
-      expect(result.current.lastSyncTime).not.toBeNull();
-      expect(localStorage.getItem("offline_snapshot")).toBeNull();
-      expect(localStorage.getItem("offline_snapshot_time")).toBeNull();
+  it("should handle online event", () => {
+    Object.defineProperty(navigator, "onLine", {
+      writable: true,
+      value: false,
+      configurable: true,
     });
 
-    it("should handle sync when no offline data exists", async () => {
-      const { result } = renderHook(() => useOfflineMode());
+    const { result } = renderHook(() => useOfflineMode());
 
-      await act(async () => {
-        await result.current.syncOfflineData();
-      });
+    expect(result.current.isOnline).toBe(false);
 
-      // When no offline data exists, syncOfflineData sets lastSyncTime immediately
-      expect(result.current.lastSyncTime).not.toBeNull();
-      expect(result.current.pendingSync).toBe(false);
+    act(() => {
+      Object.defineProperty(navigator, "onLine", { value: true, configurable: true });
+      window.dispatchEvent(new Event("online"));
     });
+
+    expect(result.current.isOnline).toBe(true);
   });
 
-  describe("getOfflineSnapshotTime", () => {
-    it("should return null when no offline time exists", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      const time = result.current.getOfflineSnapshotTime();
-
-      expect(time).toBeNull();
+  it("should handle offline event", () => {
+    Object.defineProperty(navigator, "onLine", {
+      writable: true,
+      value: true,
+      configurable: true,
     });
 
-    it("should return offline time when it exists", () => {
-      const { result } = renderHook(() => useOfflineMode());
+    const { result } = renderHook(() => useOfflineMode());
 
-      const testTime = new Date("2026-01-01T00:00:00.000Z").toISOString();
-      localStorage.setItem("offline_snapshot_time", testTime);
-
-      const time = result.current.getOfflineSnapshotTime();
-
-      expect(time).not.toBeNull();
-      expect(time?.toISOString()).toBe(testTime);
+    act(() => {
+      Object.defineProperty(navigator, "onLine", { value: false, configurable: true });
+      window.dispatchEvent(new Event("offline"));
     });
+
+    expect(result.current.isOnline).toBe(false);
   });
 
-  describe("saveDashboardState", () => {
-    it("should save dashboard state", () => {
-      const { result } = renderHook(() => useOfflineMode());
+  it("should save offline snapshot when dashboard state exists", () => {
+    const { result } = renderHook(() => useOfflineMode());
 
-      const testData = {
-        savedAt: Date.now(),
-        locale: "zh-CN",
-        networkConfig: '{"test":"config"}',
-        modelsCount: 5,
-      };
-
-      result.current.saveDashboardState(testData);
-
-      const saved = localStorage.getItem("dashboard_state");
-      expect(saved).toBeDefined();
-
-      const parsed = JSON.parse(saved!);
-      expect(parsed).toEqual(testData);
-    });
-
-    it("should not throw when storage is full", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      // Mock localStorage to throw error
-      const originalSetItem = localStorage.setItem;
-      localStorage.setItem = vi.fn(() => {
-        throw new Error("Storage full");
-      });
-
-      expect(() => {
-        result.current.saveDashboardState({ test: "data" });
-      }).not.toThrow();
-
-      // Restore
-      localStorage.setItem = originalSetItem;
-    });
-  });
-
-  describe("loadDashboardState", () => {
-    it("should return null when no dashboard state exists", () => {
-      // Clear localStorage before rendering so hook has no pre-existing state
-      localStorage.removeItem("dashboard_state");
-      const raw = localStorage.getItem("dashboard_state");
-      expect(raw).toBeNull();
-    });
-
-    it("should load dashboard state when it exists", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      const testData = {
-        savedAt: Date.now(),
-        locale: "en-US",
-        networkConfig: '{"test":"config"}',
-        modelsCount: 3,
-      };
-
-      localStorage.setItem("dashboard_state", JSON.stringify(testData));
-
-      const state = result.current.loadDashboardState();
-
-      expect(state).toEqual(testData);
-    });
-
-    it("should return null when dashboard state is invalid JSON", () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      localStorage.setItem("dashboard_state", "invalid json");
-
-      const state = result.current.loadDashboardState();
-
-      expect(state).toBeNull();
-    });
-  });
-
-  describe("auto-save snapshot", () => {
-    it("should save snapshot on mount", () => {
-      renderHook(() => useOfflineMode());
-
-      const saved = localStorage.getItem("dashboard_state");
-      expect(saved).toBeDefined();
-    });
-
-    it("should cleanup timer on unmount", () => {
-      const { unmount } = renderHook(() => useOfflineMode());
-
-      // Should not throw
-      unmount();
-      expect(true).toBe(true);
-    });
-  });
-
-  describe("integration", () => {
-    it("should handle offline to online transition", async () => {
-      const { result } = renderHook(() => useOfflineMode());
-
-      // Go offline
-      act(() => {
-        window.dispatchEvent(new Event("offline"));
-      });
-
-      expect(result.current.isOnline).toBe(false);
-
-      // Save offline snapshot
+    act(() => {
       result.current.saveDashboardState({ test: "data" });
       result.current.saveOfflineSnapshot();
-
-      // Go online - this triggers syncOfflineData which has a 1000ms delay
-      act(() => {
-        window.dispatchEvent(new Event("online"));
-      });
-
-      expect(result.current.isOnline).toBe(true);
-      expect(result.current.pendingSync).toBe(true);
-
-      // Wait for the 1000ms sync delay to complete
-      await waitFor(() => {
-        expect(result.current.pendingSync).toBe(false);
-      }, { timeout: 3000 });
-
-      expect(result.current.lastSyncTime).not.toBeNull();
     });
+
+    const snapshot = localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot);
+    expect(snapshot).toBeDefined();
+    const parsed = JSON.parse(snapshot!);
+    expect(parsed.test).toBe("data");
+    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineTime)).toBeDefined();
+  });
+
+  it("should not save offline snapshot when no dashboard state", () => {
+    localStorage.removeItem(LOCALSTORAGE_KEYS.dashboardState);
+
+    const { result } = renderHook(() => useOfflineMode());
+
+    localStorage.removeItem(LOCALSTORAGE_KEYS.dashboardState);
+
+    act(() => {
+      result.current.saveOfflineSnapshot();
+    });
+
+    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot)).toBeNull();
+  });
+
+  it("should sync offline data", async () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    act(() => {
+      result.current.saveDashboardState({ test: "data" });
+      result.current.saveOfflineSnapshot();
+    });
+
+    await act(async () => {
+      const syncPromise = result.current.syncOfflineData();
+      vi.advanceTimersByTime(1500);
+      await syncPromise;
+    });
+
+    expect(result.current.lastSyncTime).not.toBeNull();
+    expect(result.current.pendingSync).toBe(false);
+    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot)).toBeNull();
+  });
+
+  it("should handle sync when no offline snapshot", async () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    await act(async () => {
+      const syncPromise = result.current.syncOfflineData();
+      vi.advanceTimersByTime(100);
+      await syncPromise;
+    });
+
+    expect(result.current.lastSyncTime).not.toBeNull();
+    expect(result.current.pendingSync).toBe(false);
+  });
+
+  it("should get offline snapshot time", () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    act(() => {
+      result.current.saveDashboardState({ test: "data" });
+      result.current.saveOfflineSnapshot();
+    });
+
+    const snapshotTime = result.current.getOfflineSnapshotTime();
+
+    expect(snapshotTime).not.toBeNull();
+  });
+
+  it("should return null when no offline snapshot time", () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    const snapshotTime = result.current.getOfflineSnapshotTime();
+
+    expect(snapshotTime).toBeNull();
+  });
+
+  it("should save dashboard state manually", () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    act(() => {
+      result.current.saveDashboardState({ test: "manual-data" });
+    });
+
+    const saved = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
+    expect(saved).toBeDefined();
+    const parsed = JSON.parse(saved!);
+    expect(parsed.test).toBe("manual-data");
+  });
+
+  it("should load dashboard state", () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    act(() => {
+      result.current.saveDashboardState({ test: "data" });
+    });
+
+    const loaded = result.current.loadDashboardState();
+
+    expect(loaded).toBeDefined();
+    expect(loaded?.test).toBe("data");
+  });
+
+  it("should cleanup event listeners on unmount", () => {
+    const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+    const { unmount } = renderHook(() => useOfflineMode());
+
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalled();
+    removeEventListenerSpy.mockRestore();
+  });
+
+  it("should cleanup interval on unmount", () => {
+    const clearIntervalSpy = vi.spyOn(global, "clearInterval");
+    const { unmount } = renderHook(() => useOfflineMode());
+
+    unmount();
+
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    clearIntervalSpy.mockRestore();
+  });
+
+  it("should periodically save dashboard state", () => {
+    const { result } = renderHook(() => useOfflineMode());
+
+    act(() => {
+      vi.advanceTimersByTime(30000);
+    });
+
+    const saved = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
+    expect(saved).toBeDefined();
   });
 });

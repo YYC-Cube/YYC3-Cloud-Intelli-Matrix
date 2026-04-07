@@ -17,12 +17,12 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
-  Activity, BarChart3, AlertTriangle, Radar,
-  Wrench, RefreshCcw, FolderOpen, Settings,
+  Activity, AlertTriangle, Radar,
+  Wrench, FolderOpen, Settings,
   Brain, Sparkles, Cpu, House,
   Code2, Palette, BookOpen, Paintbrush, Terminal, Monitor,
   ShieldCheck, ClipboardList, Users, Cog,
-  MoreHorizontal, X, ChevronRight,
+  MoreHorizontal, X,
   BellRing, FileBarChart, BrainCircuit,
   HardDrive, Database, GitBranch,
   Smartphone,
@@ -30,8 +30,7 @@ import {
   Gauge,
   ServerCog,
   UserCircle2,
-  MessageCircle, Share, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, MessageSquare, FileText,
-  Heart, Trophy, Server, Volume2, Radio, Globe, Settings2,
+  MessageCircle, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, MessageSquare, FileText, Trophy, Settings2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useI18n } from "../hooks/useI18n";

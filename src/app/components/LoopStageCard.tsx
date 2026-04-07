@@ -7,7 +7,7 @@
 import React from "react";
 import {
   Activity, BarChart3, Brain, Play, CheckCircle, TrendingUp,
-  Loader2, Clock, AlertCircle,
+  Loader2, Clock,
 } from "lucide-react";
 import type { StageResult, StageStatus } from "../types";
 import type { StageMeta } from "../types";
@@ -32,7 +32,7 @@ interface LoopStageCardProps {
   showConnector?: boolean;
 }
 
-export function LoopStageCard({ meta, result, index, isActive, showConnector }: LoopStageCardProps) {
+export function LoopStageCard({ meta, result, index: _index, isActive, showConnector }: LoopStageCardProps) {
   const Icon = iconMap[meta.icon] ?? Activity;
   const stCfg = statusConfig[result.status];
 

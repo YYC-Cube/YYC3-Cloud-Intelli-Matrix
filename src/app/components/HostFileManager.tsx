@@ -10,7 +10,7 @@
 import * as React from "react";
 import { useState, useCallback, useRef, useContext, useEffect } from "react";
 import {
-  FolderOpen, File, ChevronRight, ArrowUp, Plus, Trash2,
+  FolderOpen, File, ChevronRight, ArrowUp, Trash2,
   Download, Upload, Save, RotateCcw, Edit3, FolderPlus,
   FilePlus, Clock, HardDrive, AlertTriangle, X, Search,
   RefreshCcw, Image, History, Loader2, Code2,
@@ -22,7 +22,7 @@ import { ViewContext } from "../lib/view-context";
 import type { HostFileEntry } from "../types";
 
 // ── 样式常量 ──
-const cyanDim = "rgba(0,212,255,0.35)";
+const _cyanDim = "rgba(0,212,255,0.35)";
 const textPrimary = "#e0f0ff";
 const textDim = "rgba(0,212,255,0.4)";
 const fontSize = { xs: "0.65rem", sm: "0.72rem", md: "0.8rem", lg: "0.92rem" };
@@ -49,7 +49,7 @@ export function HostFileManager() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [usePlainEditor, setUsePlainEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const _editorRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Ctrl+S 快捷键 ──
   useEffect(() => {
@@ -61,6 +61,7 @@ export function HostFileManager() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, fs.editingDirty, fs.saveFile]);
 
   // ── 创建 ──

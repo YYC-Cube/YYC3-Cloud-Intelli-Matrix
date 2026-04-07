@@ -9,7 +9,6 @@ import React, { useState, useCallback } from "react";
 import {
   X, Plus, Trash2, AlertTriangle, ShieldAlert, Info,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
 import type {
   AlertSeverity, AlertMetric, AlertCondition,

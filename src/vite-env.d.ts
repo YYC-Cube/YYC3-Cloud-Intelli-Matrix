@@ -16,7 +16,7 @@ interface ImportMetaEnv {
   readonly VITE_WS_HEARTBEAT_INTERVAL: string;
   readonly VITE_ENABLE_GHOST_MODE: string;
   readonly VITE_ENABLE_PWA: string;
-  readonly VITE_ENABLE_AI_ASSISTANT: string;
+  readonly VITE_ENABLE_AI_ASSistant: string;
   readonly VITE_DEFAULT_THEME: string;
   readonly VITE_DEFAULT_LANGUAGE: string;
   readonly DB_HOST: string;
@@ -54,3 +54,31 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare namespace NodeJS {
+  interface Timeout {
+    ref(): this;
+    unref(): this;
+    hasRef(): boolean;
+    refresh(): this;
+    [Symbol.toPrimitive](): number;
+  }
+
+  interface Immediate {
+    ref(): this;
+    unref(): this;
+    hasRef(): boolean;
+    [Symbol.toPrimitive](): number;
+  }
+
+  interface Global {
+    clearInterval(intervalId: NodeJS.Timeout | string | number | undefined): void;
+    clearTimeout(timeoutId: NodeJS.Timeout | string | number | undefined): void;
+    setInterval(callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]): NodeJS.Timeout;
+    setTimeout(callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]): NodeJS.Timeout;
+    clearImmediate(immediateId: NodeJS.Immediate | undefined): void;
+    setImmediate(callback: (...args: unknown[]) => void, ...args: unknown[]): NodeJS.Immediate;
+  }
+}
+
+type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex";

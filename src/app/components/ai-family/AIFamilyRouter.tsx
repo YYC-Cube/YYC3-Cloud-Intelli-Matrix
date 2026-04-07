@@ -129,7 +129,7 @@ export function AIFamilyRouter() {
   const location = useLocation();
   const key = resolveSubpage(location.pathname, location.hash, subpage);
   
-  console.log('[AIFamilyRouter] Debug:', {
+  console.info('[AIFamilyRouter] Debug:', {
     pathname: location.pathname,
     hash: location.hash,
     subpage,

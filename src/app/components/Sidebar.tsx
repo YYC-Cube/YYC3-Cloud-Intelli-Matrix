@@ -22,8 +22,7 @@ import {
   Layers,
   UserCircle2,
   Zap,
-  MessageCircle, Share, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, Database as DataIcon, MessageSquare, Settings as UISettings, FileText,
-  Heart, Trophy, Server, Volume2, Radio, Globe, Settings2,
+  MessageCircle, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, MessageSquare, FileText, Trophy, Settings2,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { useI18n } from "../hooks/useI18n";
@@ -51,6 +50,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     children: [
       { key: "nav.dataMonitor", path: "/",           icon: BarChart3 },
       { key: "nav.followUp",    path: "/follow-up",   icon: AlertTriangle },
+      { key: "nav.followUpManager", path: "/follow-up-manager", icon: ClipboardList },
       { key: "nav.patrol",      path: "/patrol",       icon: Radar },
       { key: "nav.alertRules",  path: "/alerts",       icon: BellRing },
     ],

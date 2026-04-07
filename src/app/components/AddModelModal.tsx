@@ -80,7 +80,7 @@ export function AddModelModal({
     if (selectedProviderId === "ollama") {
       onFetchOllama(ollamaUrl);
     }
-  }, [selectedProviderId]);
+  }, [selectedProviderId, ollamaUrl, onFetchOllama]);
 
   // Get selected provider
   const selectedProvider = providers.find((p) => p.id === selectedProviderId);

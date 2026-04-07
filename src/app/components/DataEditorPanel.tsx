@@ -13,7 +13,7 @@
 
 import React, { useState, useCallback, useEffect, useContext } from "react";
 import {
-  Cpu, Server, Bot, Plus, Trash2, Save, RotateCcw,
+  Cpu, Server, Bot, Plus, Trash2, RotateCcw,
   Edit3, Check, X, AlertTriangle, ChevronDown, ChevronUp,
   Package, RefreshCw, Search, Activity, BarChart3, Zap,
   Radar, PieChart, ScrollText,
@@ -34,7 +34,6 @@ import type { Model, NodeStatusRecord, Agent, NodeStatusType } from "../types";
 import {
   nodeStore, modelPerfStore, recentOpsStore,
   radarStore, modelDistStore, logStore,
-  type ModelPerfEntry, type RecentOpEntry,
   type RadarEntry, type ModelDistEntry, type StoredLogEntry,
 } from "../stores/dashboard-stores";
 

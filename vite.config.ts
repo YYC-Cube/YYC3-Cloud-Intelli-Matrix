@@ -41,6 +41,18 @@ export default defineConfig({
   server: {
     port: 3218,
     host: true,
+    proxy: {
+      '/api/v1/llm/ollama': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/v1\/llm\/ollama/, '/api'),
+        configure: (proxy) => {
+          proxy.on('error', () => {
+            // Ollama 服务未启动时静默失败
+          });
+        },
+      },
+    },
   },
 
   assetsInclude: ['**/*.svg', '**/*.csv'],

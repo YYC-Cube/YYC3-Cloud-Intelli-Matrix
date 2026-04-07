@@ -10,7 +10,6 @@ import {
   ArrowRightLeft, Pause, Play, HeartPulse, HardDrive, Terminal,
   Loader2, CheckCircle, XCircle, AlertTriangle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
 import type { OperationItem, OperationStatus } from "../types";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -41,7 +40,7 @@ interface QuickActionGridProps {
   isMobile?: boolean;
 }
 
-export function QuickActionGrid({ actions, isExecuting, onExecute, isMobile = false }: QuickActionGridProps) {
+export function QuickActionGrid({ actions, isExecuting: _isExecuting, onExecute, isMobile = false }: QuickActionGridProps) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const handleClick = (action: OperationItem) => {

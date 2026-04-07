@@ -7,9 +7,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User, Tag,
-  ChevronRight, Zap, Bot, CheckCircle, Loader2, Send, RotateCcw,
-  Link2, Server, Cpu, Activity, Copy, Check,
+  X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User,
+  ChevronRight, Zap, Bot, CheckCircle, Loader2,
+  Link2, Server, Copy, Check,
 } from "lucide-react";
 import { OperationChain } from "./OperationChain";
 import { QuickActionGroup } from "./QuickActionGroup";
@@ -80,7 +80,7 @@ export function FollowUpDrawer({
       setActiveTab("detail");
       setAiSuggestions([]);
     }
-  }, [item?.id]);
+  }, [item]);
 
   // Escape key to close
   useEffect(() => {

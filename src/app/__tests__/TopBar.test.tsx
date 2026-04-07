@@ -47,12 +47,18 @@ vi.mock("../lib/supabaseClient", () => ({
   isGhostMode: vi.fn(() => false),
 }));
 
-vi.mock("motion/react", () => ({
-  motion: {
-    div: React.forwardRef(({ children, ...props }: any, ref: any) => React.createElement("div", { ...props, ref }, children)),
-  },
-  AnimatePresence: ({ children }: any) => children,
-}));
+vi.mock("motion/react", () => {
+  const MockMotionDiv = React.forwardRef(({ children, ...props }: any, ref: any) =>
+    React.createElement("div", { ...props, ref }, children)
+  );
+  MockMotionDiv.displayName = "MockMotionDiv";
+  return {
+    motion: {
+      div: MockMotionDiv,
+    },
+    AnimatePresence: ({ children }: any) => children,
+  };
+});
 
 describe("TopBar Component", () => {
   const renderWithRouter = (component: React.ReactElement) => {

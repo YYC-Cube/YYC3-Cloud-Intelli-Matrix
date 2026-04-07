@@ -13,7 +13,7 @@
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import React from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, ghostSignIn, isGhostMode } from "../lib/supabaseClient";
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -134,6 +134,15 @@ describe("supabaseClient (Mock)", () => {
       const { data } = await supabase.auth.getSession();
       expect(data.session).toBeNull();
     });
+
+    it("localStorage JSON 解析失败时应回调 SIGNED_OUT", () => {
+      localStorageMock.setItem("yyc3_session", "corrupted-data!!!");
+
+      const callback = vi.fn();
+      supabase.auth.onAuthStateChange(callback);
+
+      expect(callback).toHaveBeenCalledWith("SIGNED_OUT", null);
+    });
   });
 
   // ----------------------------------------------------------
@@ -218,6 +227,78 @@ describe("supabaseClient (Mock)", () => {
       const result = supabase.from("any_table").select("*").eq("id", "1");
       expect(result.data).toEqual([]);
       expect(result.error).toBeNull();
+    });
+
+    it("应支持 order 方法", () => {
+      const result = supabase.from("any_table").select("*").order("created_at", { ascending: true });
+      expect(result.data).toEqual([]);
+      expect(result.error).toBeNull();
+    });
+
+    it("应支持 limit 方法", () => {
+      const result = supabase.from("any_table").select("*").limit(10);
+      expect(result.data).toEqual([]);
+      expect(result.error).toBeNull();
+    });
+
+    it("应支持 then 方法（Promise 风格）", () => {
+      const callback = vi.fn();
+      supabase.from("any_table").select("*").then(callback);
+      expect(callback).toHaveBeenCalledWith({ data: [], error: null, count: 0 });
+    });
+  });
+
+  // ----------------------------------------------------------
+  // ghostSignIn & isGhostMode
+  // ----------------------------------------------------------
+
+  describe("ghostSignIn", () => {
+    it("应创建幽灵模式会话", () => {
+      const session = ghostSignIn();
+
+      expect(session).toBeDefined();
+      expect(session.user.role).toBe("admin");
+      expect(session.user.email).toBe("ghost@yyc3.local");
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("yyc3_session", expect.any(String));
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("yyc3_ghost", "1");
+    });
+
+    it("应生成唯一 token", () => {
+      const session1 = ghostSignIn();
+      const session2 = ghostSignIn();
+
+      expect(session1.token).not.toBe(session2.token);
+    });
+
+    it("应设置 24 小时过期时间", () => {
+      const session = ghostSignIn();
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      expect(session.expiresAt).toBeGreaterThan(now);
+      expect(session.expiresAt).toBeLessThanOrEqual(now + oneDay + 1000);
+    });
+  });
+
+  describe("isGhostMode", () => {
+    it("幽灵登录后应返回 true", () => {
+      ghostSignIn();
+      expect(isGhostMode()).toBe(true);
+    });
+
+    it("未设置幽灵标志时应返回 false", () => {
+      expect(isGhostMode()).toBe(false);
+    });
+
+    it("应读取 yyc3_ghost 标志", () => {
+      localStorageMock.setItem("yyc3_ghost", "1");
+      expect(isGhostMode()).toBe(true);
+
+      localStorageMock.setItem("yyc3_ghost", "0");
+      expect(isGhostMode()).toBe(false);
+
+      localStorageMock.removeItem("yyc3_ghost");
+      expect(isGhostMode()).toBe(false);
     });
   });
 });

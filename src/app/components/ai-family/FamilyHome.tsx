@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Heart, Users, MessageCircle, BookOpen, Music, TrendingUp,
   Coffee, Sun, Moon, Cloud,
-  Zap, Activity, Clock, Sparkles, ChevronRight,
+  Zap, Activity, Clock, ChevronRight,
   Smile, FileText, HandHeart, Phone, Gamepad2, Trophy,
   Volume2, Server, Radio, Database, Settings2,
 } from "lucide-react";
@@ -21,7 +21,7 @@ import { useNavigate } from "react-router";
 import { FAMILY_MEMBERS, getGreeting, hexToRgb } from "./shared";
 
 // ═══ 图标映射（家园空间） ═══
-const SPACE_ICONS: Record<string, React.ElementType> = {
+const _SPACE_ICONS: Record<string, React.ElementType> = {
   heart: HandHeart, users: Users, message: MessageCircle,
   share: Heart, book: BookOpen, music: Music,
   trending: TrendingUp, file: FileText,
@@ -45,7 +45,7 @@ function useTime() {
   return now;
 }
 
-function getGreetingIcon(emoji: string): React.ElementType {
+function _getGreetingIcon(emoji: string): React.ElementType {
   const map: Record<string, React.ElementType> = {
     night: Moon, dawn: Sun, morning: Coffee, noon: Coffee,
     afternoon: Sun, evening: Cloud,
@@ -61,7 +61,8 @@ const GREETING_EMOJIS: Record<string, string> = {
 export function FamilyHome() {
   const now = useTime();
   const nav = useNavigate();
-  const greeting = useMemo(() => getGreeting(), [Math.floor(now.getTime() / 60000)]);
+  const greetingMinute = Math.floor(now.getTime() / 60000);
+  const greeting = useMemo(() => getGreeting(), [greetingMinute]);
   const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
 
   const timeStr = now.toLocaleTimeString("zh-CN", { hour12: false });

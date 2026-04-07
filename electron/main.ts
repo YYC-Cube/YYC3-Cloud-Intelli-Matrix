@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, shell } from 'electron';
 import path from 'path';
+import { registerAllIPCHandlers, registerDatabaseHandlers } from './ipc-handlers';
 
 let mainWindow: Electron.BrowserWindow | null = null;
 let tray: Electron.Tray | null = null;
@@ -101,6 +102,10 @@ function createTray() {
 }
 
 function init() {
+  // 注册所有 IPC 处理器
+  registerAllIPCHandlers();
+  registerDatabaseHandlers();
+
   if (app.requestSingleInstanceLock()) {
     app.on('second-instance', () => {
       if (mainWindow) {

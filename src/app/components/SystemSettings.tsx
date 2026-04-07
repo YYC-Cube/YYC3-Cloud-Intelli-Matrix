@@ -15,9 +15,9 @@ import {
   Settings, Server, Database, Shield, Bell, Cpu,
   ChevronRight, Save, RotateCcw, Check,
   Monitor, Network, Zap, Key, Layers, Wifi,
-  Globe, GitBranch, Terminal, Code, FileJson,
-  Download, Upload, Trash2, Plus, Edit2, Copy, Eye, EyeOff,
-  RefreshCw, HardDrive, Clock, AlertTriangle, Sliders,
+  Globe, Terminal, Code,
+  Download, Upload, Trash2, Plus, Edit2, Eye, EyeOff,
+  RefreshCw, Clock, AlertTriangle, Sliders,
   Plug, Repeat, Timer, X,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";

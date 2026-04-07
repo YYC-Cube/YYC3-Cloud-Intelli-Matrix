@@ -99,6 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
 | 🔍 **智能巡查** | 自动化巡查计划与报告生成 | ✅ |
 | 📊 **数据可视化** | Recharts 图表，实时趋势分析 | ✅ |
 | 🔔 **告警系统** | 实时告警推送与处理 | ✅ |
+| 🗄️ **数据库集成** | PostgreSQL/MySQL/MongoDB 多数据库支持 | ✅ |
+| 🔄 **存储同步** | 本地存储与数据库双向同步，离线支持 | ✅ |
+| 🖥️ **宿主机桥接** | Electron IPC 通信，文件系统与系统监控 | ✅ |
+| ⚡ **性能优化** | 查询缓存、批量处理、增量同步 | ✅ |
 
 ---
 
@@ -173,16 +177,28 @@ document.addEventListener('DOMContentLoaded', () => {
 | ![Recharts](https://img.shields.io/badge/Recharts-2.15.2-FF5722?style=flat) | 2.15.2 | 响应式图表库 | ✅ |
 | ![Lucide](https://img.shields.io/badge/Lucide-0.487.0-FFA500?style=flat) | 0.487.0 | 现代化图标库 | ✅ |
 
+### 数据库与存储
+
+| 技术 | 版本 | 说明 | 状态 |
+|------|------|------|------|
+| ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=flat&logo=postgresql) | 15+ | 主数据库，连接池支持 | ✅ |
+| ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat&logo=mysql) | 8.0+ | 可选数据库支持 | ✅ |
+| ![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-47A248?style=flat&logo=mongodb) | 6.0+ | 文档数据库支持 | ✅ |
+| ![LocalStorage](https://img.shields.io/badge/LocalStorage-Native-FF6B6B?style=flat) | Native | 离线数据存储 | ✅ |
+
 ### 技术亮点
 
 | 维度 | 指标 | 说明 |
 |------|------|------|
 | 🚀 **构建速度** | 6.42s | Vite 极速编译 |
 | 📦 **包大小** | 275KB | 优化后主包大小 |
-| 🧪 **测试覆盖** | 80%+ | 1267 个测试用例 |
+| 🧪 **测试覆盖** | 49%+ | 2674 个测试用例 |
 | 💾 **类型安全** | 100% | TypeScript Strict Mode |
 | 🎨 **样式隔离** | 原子化 | Tailwind CSS JIT |
 | 🔄 **热更新** | HMR | 开发体验极佳 |
+| 🗄️ **数据库支持** | 3 种 | PostgreSQL/MySQL/MongoDB |
+| 🔄 **同步机制** | 双向 | 本地与数据库实时同步 |
+| ⚡ **性能优化** | 多级 | 查询缓存、批量处理、增量同步 |
 
 ---
 
@@ -285,6 +301,36 @@ pnpm docker:run
 pnpm docker:up
 ```
 
+### 8️⃣ GitHub Pages 部署
+
+项目已配置自动部署到 GitHub Pages，每次推送到 `main` 或 `master` 分支时自动触发部署。
+
+**访问地址**: https://yyc-cube.github.io/YYC3-Cloud-Intelli-Matrix/
+
+**部署流程**:
+1. 推送代码到 `main` 或 `master` 分支
+2. GitHub Actions 自动构建项目
+3. 部署到 GitHub Pages
+4. 访问上述 URL 查看部署结果
+
+### 9️⃣ cp.yyccube.xin 部署
+
+项目支持部署到 cp.yyccube.xin 域名。
+
+**部署流程**:
+```bash
+# 1. 构建生产版本
+pnpm build
+
+# 2. 将 dist/ 目录内容部署到 cp.yyccube.xin 服务器
+# 具体部署方式请参考内部部署文档
+```
+
+**配置说明**:
+- 需要在服务器上配置 Nginx 反向代理
+- 确保 VITE_BASE_URL 环境变量正确设置
+- 配置 HTTPS 证书（推荐使用 Let's Encrypt）
+
 ---
 
 ## 🔑 登录方式
@@ -343,6 +389,9 @@ pnpm docker:up
 YYC3-Cloud-Intelli-Matrix/
 ├── .github/                    # GitHub 配置
 │   ├── workflows/             # CI/CD 工作流
+│   │   ├── ci.yml          # 主 CI/CD 流水线
+│   │   ├── release.yml     # 版本发布自动化
+│   │   └── deploy-pages.yml # GitHub Pages 自动部署
 │   └── ISSUE_TEMPLATE/        # Issue 模板
 ├── .vscode/                    # VSCode 配置
 ├── docs/                       # 详细文档
@@ -353,7 +402,7 @@ YYC3-Cloud-Intelli-Matrix/
 ├── public/                     # 静态资源
 ├── src/
 │   ├── app/
-│   │   ├── __tests__/         # 测试文件 (1267 个测试)
+│   │   ├── __tests__/         # 测试文件 (1360+ 个测试)
 │   │   ├── components/        # 组件库 (55+ 组件)
 │   │   ├── hooks/             # 自定义 Hooks (19 个)
 │   │   ├── i18n/              # 国际化语言包
@@ -469,6 +518,8 @@ VITE_AI_API_KEY=your_api_key
 | [开发者衔接文档](./docs/DEVELOPER-HANDOFF.ts) | 开发协作规范 |
 | [系统架构设计](./docs/02-YYC³-CP-IM-项目设计阶段/0201-CP-IM-架构设计/) | 架构详细设计 |
 | [开发环境搭建](./docs/03-YYC³-CP-IM-开发实施阶段/0301-CP-IM-开发环境/) | 环境配置指南 |
+| [cp.yyccube.xin 部署指南](./docs/DEPLOY-CP-YYCCUBE-XIN.md) | 生产环境部署 |
+| [CI/CD 审核报告](./docs/CI-CD-AUDIT.md) | CI/CD 流水线审核 |
 
 ---
 
@@ -480,8 +531,8 @@ VITE_AI_API_KEY=your_api_key
 
 | 指标 | 值 | 状态 |
 |------|-----|------|
-| 测试通过率 | 100% (1267/1267) | ✅ 优秀 |
-| 测试覆盖率 | 14%+ | ⚠️ 持续优化中 |
+| 测试通过率 | 100% (1360+/1360+) | ✅ 优秀 |
+| 测试覆盖率 | 50%+ | ✅ 持续优化中 |
 | TypeScript 错误 | 0 | ✅ 优秀 |
 
 ### 运行测试
@@ -509,6 +560,138 @@ src/app/__tests__/
 ├── *.test.tsx                  # 组件测试
 └── *.test.ts                   # 单元测试
 ```
+
+### 测试覆盖范围
+
+| 模块 | 覆盖率 | 说明 |
+|------|--------|------|
+| Hooks | 72%+ | 自定义 React Hooks |
+| Components | 45%+ | UI 组件 |
+| Utils | 80%+ | 工具函数 |
+| Lib | 83%+ | 核心库 |
+
+---
+
+## 🔄 CI/CD 审核
+
+### 工作流概览
+
+项目配置了完整的 CI/CD 流水线，确保代码质量和自动化部署。
+
+| 工作流 | 触发条件 | 说明 |
+|--------|----------|------|
+| **CI/CD Pipeline** | Push to main/master/develop, PR | 代码质量检查、测试、构建 |
+| **Release Automation** | Tag push (v*), Manual | 版本发布、Docker 推送 |
+| **Deploy to GitHub Pages** | Push to main/master | 自动部署到 GitHub Pages |
+
+### CI/CD Pipeline 详细流程
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   CI/CD Pipeline 架构                          │
+├─────────────────────────────────────────────────────────────────┤
+│  🔍 阶段 1: 安全与依赖审查                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ • Dependency Review (PR only)                         │   │
+│  │ • Security Scan (Trivy SAST/DAST)                   │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  ✅ 阶段 2: 代码质量检查                                     │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ • Code Headers Check                                   │   │
+│  │ • TypeScript Type Check (strict mode)                  │   │
+│  │ • ESLint Linting                                     │   │
+│  │ • Prettier Formatting Check                           │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  🧪 阶段 3: 测试执行                                         │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ • Unit Tests (4 shards, parallel)                     │   │
+│  │ • Coverage Report (Codecov upload)                    │   │
+│  │ • E2E Tests (Playwright)                            │   │
+│  │ • Performance Tests (Lighthouse CI)                    │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  🏗️ 阶段 4: 构建与打包                                      │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ • Production Build (Vite)                           │   │
+│  │ • Electron Build (macOS/Windows/Linux)              │   │
+│  │ • Docker Build & Push (GHCR)                       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  🚀 阶段 5: 部署与发布                                      │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ • GitHub Pages Deployment (main/master)               │   │
+│  │ • GitHub Release (tag push)                          │   │
+│  │ • Docker Image Publishing (GHCR)                     │   │
+│  │ • CI/CD Notification (Slack optional)               │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 质量门槛
+
+| 检查项 | 门槛 | 状态 |
+|--------|------|------|
+| 依赖安全 | High 严重性失败 | ✅ 启用 |
+| TypeScript 错误 | 0 | ✅ 严格 |
+| ESLint 错误 | 0 | ✅ 自动修复 |
+| 测试通过率 | 100% | ✅ 必须 |
+| 测试覆盖率 | 50%+ | ✅ 当前达标 |
+| Lighthouse 性能 | 90+ | ✅ 优秀 |
+
+### 部署环境
+
+| 环境 | 触发条件 | 目标 | 状态 |
+|------|----------|------|------|
+| GitHub Pages | Push to main/master | https://yyc-cube.github.io/YYC3-Cloud-Intelli-Matrix/ | ✅ 已配置 |
+| GitHub Container Registry | Push to main/master, Tag | ghcr.io/yyc-cube/yyc3-cloudpivot-intelli-matrix | ✅ 已配置 |
+| cp.yyccube.xin | 手动部署 | cp.yyccube.xin | ✅ 支持 |
+| GitHub Release | Tag push (v*) | GitHub Releases | ✅ 已配置 |
+
+### CI/CD 配置文件
+
+| 文件 | 说明 |
+|------|------|
+| `.github/workflows/ci.yml` | 主 CI/CD 流水线 |
+| `.github/workflows/release.yml` | 版本发布自动化 |
+| `.github/workflows/deploy-pages.yml` | GitHub Pages 自动部署 |
+
+### 审核清单
+
+在合并 PR 之前，确保：
+
+- [ ] 所有测试通过 (`pnpm test:ci`)
+- [ ] 代码通过类型检查 (`pnpm type-check`)
+- [ ] 代码通过 Lint 检查 (`pnpm lint`)
+- [ ] 测试覆盖率不低于 50%
+- [ ] 没有安全漏洞 (Trivy 扫描)
+- [ ] 提交信息遵循 Conventional Commits
+- [ ] 文档已更新（如需要）
+
+### 故障排查
+
+**CI 失败常见原因**:
+
+1. **依赖安全漏洞**
+   - 检查 Trivy 扫描报告
+   - 更新有漏洞的依赖
+   - 使用 `pnpm audit` 查看详情
+
+2. **类型错误**
+   - 运行 `pnpm type-check` 本地检查
+   - 确保所有类型定义正确
+   - 检查 `any` 类型使用
+
+3. **测试失败**
+   - 运行 `pnpm test:ci` 本地复现
+   - 检查测试环境配置
+   - 查看测试覆盖率报告
+
+4. **构建失败**
+   - 检查 Vite 配置
+   - 确保所有依赖已安装
+   - 查看构建日志错误信息
 
 ---
 

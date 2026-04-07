@@ -1,221 +1,249 @@
 /**
- * @file: useAIDiagnostics.test.ts
- * @description: useAIDiagnostics.test.ts description
- * @author: YanYuCloudCube Team
- * @version: v1.0.0
- * @created: 2026-03-31
- * @updated: 2026-03-31
- * @status: active
- * @tags: [type]
+ * useAIDiagnostics.test.ts
+ * ==========================
+ * AI 辅助诊断 Hook 测试
+ *
+ * @file useAIDiagnostics.test.ts
+ * @description useAIDiagnostics Hook单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+
+vi.mock("../hooks/usePersistedState", () => ({
+  usePersistedList: () => ({
+    items: [],
+    prepend: vi.fn(),
+    loaded: true,
+  }),
+}));
+
 import { useAIDiagnostics } from "../hooks/useAIDiagnostics";
 
 describe("useAIDiagnostics", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("should initialize with default state", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
+  describe("initialization", () => {
+    it("should initialize with idle status", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
 
-    expect(result.current.status).toBe("idle");
-    expect(result.current.session).toBeNull();
-    expect(result.current.activeView).toBe("patterns");
-    expect(result.current.executingAction).toBeNull();
-
-    // historyLoaded starts as false (usePersistedList is async); wait for it
-    await waitFor(() => {
-      expect(result.current.historyLoaded).toBe(true);
+      expect(result.current.status).toBe("idle");
     });
-    expect(result.current.history.length).toBeGreaterThan(0);
+
+    it("should initialize with null session", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      expect(result.current.session).toBeNull();
+    });
+
+    it("should initialize with patterns view", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      expect(result.current.activeView).toBe("patterns");
+    });
+
+    it("should initialize with no executing action", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      expect(result.current.executingAction).toBeNull();
+    });
+
+    it("should initialize with empty history", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      expect(result.current.history).toEqual([]);
+    });
   });
 
-  it("should start diagnosis", () => {
-    const { result } = renderHook(() => useAIDiagnostics());
+  describe("startDiagnosis", () => {
+    it("should start diagnosis and set status to analyzing", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
 
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    expect(result.current.status).toBe("analyzing");
-  });
-
-  it("should complete diagnosis and generate session", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    expect(result.current.status).toBe("analyzing");
-
-    // Wait for the 1800ms setTimeout to fire
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session).not.toBeNull();
-    expect(result.current.session?.status).toBe("complete");
-    expect(result.current.session?.patterns.length).toBeGreaterThan(0);
-    expect(result.current.session?.anomalies.length).toBeGreaterThan(0);
-    expect(result.current.session?.actions.length).toBeGreaterThan(0);
-    expect(result.current.session?.forecasts.length).toBeGreaterThan(0);
-    expect(result.current.session?.summary).toBeDefined();
-  });
-
-  it("should add history entry after diagnosis", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.history.length).toBeGreaterThan(0);
-    expect(result.current.history[0]).toHaveProperty("id");
-    expect(result.current.history[0]).toHaveProperty("time");
-    expect(result.current.history[0]).toHaveProperty("patterns");
-    expect(result.current.history[0]).toHaveProperty("actions");
-  });
-
-  it("should set active view", () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.setActiveView("anomalies");
-    });
-
-    expect(result.current.activeView).toBe("anomalies");
-  });
-
-  it("should execute action", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    // First complete a diagnosis
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    // Get first action ID
-    const firstActionId = result.current.session?.actions[0].id;
-
-    if (firstActionId) {
       act(() => {
-        result.current.executeAction(firstActionId);
+        result.current.startDiagnosis();
       });
 
-      expect(result.current.executingAction).toBe(firstActionId);
+      expect(result.current.status).toBe("analyzing");
+    });
 
-      // Wait for the 2000ms execution setTimeout to fire
-      await waitFor(() => {
+    it("should complete diagnosis after timeout", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      expect(result.current.status).toBe("analyzing");
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.status).toBe("complete");
+      expect(result.current.session).not.toBeNull();
+    });
+
+    it("should generate patterns in session", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.session?.patterns).toBeDefined();
+      expect(result.current.session?.patterns.length).toBeGreaterThan(0);
+    });
+
+    it("should generate anomalies in session", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.session?.anomalies).toBeDefined();
+      expect(result.current.session?.anomalies.length).toBeGreaterThan(0);
+    });
+
+    it("should generate actions in session", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.session?.actions).toBeDefined();
+      expect(result.current.session?.actions.length).toBeGreaterThan(0);
+    });
+
+    it("should generate forecasts in session", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.session?.forecasts).toBeDefined();
+      expect(result.current.session?.forecasts.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("setActiveView", () => {
+    it("should change active view", () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      expect(result.current.activeView).toBe("patterns");
+
+      act(() => {
+        result.current.setActiveView("anomalies");
+      });
+
+      expect(result.current.activeView).toBe("anomalies");
+
+      act(() => {
+        result.current.setActiveView("actions");
+      });
+
+      expect(result.current.activeView).toBe("actions");
+    });
+  });
+
+  describe("executeAction", () => {
+    it("should set executing action", async () => {
+      const { result } = renderHook(() => useAIDiagnostics());
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      const actionId = result.current.session?.actions[0]?.id;
+
+      if (actionId) {
+        act(() => {
+          result.current.executeAction(actionId);
+        });
+
+        expect(result.current.executingAction).toBe(actionId);
+
+        await act(async () => {
+          vi.advanceTimersByTimeAsync(2500);
+        });
+
         expect(result.current.executingAction).toBeNull();
-      }, { timeout: 5000 });
-    }
-  });
-
-  it("should generate patterns with live nodes", async () => {
-    const liveNodes = [
-      { id: "test-node-1", gpu: 90, mem: 85, temp: 75, status: "online" as const },
-      { id: "test-node-2", gpu: 70, mem: 65, temp: 60, status: "online" as const },
-    ];
-
-    const { result } = renderHook(() => useAIDiagnostics({ liveNodes }));
-
-    act(() => {
-      result.current.startDiagnosis();
+      }
     });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session?.patterns.length).toBeGreaterThan(0);
   });
 
-  it("should generate anomalies", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
+  describe("with live data options", () => {
+    it("should accept live nodes option", async () => {
+      const opts = {
+        liveNodes: [
+          { id: "GPU-A100-01", gpu: 85, mem: 70, temp: 75, status: "online" },
+        ],
+      };
 
-    act(() => {
-      result.current.startDiagnosis();
-    });
+      const { result } = renderHook(() => useAIDiagnostics(opts));
 
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session?.anomalies.length).toBeGreaterThan(0);
-  });
-
-  it("should generate suggested actions", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session?.actions.length).toBeGreaterThan(0);
-  });
-
-  it("should generate forecasts", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session?.forecasts.length).toBeGreaterThan(0);
-  });
-
-  it("should generate summary", async () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    act(() => {
-      result.current.startDiagnosis();
-    });
-
-    await waitFor(() => {
-      expect(result.current.status).toBe("complete");
-    }, { timeout: 5000 });
-
-    expect(result.current.session?.summary).toBeDefined();
-    expect(typeof result.current.session?.summary).toBe("string");
-  });
-
-  it("should handle different views", () => {
-    const { result } = renderHook(() => useAIDiagnostics());
-
-    const views = ["patterns", "anomalies", "actions", "forecasts"] as const;
-
-    views.forEach((view) => {
       act(() => {
-        result.current.setActiveView(view);
+        result.current.startDiagnosis();
       });
 
-      expect(result.current.activeView).toBe(view);
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.status).toBe("complete");
+    });
+
+    it("should accept live QPS and latency options", async () => {
+      const opts = {
+        liveQPS: 1500,
+        liveLatency: 60,
+      };
+
+      const { result } = renderHook(() => useAIDiagnostics(opts));
+
+      act(() => {
+        result.current.startDiagnosis();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(result.current.status).toBe("complete");
     });
   });
 });

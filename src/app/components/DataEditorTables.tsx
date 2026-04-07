@@ -12,10 +12,9 @@ import {
   CheckSquare, Square,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
-import { toast } from "sonner";
 import type { Model, NodeStatusRecord, Agent, NodeStatusType } from "../types";
 
-const toastStyle = {
+const _toastStyle = {
   background: "rgba(8, 25, 55, 0.95)",
   border: "1px solid rgba(0, 255, 136, 0.3)",
   color: "#e0f0ff",

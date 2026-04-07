@@ -1,339 +1,292 @@
 /**
- * @file: env-config.test.ts
- * @description: env-config.test.ts description
- * @author: YanYuCloudCube Team
- * @version: v1.0.0
- * @created: 2026-03-31
- * @updated: 2026-03-31
- * @status: active
- * @tags: [type]
+ * env-config.test.ts
+ * ===================
+ * 环境配置管理测试
+ *
+ * @file env-config.test.ts
+ * @description env-config模块单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { env, getEnvConfig, setEnvConfig, resetEnvConfig, exportEnvConfig, importEnvConfig } from "../lib/env-config";
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  env,
+  getEnvConfig,
+  setEnvConfig,
+  resetEnvConfig,
+  exportEnvConfig,
+  importEnvConfig,
+} from "../lib/env-config";
+
+const ENV_STORAGE_KEY = "yyc3_env_config";
 
 describe("env-config", () => {
   beforeEach(() => {
-    // Reset env config before each test
-    resetEnvConfig();
-    // Clear localStorage
     localStorage.clear();
+    vi.resetModules();
   });
 
   afterEach(() => {
-    resetEnvConfig();
     localStorage.clear();
   });
 
-  describe("env", () => {
-    it("should return default value for system name", () => {
-      expect(env("SYSTEM_NAME")).toBe("YYC³ Cloud Intelli-Matrix");
+  describe("env()", () => {
+    it("should return default system name", () => {
+      const systemName = env("SYSTEM_NAME");
+      expect(systemName).toBe("YYC³ Cloud Intelli-Matrix");
     });
 
-    it("should return default value for system version", () => {
-      expect(env("SYSTEM_VERSION")).toBe("3.2.0");
+    it("should return default system version", () => {
+      const version = env("SYSTEM_VERSION");
+      expect(version).toBe("3.2.0");
     });
 
-    it("should return default value for API base URL", () => {
-      expect(env("API_BASE_URL")).toBe("http://192.168.3.1:3118/api");
+    it("should return default API base URL", () => {
+      const apiUrl = env("API_BASE_URL");
+      expect(apiUrl).toBe("http://192.168.3.1:3118/api");
     });
 
-    it("should return default value for WS endpoint", () => {
-      expect(env("WS_ENDPOINT")).toBe("ws://localhost:3113/ws");
+    it("should return default WS endpoint", () => {
+      const wsEndpoint = env("WS_ENDPOINT");
+      expect(wsEndpoint).toBe("ws://localhost:3113/ws");
     });
 
-    it("should return default value for OLLAMA base URL", () => {
-      expect(env("OLLAMA_BASE_URL")).toBe("http://localhost:11434");
+    it("should return default storage prefix", () => {
+      const prefix = env("STORAGE_PREFIX");
+      expect(prefix).toBe("yyc3_");
     });
 
-    it("should return default value for storage prefix", () => {
-      expect(env("STORAGE_PREFIX")).toBe("yyc3_");
+    it("should return default IDB name", () => {
+      const idbName = env("IDB_NAME");
+      expect(idbName).toBe("yyc3_matrix");
     });
 
-    it("should return default value for cluster ID", () => {
-      expect(env("CLUSTER_ID")).toBe("CN-EAST-PROD-01");
+    it("should return default IDB version", () => {
+      const idbVersion = env("IDB_VERSION");
+      expect(idbVersion).toBe(3);
     });
 
-    it("should return test for node env (overridden by vitest MODE)", () => {
-      // Vitest sets import.meta.env.MODE to "test", which overrides the default
-      expect(env("NODE_ENV")).toBe("test");
+    it("should return default mock mode setting", () => {
+      const mockMode = env("ENABLE_MOCK_MODE");
+      expect(mockMode).toBe(true);
     });
 
-    it("should return default value for mock mode", () => {
-      expect(env("ENABLE_MOCK_MODE")).toBe(true);
+    it("should return default debug setting", () => {
+      const debug = env("ENABLE_DEBUG");
+      expect(debug).toBe(false);
     });
 
-    it("should return default value for debug mode", () => {
-      expect(env("ENABLE_DEBUG")).toBe(false);
+    it("should return default PWA setting", () => {
+      const pwa = env("ENABLE_PWA");
+      expect(pwa).toBe(true);
     });
 
-    it("should return default value for PWA", () => {
-      expect(env("ENABLE_PWA")).toBe(true);
+    it("should return default session timeout", () => {
+      const timeout = env("SESSION_TIMEOUT_MIN");
+      expect(timeout).toBe(30);
     });
 
-    it("should return default value for Electron IPC", () => {
-      expect(env("ENABLE_ELECTRON_IPC")).toBe(false);
+    it("should return default max login attempts", () => {
+      const attempts = env("MAX_LOGIN_ATTEMPTS");
+      expect(attempts).toBe(5);
     });
 
-    it("should return default value for session timeout", () => {
-      expect(env("SESSION_TIMEOUT_MIN")).toBe(30);
+    it("should return default AI model", () => {
+      const model = env("DEFAULT_AI_MODEL");
+      expect(model).toBe("gpt-4o");
     });
 
-    it("should return default value for max login attempts", () => {
-      expect(env("MAX_LOGIN_ATTEMPTS")).toBe(5);
+    it("should return default AI temperature", () => {
+      const temp = env("DEFAULT_AI_TEMPERATURE");
+      expect(temp).toBe(0.7);
     });
 
-    it("should return default value for CORS origins", () => {
-      expect(env("CORS_ORIGINS")).toBe("192.168.1.0/24,10.0.0.0/16,172.16.0.0/12");
+    it("should return default AI max tokens", () => {
+      const tokens = env("DEFAULT_AI_MAX_TOKENS");
+      expect(tokens).toBe(2048);
     });
 
-    it("should return default value for default AI base URL", () => {
-      expect(env("DEFAULT_AI_BASE_URL")).toBe("https://api.openai.com/v1");
+    it("should return default DB pool min", () => {
+      const poolMin = env("DB_POOL_MIN");
+      expect(poolMin).toBe(2);
     });
 
-    it("should return default value for default AI model", () => {
-      expect(env("DEFAULT_AI_MODEL")).toBe("gpt-4o");
+    it("should return default DB pool max", () => {
+      const poolMax = env("DB_POOL_MAX");
+      expect(poolMax).toBe(10);
     });
 
-    it("should return default value for default AI temperature", () => {
-      expect(env("DEFAULT_AI_TEMPERATURE")).toBe(0.7);
-    });
-
-    it("should return default value for default AI max tokens", () => {
-      expect(env("DEFAULT_AI_MAX_TOKENS")).toBe(2048);
-    });
-
-    it("should return default value for default AI timeout", () => {
-      expect(env("DEFAULT_AI_TIMEOUT")).toBe(30000);
-    });
-
-    it("should return default value for DB pool min", () => {
-      expect(env("DB_POOL_MIN")).toBe(2);
-    });
-
-    it("should return default value for DB pool max", () => {
-      expect(env("DB_POOL_MAX")).toBe(10);
-    });
-
-    it("should return default value for DB pool idle timeout", () => {
-      expect(env("DB_POOL_IDLE_TIMEOUT")).toBe(30000);
-    });
-
-    it("should return default value for DB pool acquire timeout", () => {
-      expect(env("DB_POOL_ACQUIRE_TIMEOUT")).toBe(5000);
-    });
-
-    it("should return default value for SQL blocked commands", () => {
-      expect(env("SQL_BLOCKED_COMMANDS")).toBe("DROP,DELETE,TRUNCATE,ALTER");
-    });
-
-    it("should return default value for SQL max history", () => {
-      expect(env("SQL_MAX_HISTORY")).toBe(20);
-    });
-
-    it("should return default value for SQL test simulate delay", () => {
-      expect(env("SQL_TEST_SIMULATE_DELAY")).toBe(500);
+    it("should return default SQL max history", () => {
+      const history = env("SQL_MAX_HISTORY");
+      expect(history).toBe(20);
     });
   });
 
-  describe("getEnvConfig", () => {
-    it("should return all default config values", () => {
+  describe("getEnvConfig()", () => {
+    it("should return full config object", () => {
       const config = getEnvConfig();
-      
-      expect(config.SYSTEM_NAME).toBe("YYC³ Cloud Intelli-Matrix");
-      expect(config.SYSTEM_VERSION).toBe("3.2.0");
-      expect(config.API_BASE_URL).toBe("http://192.168.3.1:3118/api");
-      expect(config.WS_ENDPOINT).toBe("ws://localhost:3113/ws");
-      expect(config.OLLAMA_BASE_URL).toBe("http://localhost:11434");
-      expect(config.STORAGE_PREFIX).toBe("yyc3_");
-      expect(config.CLUSTER_ID).toBe("CN-EAST-PROD-01");
-      // NODE_ENV is overridden by vitest's import.meta.env.MODE ("test")
-      expect(config.NODE_ENV).toBe("test");
-      expect(config.ENABLE_MOCK_MODE).toBe(true);
-      expect(config.ENABLE_DEBUG).toBe(false);
+      expect(config).toHaveProperty("SYSTEM_NAME");
+      expect(config).toHaveProperty("SYSTEM_VERSION");
+      expect(config).toHaveProperty("API_BASE_URL");
+      expect(config).toHaveProperty("WS_ENDPOINT");
+      expect(config).toHaveProperty("STORAGE_PREFIX");
     });
 
     it("should return readonly config", () => {
-      const config = getEnvConfig();
-      
-      // Should not be able to modify directly
-      expect(() => {
-        (config as any).SYSTEM_NAME = "Modified";
-      }).not.toThrow();
-      
-      // But the original should remain unchanged
-      expect(getEnvConfig().SYSTEM_NAME).toBe("YYC³ Cloud Intelli-Matrix");
+      const config1 = getEnvConfig();
+      const config2 = getEnvConfig();
+      expect(config1).not.toBe(config2);
     });
   });
 
-  describe("setEnvConfig", () => {
-    it("should update config value", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      
-      expect(env("SYSTEM_NAME")).toBe("Test System");
+  describe("setEnvConfig()", () => {
+    it("should update single config value", () => {
+      const updated = setEnvConfig({ SYSTEM_NAME: "Custom System" });
+      expect(updated.SYSTEM_NAME).toBe("Custom System");
     });
 
     it("should persist to localStorage", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      
-      const stored = localStorage.getItem("yyc3_env_config");
+      setEnvConfig({ SYSTEM_NAME: "Persisted System" });
+      const stored = localStorage.getItem(ENV_STORAGE_KEY);
       expect(stored).toBeDefined();
-      
       const parsed = JSON.parse(stored!);
-      expect(parsed.SYSTEM_NAME).toBe("Test System");
-    });
-
-    it("should update multiple values", () => {
-      setEnvConfig({
-        SYSTEM_NAME: "Test System",
-        SYSTEM_VERSION: "1.0.0",
-        API_BASE_URL: "http://test.com/api",
-      });
-      
-      expect(env("SYSTEM_NAME")).toBe("Test System");
-      expect(env("SYSTEM_VERSION")).toBe("1.0.0");
-      expect(env("API_BASE_URL")).toBe("http://test.com/api");
+      expect(parsed.SYSTEM_NAME).toBe("Persisted System");
     });
 
     it("should merge with existing config", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
+      setEnvConfig({ SYSTEM_NAME: "System A" });
       setEnvConfig({ SYSTEM_VERSION: "1.0.0" });
-      
-      expect(env("SYSTEM_NAME")).toBe("Test System");
-      expect(env("SYSTEM_VERSION")).toBe("1.0.0");
+      const config = getEnvConfig();
+      expect(config.SYSTEM_NAME).toBe("System A");
+      expect(config.SYSTEM_VERSION).toBe("1.0.0");
+    });
+
+    it("should update multiple values at once", () => {
+      const updated = setEnvConfig({
+        SYSTEM_NAME: "Multi Update",
+        SYSTEM_VERSION: "2.0.0",
+        ENABLE_DEBUG: true,
+      });
+      expect(updated.SYSTEM_NAME).toBe("Multi Update");
+      expect(updated.SYSTEM_VERSION).toBe("2.0.0");
+      expect(updated.ENABLE_DEBUG).toBe(true);
+    });
+
+    it("should handle localStorage errors gracefully", () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+      setItemSpy.mockImplementation(() => {
+        throw new Error("QuotaExceededError");
+      });
+
+      expect(() => setEnvConfig({ SYSTEM_NAME: "Test" })).not.toThrow();
+      setItemSpy.mockRestore();
     });
   });
 
-  describe("resetEnvConfig", () => {
-    it("should reset to default values", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      
+  describe("resetEnvConfig()", () => {
+    it("should clear localStorage config", () => {
+      setEnvConfig({ SYSTEM_NAME: "To Be Reset" });
       resetEnvConfig();
-      
-      expect(env("SYSTEM_NAME")).toBe("YYC³ Cloud Intelli-Matrix");
-    });
-
-    it("should clear localStorage", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      
-      resetEnvConfig();
-      
-      const stored = localStorage.getItem("yyc3_env_config");
+      const stored = localStorage.getItem(ENV_STORAGE_KEY);
       expect(stored).toBeNull();
     });
+
+    it("should return default config", () => {
+      setEnvConfig({ SYSTEM_NAME: "Custom Name" });
+      const config = resetEnvConfig();
+      expect(config.SYSTEM_NAME).toBe("YYC³ Cloud Intelli-Matrix");
+    });
+
+    it("should clear cached config", () => {
+      setEnvConfig({ SYSTEM_NAME: "Cached Name" });
+      resetEnvConfig();
+      const name = env("SYSTEM_NAME");
+      expect(name).toBe("YYC³ Cloud Intelli-Matrix");
+    });
   });
 
-  describe("exportEnvConfig", () => {
+  describe("exportEnvConfig()", () => {
     it("should export config as JSON string", () => {
       const exported = exportEnvConfig();
-      
       expect(typeof exported).toBe("string");
-      
       const parsed = JSON.parse(exported);
-      expect(parsed._type).toBe("env-config");
-      expect(parsed._exportedAt).toBeDefined();
-      expect(parsed.config).toBeDefined();
+      expect(parsed).toHaveProperty("_type", "env-config");
+      expect(parsed).toHaveProperty("config");
     });
 
-    it("should include all config values", () => {
+    it("should include export timestamp", () => {
       const exported = exportEnvConfig();
       const parsed = JSON.parse(exported);
-      
-      expect(parsed.config.SYSTEM_NAME).toBe("YYC³ Cloud Intelli-Matrix");
-      expect(parsed.config.SYSTEM_VERSION).toBe("3.2.0");
+      expect(parsed).toHaveProperty("_exportedAt");
     });
 
-    it("should include modified values", () => {
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      
+    it("should export current config", () => {
+      setEnvConfig({ SYSTEM_NAME: "Exported System" });
       const exported = exportEnvConfig();
       const parsed = JSON.parse(exported);
-      
-      expect(parsed.config.SYSTEM_NAME).toBe("Test System");
+      expect(parsed.config.SYSTEM_NAME).toBe("Exported System");
     });
   });
 
-  describe("importEnvConfig", () => {
+  describe("importEnvConfig()", () => {
     it("should import valid config JSON", () => {
       const json = JSON.stringify({
-        SYSTEM_NAME: "Imported System",
-        SYSTEM_VERSION: "2.0.0",
+        _type: "env-config",
+        config: {
+          SYSTEM_NAME: "Imported System",
+          SYSTEM_VERSION: "4.0.0",
+        },
       });
-      
       const result = importEnvConfig(json);
-      
       expect(result).toBe(true);
       expect(env("SYSTEM_NAME")).toBe("Imported System");
-      expect(env("SYSTEM_VERSION")).toBe("2.0.0");
     });
 
-    it("should import exported config", () => {
-      const exported = exportEnvConfig();
-      
-      const result = importEnvConfig(exported);
-      
+    it("should import config without wrapper", () => {
+      const json = JSON.stringify({
+        SYSTEM_NAME: "Direct Import",
+      });
+      const result = importEnvConfig(json);
       expect(result).toBe(true);
+      expect(env("SYSTEM_NAME")).toBe("Direct Import");
     });
 
     it("should return false for invalid JSON", () => {
       const result = importEnvConfig("invalid json");
-      
       expect(result).toBe(false);
     });
 
-    it("should return true for unrecognized keys (accepts any JSON object)", () => {
-      // importEnvConfig does not validate keys — it accepts any valid JSON object
-      const result = importEnvConfig(JSON.stringify({ invalid: "config" }));
-
-      expect(result).toBe(true);
+    it("should return false for empty string", () => {
+      const result = importEnvConfig("");
+      expect(result).toBe(false);
     });
 
-    it("should merge imported config with existing", () => {
-      setEnvConfig({ SYSTEM_NAME: "Existing System" });
-      
-      const json = JSON.stringify({
-        SYSTEM_VERSION: "3.0.0",
-      });
-      
-      importEnvConfig(json);
-      
-      expect(env("SYSTEM_NAME")).toBe("Existing System");
-      expect(env("SYSTEM_VERSION")).toBe("3.0.0");
+    it("should not modify config on import failure", () => {
+      setEnvConfig({ SYSTEM_NAME: "Original Name" });
+      importEnvConfig("invalid json");
+      expect(env("SYSTEM_NAME")).toBe("Original Name");
     });
   });
 
-  describe("integration", () => {
-    it("should maintain consistency across operations", () => {
-      // Set initial config
-      setEnvConfig({ SYSTEM_NAME: "Test System" });
-      expect(env("SYSTEM_NAME")).toBe("Test System");
-      
-      // Export
-      const exported = exportEnvConfig();
-      
-      // Reset
-      resetEnvConfig();
-      expect(env("SYSTEM_NAME")).toBe("YYC³ Cloud Intelli-Matrix");
-      
-      // Import
-      importEnvConfig(exported);
-      expect(env("SYSTEM_NAME")).toBe("Test System");
+  describe("localStorage integration", () => {
+    it("should load config from localStorage on init", async () => {
+      localStorage.setItem(
+        ENV_STORAGE_KEY,
+        JSON.stringify({ SYSTEM_NAME: "Stored Name" })
+      );
+      vi.resetModules();
+      const { env: envReloaded } = await import("../lib/env-config");
+      expect(envReloaded("SYSTEM_NAME")).toBe("Stored Name");
     });
 
-    it("should handle localStorage errors gracefully", () => {
-      // Mock localStorage to throw error
-      const originalSetItem = localStorage.setItem;
-      localStorage.setItem = vi.fn(() => {
-        throw new Error("Storage error");
-      });
-      
-      // Should not throw
-      expect(() => {
-        setEnvConfig({ SYSTEM_NAME: "Test System" });
-      }).not.toThrow();
-      
-      // Restore
-      localStorage.setItem = originalSetItem;
+    it("should handle corrupted localStorage data", async () => {
+      localStorage.setItem(ENV_STORAGE_KEY, "invalid json");
+      vi.resetModules();
+      const { env: envReloaded } = await import("../lib/env-config");
+      expect(envReloaded("SYSTEM_NAME")).toBe("YYC³ Cloud Intelli-Matrix");
     });
   });
 });

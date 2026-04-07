@@ -324,3 +324,101 @@ export function updateWifiAutoReconnectConfig(
     lastUpdatedAt: Date.now(),
   });
 }
+
+// ============================================================
+// 12. 后续跟进任务存储 (P0 修复)
+// ============================================================
+
+export interface FollowUpRecord {
+  id: string;
+  taskId: string;
+  taskName: string;
+  assignee: string;
+  assigneeName: string;
+  priority: "low" | "medium" | "high" | "critical";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  dueDate: number;
+  completedAt?: number;
+  notes?: string;
+  createdAt: number;
+  updatedAt: number;
+  category: "maintenance" | "optimization" | "security" | "feature" | "bugfix";
+}
+
+const DEFAULT_FOLLOW_UPS: FollowUpRecord[] = [
+  {
+    id: "fu-001",
+    taskId: "TASK-001",
+    taskName: "GPU-A100-03 温度优化",
+    assignee: "usr-2",
+    assigneeName: "李运维",
+    priority: "high",
+    status: "in_progress",
+    dueDate: Date.now() + 86400000 * 2,
+    notes: "GPU 温度持续偏高，需要检查散热系统",
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 3600000,
+    category: "maintenance",
+  },
+  {
+    id: "fu-002",
+    taskId: "TASK-002",
+    taskName: "数据库连接池优化",
+    assignee: "usr-3",
+    assigneeName: "王开发",
+    priority: "medium",
+    status: "pending",
+    dueDate: Date.now() + 86400000 * 5,
+    notes: "当前连接池配置需要根据实际负载调整",
+    createdAt: Date.now() - 86400000 * 2,
+    updatedAt: Date.now() - 86400000 * 2,
+    category: "optimization",
+  },
+  {
+    id: "fu-003",
+    taskId: "TASK-003",
+    taskName: "安全补丁更新",
+    assignee: "usr-1",
+    assigneeName: "张管理",
+    priority: "critical",
+    status: "pending",
+    dueDate: Date.now() + 86400000,
+    notes: "系统安全补丁 v2.1.5 需要紧急部署",
+    createdAt: Date.now() - 86400000 * 3,
+    updatedAt: Date.now() - 86400000 * 3,
+    category: "security",
+  },
+];
+
+export const followUpStore = createLocalStore<FollowUpRecord>("yyc3_follow_ups", DEFAULT_FOLLOW_UPS, "fu");
+
+/**
+ * 便捷工具：获取所有待处理的跟进任务
+ */
+export function getPendingFollowUps(): FollowUpRecord[] {
+  return followUpStore.getAll().filter(fu => fu.status === "pending" || fu.status === "in_progress");
+}
+
+/**
+ * 便捷工具：获取已过期的跟进任务
+ */
+export function getOverdueFollowUps(): FollowUpRecord[] {
+  const now = Date.now();
+  return followUpStore.getAll().filter(fu => 
+    (fu.status === "pending" || fu.status === "in_progress") && fu.dueDate < now
+  );
+}
+
+/**
+ * 便捷工具：根据优先级获取跟进任务
+ */
+export function getFollowUpsByPriority(priority: FollowUpRecord["priority"]): FollowUpRecord[] {
+  return followUpStore.getAll().filter(fu => fu.priority === priority);
+}
+
+/**
+ * 便捷工具：根据负责人获取跟进任务
+ */
+export function getFollowUpsByAssignee(assigneeId: string): FollowUpRecord[] {
+  return followUpStore.getAll().filter(fu => fu.assignee === assigneeId);
+}

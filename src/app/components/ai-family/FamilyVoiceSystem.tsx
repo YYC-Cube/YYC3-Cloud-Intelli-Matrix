@@ -9,6 +9,10 @@
  *  - Web Speech Recognition 语音识别输入
  *  - 语音对话模式：说话 → 识别 → 家人语音回复
  *  - 整点关爱语音播报
+ *  - 语音命令控制音乐播放
+ *  - 情感检测与音乐推荐联动
+ *
+ * @version v2.0.0 - 集成语音命令与情感检测
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -25,6 +29,9 @@ import {
   DEFAULT_VOICE_PROFILES, AI_RESPONSES,
   type FamilyMember, type VoiceProfile,
 } from "./shared";
+import musicEventBus from "../../lib/MusicEventBus";
+import { parseVoiceCommand } from "../../lib/VoiceCommandParser";
+import emotionMusicBridge from "../../lib/EmotionMusicBridge";
 
 // ═══ localStorage ═══
 
@@ -291,6 +298,24 @@ function VoiceConversationPanel({
       if (final) {
         setTranscript(prev => prev + final);
         setInterimTranscript("");
+
+        const parsedCommand = parseVoiceCommand(final);
+        if (parsedCommand && parsedCommand.confidence > 0.5) {
+          musicEventBus.emitVoiceCommand(
+            parsedCommand.command,
+            final,
+            parsedCommand.confidence,
+            member.id
+          );
+        }
+
+        const emotionState = emotionMusicBridge.detectEmotion(final);
+        if (emotionState.confidence > 0.6) {
+          const suggestion = emotionMusicBridge.suggestMusicAction(emotionState.type);
+          if (suggestion.action === "change_playlist") {
+            console.log(`[VoiceSystem] Emotion-based suggestion: ${suggestion.reason}`);
+          }
+        }
       } else {
         setInterimTranscript(interim);
       }

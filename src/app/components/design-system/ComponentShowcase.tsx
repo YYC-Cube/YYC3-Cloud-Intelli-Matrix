@@ -9,11 +9,8 @@
 
 import React, { useState } from "react";
 import {
-  Check, X, AlertTriangle, Info, Loader2, Bell,
-  Activity, Shield, Server, Database, Zap,
-  ChevronRight, ExternalLink,
+  Check, X, AlertTriangle, Info, Loader2,
 } from "lucide-react";
-import { GlassCard } from "../GlassCard";
 import type { StatusDef, ComponentEntry, InteractionSpec } from "../../types";
 
 // RF-011: Re-export 已移除
@@ -233,7 +230,7 @@ export function ComponentShowcase() {
             </p>
             <div className="flex items-center gap-3">
               {STATUS_DEFINITIONS.map((s) => {
-                const Icon = s.icon;
+                const _Icon = s.icon;
                 return (
                   <div key={s.key} className="flex items-center gap-1">
                     <span

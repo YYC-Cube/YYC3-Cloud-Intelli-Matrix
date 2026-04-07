@@ -48,6 +48,7 @@ const enUS: TranslationKeys = {
   nav: {
     dataMonitor: "Monitoring",
     followUp: "Follow-up",
+    followUpManager: "Follow-up Tasks",
     patrol: "Patrol",
     operations: "Operations",
     fileManager: "Files",
@@ -313,6 +314,67 @@ const enUS: TranslationKeys = {
       stable: "Stable",
       declining: "Declining",
     },
+  },
+
+  // ======== Storage Management ========
+  storage: {
+    manager: {
+      title: "Storage Management",
+      description: "Configure storage options and sync settings"
+    },
+    config: {
+      title: "Storage Configuration",
+      description: "Select storage type and configure parameters",
+      storageType: "Storage Type",
+      selectStorageType: "Select storage type",
+      localStorage: "Local Storage",
+      database: "Database Storage",
+      databaseConfig: "Database Configuration",
+      syncSettings: "Sync Settings",
+      syncInterval: "Sync Interval",
+      autoSync: "Auto Sync",
+      offlineMode: "Offline Mode",
+      conflictResolution: "Conflict Resolution",
+      selectConflictResolution: "Select conflict resolution strategy",
+      localWins: "Local First",
+      remoteWins: "Remote First",
+      merge: "Merge"
+    },
+    sync: {
+      status: "Sync Status",
+      statusDescription: "View current status and history of storage sync",
+      inProgress: "Syncing...",
+      completed: "Sync Completed",
+      failed: "Sync Failed",
+      lastSync: "Last Sync: {{time}}",
+      manual: "Manual Sync",
+      history: "Sync History",
+      details: "Details",
+      noHistory: "No sync history",
+      pendingChanges: "Pending Changes",
+      storageType: "Storage Type",
+      syncInterval: "Sync Interval",
+      autoSync: "Auto Sync",
+      offlineMode: "Offline Mode"
+    },
+    status: {
+      disconnected: "Disconnected",
+      syncing: "Syncing",
+      synced: "Synced",
+      ready: "Ready"
+    },
+    network: {
+      online: "Online",
+      offline: "Offline"
+    },
+    offline: {
+      modeActive: "Offline Mode Active",
+      pendingChanges: "{{count}} changes pending sync",
+      operationAdded: "Offline operation added",
+      queueProcessed: "Offline queue processed",
+      processingQueue: "Processing offline queue",
+      processingDescription: "Syncing {{count}} offline operations"
+    }
   },
 
   // ======== Command Palette ========

@@ -1,16 +1,17 @@
 /**
- * @file: ollama-url.test.ts
- * @description: ollama-url.test.ts description
- * @author: YanYuCloudCube Team
- * @version: v1.0.0
- * @created: 2026-03-31
- * @updated: 2026-03-31
- * @status: active
- * @tags: [type]
+ * ollama-url.test.ts
+ * ===================
+ * Ollama端点解析工具测试
+ *
+ * @file ollama-url.test.ts
+ * @description ollama-url模块单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   isLocalDeployment,
   shouldUseProxy,
@@ -20,26 +21,21 @@ import {
   getOllamaEndpointInfo,
 } from "../lib/ollama-url";
 
-vi.mock("../lib/env-config", () => ({
-  env: vi.fn((key: string) => {
-    const envMap: Record<string, string> = {
-      OLLAMA_PROXY_PATH: "/api/v1/llm/ollama",
-      OLLAMA_BASE_URL: "http://localhost:11434",
-    };
-    return envMap[key] || "";
-  }),
-}));
-
 describe("ollama-url", () => {
+  const originalLocation = window.location;
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    Object.defineProperty(window, "location", {
+      value: originalLocation,
+      writable: true,
+    });
   });
 
-  describe("isLocalDeployment", () => {
+  describe("isLocalDeployment()", () => {
     it("should return true for localhost", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
@@ -80,7 +76,7 @@ describe("ollama-url", () => {
       expect(isLocalDeployment()).toBe(true);
     });
 
-    it("should return false for remote host", () => {
+    it("should return false for public IP", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,
@@ -88,15 +84,29 @@ describe("ollama-url", () => {
       expect(isLocalDeployment()).toBe(false);
     });
 
+    it("should return false for public IP address", () => {
+      Object.defineProperty(window, "location", {
+        value: { hostname: "8.8.8.8" },
+        writable: true,
+      });
+      expect(isLocalDeployment()).toBe(false);
+    });
+
     it("should return false when window is undefined", () => {
       const originalWindow = global.window;
-      delete (global as any).window;
+      Object.defineProperty(global, "window", {
+        value: undefined,
+        writable: true,
+      });
       expect(isLocalDeployment()).toBe(false);
-      global.window = originalWindow;
+      Object.defineProperty(global, "window", {
+        value: originalWindow,
+        writable: true,
+      });
     });
   });
 
-  describe("shouldUseProxy", () => {
+  describe("shouldUseProxy()", () => {
     it("should return true for local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
@@ -105,7 +115,7 @@ describe("ollama-url", () => {
       expect(shouldUseProxy()).toBe(true);
     });
 
-    it("should return false for remote deployment", () => {
+    it("should return false for non-local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,
@@ -114,72 +124,86 @@ describe("ollama-url", () => {
     });
   });
 
-  describe("getOllamaChatUrl", () => {
-    it("should return proxy path for local deployment", () => {
+  describe("getOllamaChatUrl()", () => {
+    it("should return proxy URL for local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
         writable: true,
       });
-      expect(getOllamaChatUrl()).toBe("/api/v1/llm/ollama/chat");
+      const url = getOllamaChatUrl();
+      expect(url).toBe("/api/v1/llm/ollama/chat");
     });
 
-    it("should return direct URL for remote deployment", () => {
+    it("should return direct URL for non-local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,
       });
-      expect(getOllamaChatUrl()).toBe("http://localhost:11434/api/chat");
+      const url = getOllamaChatUrl();
+      expect(url).toBe("http://localhost:11434/api/chat");
     });
   });
 
-  describe("getOllamaTagsUrl", () => {
-    it("should return proxy path for local deployment", () => {
+  describe("getOllamaTagsUrl()", () => {
+    it("should return proxy URL for local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
         writable: true,
       });
-      expect(getOllamaTagsUrl()).toBe("/api/v1/llm/ollama/tags");
+      const url = getOllamaTagsUrl();
+      expect(url).toBe("/api/v1/llm/ollama/tags");
     });
 
-    it("should return direct URL for remote deployment", () => {
+    it("should return direct URL for non-local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,
       });
-      expect(getOllamaTagsUrl()).toBe("http://localhost:11434/api/tags");
+      const url = getOllamaTagsUrl();
+      expect(url).toBe("http://localhost:11434/api/tags");
     });
   });
 
-  describe("getOllamaUrl", () => {
-    it("should return proxy path for local deployment", () => {
+  describe("getOllamaUrl()", () => {
+    it("should return proxy URL for local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
         writable: true,
       });
-      expect(getOllamaUrl("show")).toBe("/api/v1/llm/ollama/show");
-      expect(getOllamaUrl("generate")).toBe("/api/v1/llm/ollama/generate");
+      const url = getOllamaUrl("show");
+      expect(url).toBe("/api/v1/llm/ollama/show");
     });
 
-    it("should return direct URL for remote deployment", () => {
+    it("should return direct URL for non-local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,
       });
-      expect(getOllamaUrl("show")).toBe("http://localhost:11434/api/show");
-      expect(getOllamaUrl("generate")).toBe("http://localhost:11434/api/generate");
+      const url = getOllamaUrl("show");
+      expect(url).toBe("http://localhost:11434/api/show");
     });
 
-    it("should handle leading slashes in subPath", () => {
+    it("should handle subPath with leading slash", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
         writable: true,
       });
-      expect(getOllamaUrl("//show")).toBe("/api/v1/llm/ollama//show");
+      const url = getOllamaUrl("/generate");
+      expect(url).toBe("/api/v1/llm/ollama/generate");
+    });
+
+    it("should handle embeddings subPath", () => {
+      Object.defineProperty(window, "location", {
+        value: { hostname: "localhost" },
+        writable: true,
+      });
+      const url = getOllamaUrl("embeddings");
+      expect(url).toBe("/api/v1/llm/ollama/embeddings");
     });
   });
 
-  describe("getOllamaEndpointInfo", () => {
-    it("should return proxy mode for local deployment", () => {
+  describe("getOllamaEndpointInfo()", () => {
+    it("should return proxy mode info for local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "localhost" },
         writable: true,
@@ -192,7 +216,7 @@ describe("ollama-url", () => {
       expect(info.directBase).toBe("http://localhost:11434");
     });
 
-    it("should return direct mode for remote deployment", () => {
+    it("should return direct mode info for non-local deployment", () => {
       Object.defineProperty(window, "location", {
         value: { hostname: "example.com" },
         writable: true,

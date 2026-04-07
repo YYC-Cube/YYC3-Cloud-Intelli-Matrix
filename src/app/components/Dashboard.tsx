@@ -108,7 +108,7 @@ export function Dashboard() {
 
   const isMobile = view?.isMobile ?? false;
   const isTablet = view?.isTablet ?? false;
-  const isDesktop = !isMobile && !isTablet;
+  const _isDesktop = !isMobile && !isTablet;
 
   // Swipe handlers for chart tabs
   const swipeHandlers = useSwipeable({

@@ -1,33 +1,17 @@
 /**
  * create-local-store.test.ts
- * ===========================
- * createLocalStore 通用 localStorage CRUD 工厂单元测试
+ * ============================
+ * 通用localStorage CRUD工厂测试
  *
- * 覆盖:
- * - getAll / getById
- * - add (auto id / custom id)
- * - update / remove / removeBatch
- * - reset
- * - exportData / importData
-import React from "react";
- * - count
- * - localStorage 持久化
+ * @file create-local-store.test.ts
+ * @description create-local-store模块单元测试
+ * @author YanYuCloudCube Team <admin@0379.email>
+ * @version v1.0.0
+ * @created 2026-04-05
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
-// Mock localStorage
-const store: Record<string, string> = {};
-const localStorageMock = {
-  getItem: vi.fn((key: string) => store[key] ?? null),
-  setItem: vi.fn((key: string, val: string) => { store[key] = val; }),
-  removeItem: vi.fn((key: string) => { delete store[key]; }),
-  clear: vi.fn(() => { for (const k of Object.keys(store)) {delete store[k];} }),
-  get length() { return Object.keys(store).length; },
-  key: vi.fn((i: number) => Object.keys(store)[i] ?? null),
-};
-(globalThis as any).localStorage = localStorageMock;
-
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createLocalStore, type LocalStore } from "../lib/create-local-store";
 
 interface TestItem {
@@ -36,197 +20,253 @@ interface TestItem {
   value: number;
 }
 
-const DEFAULTS: TestItem[] = [
-  { id: "t-1", name: "Alpha", value: 10 },
-  { id: "t-2", name: "Beta", value: 20 },
-  { id: "t-3", name: "Gamma", value: 30 },
-];
+describe("create-local-store", () => {
+  const STORAGE_KEY = "test_store";
+  const DEFAULTS: TestItem[] = [
+    { id: "item-1", name: "Item 1", value: 100 },
+    { id: "item-2", name: "Item 2", value: 200 },
+  ];
 
-describe("createLocalStore", () => {
-  let s: LocalStore<TestItem>;
+  let store: LocalStore<TestItem>;
 
   beforeEach(() => {
-    localStorageMock.clear();
-    vi.clearAllMocks();
-    s = createLocalStore<TestItem>("test_store", DEFAULTS, "t");
+    localStorage.clear();
+    store = createLocalStore(STORAGE_KEY, DEFAULTS, "test");
   });
 
-  // ───────────── getAll ─────────────
-  describe("getAll", () => {
-    it("should return defaults on first call", () => {
-      const items = s.getAll();
-      expect(items).toHaveLength(3);
-      expect(items[0].name).toBe("Alpha");
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  describe("getAll()", () => {
+    it("should return default items on first call", () => {
+      const items = store.getAll();
+      expect(items).toHaveLength(2);
+      expect(items[0].name).toBe("Item 1");
+      expect(items[1].name).toBe("Item 2");
     });
 
-    it("should return a copy, not reference", () => {
-      const a = s.getAll();
-      const b = s.getAll();
-      expect(a).toEqual(b);
-      expect(a).not.toBe(b);
+    it("should return a copy of items", () => {
+      const items1 = store.getAll();
+      const items2 = store.getAll();
+      expect(items1).not.toBe(items2);
+      expect(items1).toEqual(items2);
     });
 
-    it("should persist defaults to localStorage on first call", () => {
-      s.getAll();
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "test_store",
-        expect.any(String)
-      );
+    it("should persist items to localStorage", () => {
+      store.getAll();
+      const stored = localStorage.getItem(STORAGE_KEY);
+      expect(stored).toBeDefined();
+      const parsed = JSON.parse(stored!);
+      expect(parsed).toHaveLength(2);
     });
   });
 
-  // ───────────── getById ─────────────
-  describe("getById", () => {
-    it("should find existing item", () => {
-      const item = s.getById("t-2");
+  describe("getById()", () => {
+    it("should return item by id", () => {
+      const item = store.getById("item-1");
       expect(item).toBeDefined();
-      expect(item!.name).toBe("Beta");
+      expect(item?.name).toBe("Item 1");
     });
 
     it("should return undefined for non-existent id", () => {
-      expect(s.getById("nope")).toBeUndefined();
+      const item = store.getById("non-existent");
+      expect(item).toBeUndefined();
     });
   });
 
-  // ───────────── add ─────────────
-  describe("add", () => {
-    it("should add item with auto-generated id", () => {
-      const added = s.add({ name: "Delta", value: 40 });
-      expect(added.id).toBeDefined();
-      expect(added.id).toMatch(/^t-/);
-      expect(s.count()).toBe(4);
+  describe("add()", () => {
+    it("should add new item with generated id", () => {
+      const newItem = store.add({ name: "Item 3", value: 300 });
+      expect(newItem.id).toBeDefined();
+      expect(newItem.id.startsWith("test-")).toBe(true);
+      expect(newItem.name).toBe("Item 3");
     });
 
-    it("should add item with custom id", () => {
-      const added = s.add({ id: "custom-99", name: "Custom", value: 99 });
-      expect(added.id).toBe("custom-99");
-      expect(s.getById("custom-99")?.name).toBe("Custom");
+    it("should add new item with custom id", () => {
+      const newItem = store.add({ id: "custom-id", name: "Custom Item", value: 400 });
+      expect(newItem.id).toBe("custom-id");
     });
 
-    it("should persist after add", () => {
-      s.add({ name: "New", value: 50 });
-      const stored = JSON.parse(store["test_store"]);
-      expect(stored).toHaveLength(4);
+    it("should persist added item", () => {
+      store.add({ name: "Item 3", value: 300 });
+      const items = store.getAll();
+      expect(items).toHaveLength(3);
     });
   });
 
-  // ───────────── update ─────────────
-  describe("update", () => {
+  describe("update()", () => {
     it("should update existing item", () => {
-      const updated = s.update("t-1", { name: "Alpha Updated", value: 15 });
-      expect(updated).not.toBeNull();
-      expect(updated!.name).toBe("Alpha Updated");
-      expect(updated!.value).toBe(15);
+      const updated = store.update("item-1", { value: 999 });
+      expect(updated).toBeDefined();
+      expect(updated?.value).toBe(999);
+      expect(updated?.name).toBe("Item 1");
     });
 
     it("should return null for non-existent id", () => {
-      expect(s.update("nope", { name: "X" })).toBeNull();
+      const updated = store.update("non-existent", { value: 999 });
+      expect(updated).toBeNull();
     });
 
-    it("should persist after update", () => {
-      s.update("t-1", { value: 999 });
-      const stored = JSON.parse(store["test_store"]);
-      expect(stored.find((i: TestItem) => i.id === "t-1").value).toBe(999);
+    it("should persist updated item", () => {
+      store.update("item-1", { value: 999 });
+      const item = store.getById("item-1");
+      expect(item?.value).toBe(999);
     });
   });
 
-  // ───────────── remove ─────────────
-  describe("remove", () => {
+  describe("remove()", () => {
     it("should remove existing item", () => {
-      expect(s.remove("t-2")).toBe(true);
-      expect(s.count()).toBe(2);
-      expect(s.getById("t-2")).toBeUndefined();
+      const result = store.remove("item-1");
+      expect(result).toBe(true);
+      const items = store.getAll();
+      expect(items).toHaveLength(1);
     });
 
     it("should return false for non-existent id", () => {
-      expect(s.remove("nope")).toBe(false);
+      const result = store.remove("non-existent");
+      expect(result).toBe(false);
+    });
+
+    it("should persist removal", () => {
+      store.remove("item-1");
+      const item = store.getById("item-1");
+      expect(item).toBeUndefined();
     });
   });
 
-  // ───────────── removeBatch ─────────────
-  describe("removeBatch", () => {
+  describe("removeBatch()", () => {
     it("should remove multiple items", () => {
-      const removed = s.removeBatch(["t-1", "t-3"]);
+      const removed = store.removeBatch(["item-1", "item-2"]);
       expect(removed).toBe(2);
-      expect(s.count()).toBe(1);
-      expect(s.getById("t-2")).toBeDefined();
+      const items = store.getAll();
+      expect(items).toHaveLength(0);
     });
 
-    it("should return 0 for non-existent ids", () => {
-      expect(s.removeBatch(["nope", "nope2"])).toBe(0);
+    it("should return count of removed items", () => {
+      store.add({ id: "item-3", name: "Item 3", value: 300 });
+      const removed = store.removeBatch(["item-1", "item-3"]);
+      expect(removed).toBe(2);
     });
-  });
 
-  // ───────────── reset ─────────────
-  describe("reset", () => {
-    it("should restore defaults after modifications", () => {
-      s.add({ name: "Extra", value: 99 });
-      s.remove("t-1");
-      const items = s.reset();
-      expect(items).toHaveLength(3);
-      expect(items[0].name).toBe("Alpha");
+    it("should handle non-existent ids", () => {
+      const removed = store.removeBatch(["item-1", "non-existent"]);
+      expect(removed).toBe(1);
     });
   });
 
-  // ───────────── exportData ─────────────
-  describe("exportData", () => {
-    it("should export valid JSON with metadata", () => {
-      const json = s.exportData();
-      const parsed = JSON.parse(json);
-      expect(parsed._key).toBe("test_store");
-      expect(parsed._exportedAt).toBeDefined();
+  describe("reset()", () => {
+    it("should reset to defaults", () => {
+      store.add({ name: "Item 3", value: 300 });
+      store.update("item-1", { value: 999 });
+      const items = store.reset();
+      expect(items).toHaveLength(2);
+      expect(items[0].value).toBe(100);
+    });
+
+    it("should persist reset", () => {
+      store.add({ name: "Item 3", value: 300 });
+      store.reset();
+      const items = store.getAll();
+      expect(items).toHaveLength(2);
+    });
+  });
+
+  describe("exportData()", () => {
+    it("should export data as JSON string", () => {
+      const exported = store.exportData();
+      expect(typeof exported).toBe("string");
+      const parsed = JSON.parse(exported);
+      expect(parsed).toHaveProperty("_key", STORAGE_KEY);
+      expect(parsed).toHaveProperty("data");
+    });
+
+    it("should include export timestamp", () => {
+      const exported = store.exportData();
+      const parsed = JSON.parse(exported);
+      expect(parsed).toHaveProperty("_exportedAt");
+    });
+
+    it("should export current data", () => {
+      store.add({ name: "Item 3", value: 300 });
+      const exported = store.exportData();
+      const parsed = JSON.parse(exported);
       expect(parsed.data).toHaveLength(3);
     });
   });
 
-  // ───────────── importData ─────────────
-  describe("importData", () => {
-    it("should import from exported format", () => {
-      const json = s.exportData();
-      s.remove("t-1");
-      s.remove("t-2");
-      expect(s.count()).toBe(1);
-      const ok = s.importData(json);
-      expect(ok).toBe(true);
-      expect(s.count()).toBe(3);
+  describe("importData()", () => {
+    it("should import valid JSON with data property", () => {
+      const json = JSON.stringify({
+        _key: STORAGE_KEY,
+        data: [{ id: "imported-1", name: "Imported Item", value: 500 }],
+      });
+      const result = store.importData(json);
+      expect(result).toBe(true);
+      const items = store.getAll();
+      expect(items).toHaveLength(1);
+      expect(items[0].name).toBe("Imported Item");
     });
 
-    it("should import from raw array", () => {
-      const data = [{ id: "x-1", name: "Imported", value: 100 }];
-      const ok = s.importData(JSON.stringify(data));
-      expect(ok).toBe(true);
-      expect(s.count()).toBe(1);
-      expect(s.getById("x-1")?.name).toBe("Imported");
+    it("should import valid JSON array", () => {
+      const json = JSON.stringify([
+        { id: "imported-1", name: "Imported Item", value: 500 },
+      ]);
+      const result = store.importData(json);
+      expect(result).toBe(true);
+      const items = store.getAll();
+      expect(items).toHaveLength(1);
     });
 
     it("should return false for invalid JSON", () => {
-      expect(s.importData("not json")).toBe(false);
+      const result = store.importData("invalid json");
+      expect(result).toBe(false);
     });
 
     it("should return false for non-array data", () => {
-      expect(s.importData(JSON.stringify({ notAnArray: true }))).toBe(false);
+      const json = JSON.stringify({ data: "not an array" });
+      const result = store.importData(json);
+      expect(result).toBe(false);
+    });
+
+    it("should not modify data on import failure", () => {
+      store.getAll();
+      store.importData("invalid json");
+      const items = store.getAll();
+      expect(items).toHaveLength(2);
     });
   });
 
-  // ───────────── count ─────────────
-  describe("count", () => {
-    it("should return correct count", () => {
-      expect(s.count()).toBe(3);
-      s.add({ name: "New", value: 0 });
-      expect(s.count()).toBe(4);
-      s.remove("t-1");
-      expect(s.count()).toBe(3);
+  describe("count()", () => {
+    it("should return count of items", () => {
+      expect(store.count()).toBe(2);
+    });
+
+    it("should update count after add", () => {
+      store.add({ name: "Item 3", value: 300 });
+      expect(store.count()).toBe(3);
+    });
+
+    it("should update count after remove", () => {
+      store.remove("item-1");
+      expect(store.count()).toBe(1);
     });
   });
 
-  // ───────────── localStorage 读取 ─────────────
-  describe("localStorage integration", () => {
-    it("should read from existing localStorage data", () => {
-      const existingData = [{ id: "stored-1", name: "Stored", value: 42 }];
-      store["test_store2"] = JSON.stringify(existingData);
-      const s2 = createLocalStore<TestItem>("test_store2", DEFAULTS, "t");
-      expect(s2.count()).toBe(1);
-      expect(s2.getById("stored-1")?.name).toBe("Stored");
+  describe("persistence", () => {
+    it("should load from localStorage on subsequent calls", () => {
+      store.add({ name: "Item 3", value: 300 });
+      const newStore = createLocalStore<TestItem>(STORAGE_KEY, DEFAULTS, "test");
+      const items = newStore.getAll();
+      expect(items).toHaveLength(3);
+    });
+
+    it("should handle corrupted localStorage data", () => {
+      localStorage.setItem(STORAGE_KEY, "invalid json");
+      const newStore = createLocalStore<TestItem>(STORAGE_KEY, DEFAULTS, "test");
+      const items = newStore.getAll();
+      expect(items).toHaveLength(2);
+      expect(items[0].name).toBe("Item 1");
     });
   });
 });

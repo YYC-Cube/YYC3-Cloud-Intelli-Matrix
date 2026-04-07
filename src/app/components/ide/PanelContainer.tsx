@@ -30,8 +30,8 @@ export function PanelContainer({ panel, isActive }: PanelContainerProps) {
     onDrag,
     endDrag,
     startResize,
-    onResize,
-    endResize,
+    onResize: _onResize,
+    endResize: _endResize,
     updatePanel,
     removePanel,
   } = useLayoutContext();

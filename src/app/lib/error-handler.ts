@@ -1,44 +1,84 @@
 /**
  * error-handler.ts
  * =================
- * YYC³ 全局错误处理工具
+ * YYC³ 全局错误处理工具 (增强版)
  *
  * 功能：
- * - 统一错误分类（网络/解析/认证/运行时/未知）
+ * - 统一错误分类（网络/解析/认证/运行时/验证/存储/未知）
  * - 错误日志记录（localStorage 快速读 + IndexedDB 持久化双写）
  * - 全局未捕获异常监听
  * - 错误上报队列（本地离线可追溯）
+ * - 错误恢复建议机制
+ * - 用户友好错误展示
  *
  * 设计理念：
  * "可观、可看、可查、可操作、可跳转、可追溯、可预测"
  */
 
-// ============================================================
-// 类型定义 — 从全局类型中心导入
-// ============================================================
-
 import type { ErrorCategory, ErrorSeverity, AppError, ErrorStats } from "../types";
-
-// RF-011: Re-export 已移除 — 所有类型统一从 types/index.ts 导入
-
-// RF-002: IndexedDB 写入 — 异步双写, localStorage 同步读仍保留
 import { idbPut, idbGetAll, idbClear } from "./yyc3-storage";
-// RF-003: 统一 Figma 错误判定函数
 import { isFigmaPlatformError } from "./figma-error-filter";
-
-// ============================================================
-// 错误日志存储
-// ============================================================
 
 const ERROR_LOG_KEY = "yyc3_error_log";
 const MAX_ERROR_ENTRIES = 200;
 
-/** 生成唯一错误ID */
+export interface ValidationErrorDetail {
+  field: string;
+  message: string;
+  code: string;
+  suggestion?: string;
+}
+
+export interface EnhancedAppError extends AppError {
+  validationDetails?: ValidationErrorDetail[];
+  recoverySuggestion?: string;
+  context?: Record<string, unknown>;
+  relatedErrors?: string[];
+}
+
+export type ErrorCode =
+  | "NETWORK_TIMEOUT"
+  | "NETWORK_OFFLINE"
+  | "NETWORK_CORS"
+  | "AUTH_EXPIRED"
+  | "AUTH_INVALID"
+  | "AUTH_FORBIDDEN"
+  | "VALIDATION_INVALID_URL"
+  | "VALIDATION_INVALID_NUMBER"
+  | "VALIDATION_REQUIRED_FIELD"
+  | "VALIDATION_OUT_OF_RANGE"
+  | "PARSE_JSON_ERROR"
+  | "PARSE_XML_ERROR"
+  | "STORAGE_QUOTA_EXCEEDED"
+  | "STORAGE_NOT_AVAILABLE"
+  | "RUNTIME_TYPE_ERROR"
+  | "RUNTIME_REFERENCE_ERROR"
+  | "UNKNOWN";
+
+export const ERROR_RECOVERY_SUGGESTIONS: Record<ErrorCode, string> = {
+  NETWORK_TIMEOUT: "请检查网络连接，或联系管理员确认服务器状态",
+  NETWORK_OFFLINE: "请检查您的网络连接，系统将在网络恢复后自动重试",
+  NETWORK_CORS: "请检查服务器 CORS 配置，或联系管理员解决跨域问题",
+  AUTH_EXPIRED: "登录状态已过期，请重新登录",
+  AUTH_INVALID: "用户名或密码错误，请检查后重试",
+  AUTH_FORBIDDEN: "您没有权限执行此操作，请联系管理员",
+  VALIDATION_INVALID_URL: "请输入有效的 URL 地址（http://, https://, ws://, wss://）",
+  VALIDATION_INVALID_NUMBER: "请输入有效的数字",
+  VALIDATION_REQUIRED_FIELD: "此字段为必填项，请填写",
+  VALIDATION_OUT_OF_RANGE: "输入值超出允许范围，请检查",
+  PARSE_JSON_ERROR: "数据格式解析失败，请检查数据格式是否正确",
+  PARSE_XML_ERROR: "XML 解析失败，请检查 XML 格式",
+  STORAGE_QUOTA_EXCEEDED: "浏览器存储空间已满，请清理缓存后重试",
+  STORAGE_NOT_AVAILABLE: "浏览器存储不可用，请检查浏览器设置",
+  RUNTIME_TYPE_ERROR: "类型错误，请检查数据类型",
+  RUNTIME_REFERENCE_ERROR: "引用错误，请检查变量是否已定义",
+  UNKNOWN: "发生未知错误，请刷新页面或联系管理员",
+};
+
 function generateErrorId(): string {
   return `err_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** 读取本地错误日志 */
 export function getErrorLog(): AppError[] {
   try {
     const raw = localStorage.getItem(ERROR_LOG_KEY);
@@ -48,50 +88,36 @@ export function getErrorLog(): AppError[] {
   }
 }
 
-/** 保存错误到本地日志 */
 function saveErrorToLog(error: AppError): void {
-  // 1) 同步写入 localStorage（快速路径）
   try {
     const log = getErrorLog();
     log.unshift(error);
-    // 保留最新 MAX_ERROR_ENTRIES 条
     const trimmed = log.slice(0, MAX_ERROR_ENTRIES);
     localStorage.setItem(ERROR_LOG_KEY, JSON.stringify(trimmed));
   } catch {
-    // localStorage 已满，清除旧日志重试
     try {
       localStorage.setItem(ERROR_LOG_KEY, JSON.stringify([error]));
     } catch {
-      // 完全无法写入，静默失败
+      /* ignore */
     }
   }
-  // 2) RF-002: 异步写入 IndexedDB（持久化路径，fire-and-forget）
-  idbPut("errorLog", error).catch(() => {/* 静默降级 */});
+  idbPut("errorLog", error).catch(() => {/* ignore */});
 }
 
-/** 清除错误日志 */
 export function clearErrorLog(): void {
   localStorage.removeItem(ERROR_LOG_KEY);
-  // RF-002: 同步清除 IndexedDB errorLog store
-  idbClear("errorLog").catch(() => {/* 静默降级 */});
+  idbClear("errorLog").catch(() => {/* ignore */});
 }
 
-/**
- * RF-002: 从 IndexedDB 异步读取完整错误日志
- * 用于导出 / 审计等需要完整数据的场景
- */
 export async function getFullErrorLog(): Promise<AppError[]> {
   try {
     const entries = await idbGetAll<AppError>("errorLog");
-    // 按时间倒序
     return entries.sort((a, b) => b.timestamp - a.timestamp);
   } catch {
-    // IndexedDB 不可用，降级到 localStorage
     return getErrorLog();
   }
 }
 
-/** 获取错误统计 */
 export function getErrorStats(): ErrorStats {
   const log = getErrorLog();
   const byCategory: Record<ErrorCategory, number> = {
@@ -118,11 +144,6 @@ export function getErrorStats(): ErrorStats {
   };
 }
 
-// ============================================================
-// 错误分类与创建
-// ============================================================
-
-/** 自动分类错误 */
 function categorizeError(error: unknown): { category: ErrorCategory; severity: ErrorSeverity } {
   if (error instanceof TypeError) {
     return { category: "RUNTIME", severity: "error" };
@@ -144,7 +165,6 @@ function categorizeError(error: unknown): { category: ErrorCategory; severity: E
   return { category: "UNKNOWN", severity: "error" };
 }
 
-/** 提取错误信息 */
 function extractMessage(error: unknown): string {
   if (error instanceof Error) {return error.message;}
   if (typeof error === "string") {return error;}
@@ -154,50 +174,123 @@ function extractMessage(error: unknown): string {
   return "未知错误";
 }
 
-/** 提取堆栈信息 */
 function extractStack(error: unknown): string | undefined {
   if (error instanceof Error) {return error.stack;}
   return undefined;
 }
 
-// ============================================================
-// 核心 API
-// ============================================================
+export function detectErrorCode(error: unknown, category?: ErrorCategory): ErrorCode {
+  const message = extractMessage(error).toLowerCase();
+  const categoryStr = category || categorizeError(error).category;
 
-/**
- * 记录错误（核心函数）
- * @param error - 原始错误对象或错误消息
- * @param options - 附加选项
- * @returns 创建的 AppError 对象
- */
+  if (categoryStr === "NETWORK") {
+    if (message.includes("timeout") || message.includes("超时")) {
+      return "NETWORK_TIMEOUT";
+    }
+    if (message.includes("offline") || message.includes("网络") || message.includes("fetch")) {
+      return "NETWORK_OFFLINE";
+    }
+    if (message.includes("cors") || message.includes("跨域")) {
+      return "NETWORK_CORS";
+    }
+  }
+
+  if (categoryStr === "AUTH") {
+    if (message.includes("expired") || message.includes("过期")) {
+      return "AUTH_EXPIRED";
+    }
+    if (message.includes("invalid") || message.includes("无效") || message.includes("invalid")) {
+      return "AUTH_INVALID";
+    }
+    if (message.includes("forbidden") || message.includes("禁止") || message.includes("403")) {
+      return "AUTH_FORBIDDEN";
+    }
+  }
+
+  if (categoryStr === "VALIDATION") {
+    if (message.includes("url") || message.includes("地址")) {
+      return "VALIDATION_INVALID_URL";
+    }
+    if (message.includes("number") || message.includes("数字")) {
+      return "VALIDATION_INVALID_NUMBER";
+    }
+    if (message.includes("required") || message.includes("必填")) {
+      return "VALIDATION_REQUIRED_FIELD";
+    }
+    if (message.includes("range") || message.includes("范围")) {
+      return "VALIDATION_OUT_OF_RANGE";
+    }
+  }
+
+  if (categoryStr === "PARSE") {
+    if (message.includes("json")) {
+      return "PARSE_JSON_ERROR";
+    }
+    if (message.includes("xml")) {
+      return "PARSE_XML_ERROR";
+    }
+  }
+
+  if (categoryStr === "STORAGE") {
+    if (message.includes("quota") || message.includes("存储空间")) {
+      return "STORAGE_QUOTA_EXCEEDED";
+    }
+    if (message.includes("storage") || message.includes("存储")) {
+      return "STORAGE_NOT_AVAILABLE";
+    }
+  }
+
+  if (categoryStr === "RUNTIME") {
+    if (message.includes("type") || message.includes("类型")) {
+      return "RUNTIME_TYPE_ERROR";
+    }
+    if (message.includes("reference") || message.includes("引用")) {
+      return "RUNTIME_REFERENCE_ERROR";
+    }
+  }
+
+  return "UNKNOWN";
+}
+
+export interface CaptureErrorOptions {
+  category?: ErrorCategory;
+  severity?: ErrorSeverity;
+  source?: string;
+  userAction?: string;
+  silent?: boolean;
+  validationDetails?: ValidationErrorDetail[];
+  context?: Record<string, unknown>;
+  detail?: string;
+}
+
 export function captureError(
   error: unknown,
-  options: {
-    category?: ErrorCategory;
-    severity?: ErrorSeverity;
-    source?: string;
-    userAction?: string;
-    silent?: boolean; // 静默模式（不打印到控制台）
-  } = {}
+  options: CaptureErrorOptions = {}
 ): AppError {
   const auto = categorizeError(error);
+  const category = options.category || auto.category;
+  const errorCode = detectErrorCode(error, category);
+
+  const recoverySuggestion = options.userAction || ERROR_RECOVERY_SUGGESTIONS[errorCode];
 
   const appError: AppError = {
     id: generateErrorId(),
-    category: options.category || auto.category,
+    category,
     severity: options.severity || auto.severity,
     message: extractMessage(error),
     stack: extractStack(error),
     source: options.source,
-    userAction: options.userAction,
+    userAction: recoverySuggestion,
     timestamp: Date.now(),
     resolved: false,
   };
 
-  // 保存到本地日志
+  if (options.detail) {
+    appError.detail = options.detail;
+  }
+
   saveErrorToLog(appError);
 
-  // 控制台输出
   if (!options.silent) {
     const prefix = `[YYC³ ${appError.category}]`;
     switch (appError.severity) {
@@ -216,24 +309,35 @@ export function captureError(
   return appError;
 }
 
-/**
- * 网络错误处理
- */
+export function captureValidationError(
+  validationErrors: ValidationErrorDetail[],
+  source?: string
+): AppError {
+  const message = validationErrors
+    .map((e) => `[${e.field}] ${e.message}`)
+    .join("; ");
+
+  return captureError(new Error(message), {
+    category: "VALIDATION",
+    severity: "warning",
+    source,
+    userAction: "请检查表单填写是否正确",
+  });
+}
+
 export function captureNetworkError(
   error: unknown,
   endpoint: string
 ): AppError {
+  const errorCode = detectErrorCode(error, "NETWORK");
   return captureError(error, {
     category: "NETWORK",
     severity: "warning",
     source: endpoint,
-    userAction: "检查网络连或稍后重试",
+    userAction: ERROR_RECOVERY_SUGGESTIONS[errorCode],
   });
 }
 
-/**
- * WebSocket 错误处理
- */
 export function captureWSError(
   error: unknown,
   _detail?: string
@@ -246,21 +350,16 @@ export function captureWSError(
   });
 }
 
-/**
- * 认证错误处理
- */
 export function captureAuthError(error: unknown): AppError {
+  const errorCode = detectErrorCode(error, "AUTH");
   return captureError(error, {
     category: "AUTH",
     severity: "error",
     source: "AuthContext",
-    userAction: "请重新登录",
+    userAction: ERROR_RECOVERY_SUGGESTIONS[errorCode],
   });
 }
 
-/**
- * 解析错误处理
- */
 export function captureParseError(
   error: unknown,
   context: string
@@ -273,10 +372,6 @@ export function captureParseError(
   });
 }
 
-/**
- * 异步操作安全包装器
- * 包装 async 函数，自动捕获错误并返回 [data, error] 元组
- */
 export async function trySafe<T>(
   fn: () => Promise<T>,
   source?: string
@@ -290,9 +385,6 @@ export async function trySafe<T>(
   }
 }
 
-/**
- * 同步操作安全包装器
- */
 export function trySafeSync<T>(
   fn: () => T,
   source?: string
@@ -306,27 +398,50 @@ export function trySafeSync<T>(
   }
 }
 
-// ============================================================
-// 全局监听器
-// ============================================================
+export function formatErrorForUser(error: AppError): string {
+  let formatted = `⚠️ ${error.message}`;
+
+  if (error.userAction) {
+    formatted += `\n💡 建议: ${error.userAction}`;
+  }
+
+  if (error.source) {
+    formatted += `\n📍 位置: ${error.source}`;
+  }
+
+  return formatted;
+}
+
+export function getErrorIcon(severity: ErrorSeverity): string {
+  switch (severity) {
+    case "critical": return "🚨";
+    case "error": return "❌";
+    case "warning": return "⚠️";
+    case "info": return "ℹ️";
+    default: return "❓";
+  }
+}
+
+export function getCategoryLabel(category: ErrorCategory): string {
+  const labels: Record<ErrorCategory, string> = {
+    NETWORK: "网络错误",
+    PARSE: "解析错误",
+    AUTH: "认证错误",
+    RUNTIME: "运行时错误",
+    VALIDATION: "验证错误",
+    STORAGE: "存储错误",
+    UNKNOWN: "未知错误",
+  };
+  return labels[category] || category;
+}
 
 let globalListenerInstalled = false;
 
-/**
- * 安装全局错误监听器
- * - window.onerror: 同步运行时错误
- * - window.onunhandledrejection: 未捕获的 Promise 错误
- *
- * RF-003: 使用 isFigmaPlatformError() 统一判定，
- *         App.tsx capture-phase 已做第一层拦截，此处为防御性二次检查
- */
 export function installGlobalErrorListeners(): void {
   if (globalListenerInstalled) {return;}
   globalListenerInstalled = true;
 
-  // 全局运行时错误
   window.addEventListener("error", (event) => {
-    // RF-003: 统一使用 figma-error-filter 判定
     const errName = event.error?.name || event.error?.constructor?.name || "";
     const errStack = event.error?.stack || "";
     if (isFigmaPlatformError(errName, String(event.message || ""), event.filename || "", errStack)) {
@@ -340,9 +455,7 @@ export function installGlobalErrorListeners(): void {
     });
   });
 
-  // 未捕获的 Promise rejection
   window.addEventListener("unhandledrejection", (event) => {
-    // RF-003: 统一使用 figma-error-filter 判定
     const reason = event.reason;
     const name = reason?.name || reason?.constructor?.name || "";
     const msg = String(reason?.message || reason || "");
@@ -361,3 +474,5 @@ export function installGlobalErrorListeners(): void {
 
   console.info("[YYC³] 全局错误监听器已安装");
 }
+
+export { ERROR_RECOVERY_SUGGESTIONS as errorSuggestions };

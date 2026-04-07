@@ -419,6 +419,27 @@ describe("db-queries", () => {
       expect(data.some((m: Model) => m.name === "Persistent Model")).toBe(true);
     });
 
+    it("should handle localStorage write failure gracefully", () => {
+      const originalSetItem = localStorage.setItem;
+      localStorage.setItem = vi.fn(() => {
+        throw new Error("Storage quota exceeded");
+      });
+
+      const newModel = {
+        name: "Failed Model",
+        provider: "Test",
+        tier: "primary" as const,
+        avg_latency_ms: 100,
+        throughput: 1000,
+        created_at: new Date().toISOString(),
+      };
+
+      const result = dbQueries.addDbModel(newModel);
+      expect(result).toBeDefined();
+
+      localStorage.setItem = originalSetItem;
+    });
+
     it("should persist agents to localStorage", () => {
       const newAgent = {
         name: "Persistent Agent",

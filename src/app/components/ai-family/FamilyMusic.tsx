@@ -62,7 +62,7 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function formatProgress(currentTime: number, duration: number): string {
+function formatProgress(currentTime: number, _duration: number): string {
   const m = Math.floor(currentTime / 60);
   const s = Math.floor(currentTime % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
@@ -108,10 +108,10 @@ export function FamilyMusic() {
     currentTime,
     duration,
     volume,
-    frequencyData,
+    frequencyData: _frequencyData,
     audioEnergy,
-    bassEnergy,
-    audioMode,
+    bassEnergy: _bassEnergy,
+    audioMode: _audioMode,
     play,
     pause,
     togglePlayPause,
@@ -146,7 +146,7 @@ export function FamilyMusic() {
     trackEmotionHistory: true,
   });
 
-  const currentEmotionType: EmotionType = useMemo(() => {
+  const _currentEmotionType: EmotionType = useMemo(() => {
     if (!currentTrackData) {return "neutral";}
     const emotionMap: Record<string, EmotionType> = {
       happy: "happy",

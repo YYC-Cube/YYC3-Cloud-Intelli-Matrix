@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { usePageConfig } from "../hooks/usePageConfig";
-import { getAllPages, type PageConfig } from "../config";
+import type { PageConfig } from "../config";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
@@ -21,16 +21,14 @@ import { Badge } from "./ui/badge";
 import { RotateCcw, Save, Eye, Code } from "lucide-react";
 
 interface PageConfigEditorProps {
-  pageId?: string;
   onSave?: (config: PageConfig) => void;
   onReset?: () => void;
 }
 
-export function PageConfigEditor({ pageId, onSave, onReset }: PageConfigEditorProps) {
+export function PageConfigEditor({ onSave, onReset }: PageConfigEditorProps) {
   const { config, updateConfig, resetConfig, isEditable, storageKeys } = usePageConfig();
   const [localConfig, setLocalConfig] = useState<Partial<PageConfig>>({});
   const [hasChanges, setHasChanges] = useState(false);
-  const [allPages] = useState(() => getAllPages());
 
   useEffect(() => {
     if (config) {

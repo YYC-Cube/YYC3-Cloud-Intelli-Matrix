@@ -66,7 +66,7 @@ export function EmotionVisualizer({
     currentEmotion,
     emotionHistory,
     musicMapping,
-    suggestAction,
+    suggestAction: _suggestAction,
   } = useEmotionMusic({
     autoDetect: true,
     trackEmotionHistory: true,

@@ -62,6 +62,17 @@ const DEFAULT_CONFIG: FamilyUIConfig = {
 
 const CONFIG_KEY = "yyc3-family-ui-config";
 
+const ALL_STORAGE_KEYS = [
+  "yyc3-family-comm-messages",
+  "yyc3-family-voice-profiles",
+  "yyc3-family-voice-conversations",
+  "yyc3-family-model-assignments",
+  "yyc3-family-provider-keys",
+  "yyc3-family-diagnostics",
+  "yyc3-family-ui-config",
+  "yyc3-family-activities",
+];
+
 function loadConfig(): FamilyUIConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
@@ -374,17 +385,6 @@ export function FamilyUISettings() {
 
   // ═══ 数据管理 ═══
 
-  const ALL_STORAGE_KEYS = [
-    "yyc3-family-comm-messages",
-    "yyc3-family-voice-profiles",
-    "yyc3-family-voice-conversations",
-    "yyc3-family-model-assignments",
-    "yyc3-family-provider-keys",
-    "yyc3-family-diagnostics",
-    "yyc3-family-ui-config",
-    "yyc3-family-activities",
-  ];
-
   const storageStats = useMemo(() => {
     let totalSize = 0;
     const items: { key: string; size: number }[] = [];
@@ -399,7 +399,7 @@ export function FamilyUISettings() {
       } catch { /* noop */ }
     }
     return { totalSize, items };
-  }, [config, ALL_STORAGE_KEYS]); // re-calc on config change as proxy for storage change
+  }, []);
 
   const handleExportAll = useCallback(() => {
     const allData: Record<string, unknown> = {};

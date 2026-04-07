@@ -211,7 +211,6 @@ export function VariableCenter() {
 
   const renderVariableInput = (def: VariableDefinition) => {
     const currentValue = values[def.key]?.value ?? def.defaultValue;
-    const isPassword = def.type === "password";
     const showPassword = showPasswords[def.key];
     const errors = validationErrors[def.key] || [];
 
@@ -419,7 +418,7 @@ export function VariableCenter() {
                 <CardContent>
                   <div className="space-y-4">
                     {groupVars.map((def) => {
-                      const currentValue = values[def.key]?.value ?? def.defaultValue;
+                      const _currentValue = values[def.key]?.value ?? def.defaultValue;
                       const errors = validationErrors[def.key] || [];
                       const hasError = errors.length > 0;
 

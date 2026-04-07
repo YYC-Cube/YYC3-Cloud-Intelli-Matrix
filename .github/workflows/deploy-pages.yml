@@ -17,6 +17,7 @@ concurrency:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
+  CUSTOM_DOMAIN: cp.yyccube.xin
 
 jobs:
   build:
@@ -43,7 +44,10 @@ jobs:
       - name: Build project
         run: pnpm build
         env:
-          VITE_BASE_URL: /YYC3-Cloud-Intelli-Matrix
+          VITE_BASE_URL: /
+
+      - name: Add custom domain CNAME
+        run: echo "${{ env.CUSTOM_DOMAIN }}" > ./dist/CNAME
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -54,7 +58,7 @@ jobs:
     name: Deploy to GitHub Pages
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://${{ env.CUSTOM_DOMAIN }}
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -72,7 +76,7 @@ jobs:
         if: needs.deploy.result == 'success'
         run: |
           echo "✅ Successfully deployed to GitHub Pages!"
-          echo "URL: https://yyc-cube.github.io/YYC3-Cloud-Intelli-Matrix/"
+          echo "URL: https://${{ env.CUSTOM_DOMAIN }}"
           echo "Repository: ${{ github.repository }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"

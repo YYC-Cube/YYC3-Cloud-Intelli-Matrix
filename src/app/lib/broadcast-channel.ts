@@ -32,7 +32,10 @@ export type SyncDomain =
   | "db-conn-slice"
   | "follow-up-slice"
   | "user-mgmt-slice"
-  | "network-slice";
+  | "network-slice"
+  | "agent-state"
+  | "mcp-event"
+  | "inference";
 
 /** 统一同步消息格式 */
 export interface UnifiedSyncMessage {
@@ -132,4 +135,61 @@ export function closeAllChannels(): void {
     try { ch.close(); } catch { /* ignore */ }
   });
   channelMap.clear();
+}
+
+// ============================================================
+// Agent 状态同步 (Phase 2D)
+// ============================================================
+
+/** Agent 状态同步消息 */
+export interface AgentStateSyncMessage {
+  domain: "agent-state";
+  agentId: string;
+  state: string;
+  currentTaskId: string | null;
+  timestamp: number;
+  source: string;
+}
+
+/** 广播 Agent 状态变更 */
+export function broadcastAgentState(
+  agentId: string,
+  state: string,
+  currentTaskId: string | null = null,
+): void {
+  const msg: AgentStateSyncMessage = {
+    domain: "agent-state",
+    agentId,
+    state,
+    currentTaskId,
+    timestamp: Date.now(),
+    source: `tab-${typeof window !== "undefined" ? Date.now() % 10000 : "ssr"}`,
+  };
+  postToChannel(UNIFIED_SYNC_CHANNEL, msg);
+}
+
+/** 监听远端 Agent 状态变更 */
+export function onAgentStateChange(
+  handler: (msg: AgentStateSyncMessage) => void,
+): () => void {
+  return onUnifiedSync((msg) => {
+    if (msg.domain === "agent-state") {
+      handler(msg as unknown as AgentStateSyncMessage);
+    }
+  });
+}
+
+/** 广播推理状态 */
+export function broadcastInferenceState(
+  backend: string,
+  model: string,
+  status: string,
+): void {
+  postToChannel(UNIFIED_SYNC_CHANNEL, {
+    domain: "inference",
+    backend,
+    model,
+    status,
+    timestamp: Date.now(),
+  });
 }

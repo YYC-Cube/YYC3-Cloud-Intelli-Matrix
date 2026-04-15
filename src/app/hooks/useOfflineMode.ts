@@ -1,9 +1,12 @@
 /**
- * useOfflineMode Hook
- * ===================
- * 离线模式检测 & 数据同步
- *
- * 修复: dashboard_state 原本从未写入 → 现在定期保存仪表盘快照
+ * @file: useOfflineMode.ts
+ * @description: useOfflineMode Hook
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";

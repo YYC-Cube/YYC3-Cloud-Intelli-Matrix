@@ -1,7 +1,12 @@
 /**
- * types.ts
- * =========
- * 数据库连接层类型定义
+ * @file: types.ts
+ * @description: types.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 export type DatabaseType = "postgresql" | "mysql" | "mongodb";

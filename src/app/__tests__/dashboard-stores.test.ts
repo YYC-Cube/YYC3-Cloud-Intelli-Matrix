@@ -1,13 +1,12 @@
 /**
- * dashboard-stores.test.ts
- * =========================
- * Dashboard 7 类数据存储测试
- *
- * 覆盖:
- * - nodeStore / modelPerfStore / modelDistStore
- * - recentOpsStore / radarStore / logStore / dbConnectionStore
- * - 各 store 默认数据完整性
- * - CRUD 操作验证
+ * @file: dashboard-stores.test.ts
+ * @description: dashboard-stores.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

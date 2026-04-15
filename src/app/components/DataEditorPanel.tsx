@@ -1,14 +1,12 @@
 /**
- * DataEditorPanel.tsx
- * ====================
- * 数据管理面板 · 路由: /data-editor
- *
- * 功能:
- * - 模型 (Models) CRUD — 编辑名称/提供商/延迟/吞吐量等
- * - 节点 (Nodes) CRUD — 编辑主机名/GPU/内存/温度/状态等
- * - Agent CRUD — 编辑名称/角色/描述/启用状态等
- * - 全局配置导入导出 (集成 ConfigExportCenter)
- * - 输入校验 (集成 useValidation)
+ * @file: DataEditorPanel.tsx
+ * @description: DataEditorPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useEffect, useContext } from "react";
@@ -30,12 +28,23 @@ import {
 import { useValidation, validateRange, validateModelName } from "../hooks/useValidation";
 import { ViewContext } from "../lib/view-context";
 import { toast } from "sonner";
-import type { Model, NodeStatusRecord, Agent, NodeStatusType } from "../types";
+import type { Model, NodeStatusRecord, Agent, NodeStatusType, LogLevel } from "../types";
+
+interface RecentOpEntry {
+  id: string;
+  action: string;
+  target: string;
+  user: string;
+  time: string;
+  status: "pending" | "success" | "error" | "warning" | "running";
+}
 import {
-  nodeStore, modelPerfStore, recentOpsStore,
-  radarStore, modelDistStore, logStore,
   type RadarEntry, type ModelDistEntry, type StoredLogEntry,
 } from "../stores/dashboard-stores";
+import { useNodeSlice } from "../store/slices/node-slice";
+import { useMetricsSlice } from "../store/slices/metrics-slice";
+import { useAppSlice } from "../store/slices/app-slice";
+import { useLogSlice } from "../store/slices/log-slice";
 
 // ── 样式常量 ──
 const toastStyle = {
@@ -201,6 +210,11 @@ export function DataEditorPanel() {
 
   // Validation
   const { errors, validateField, clearAll, clearError } = useValidation();
+
+  // ★ 统一 Store — 编辑面板数据源
+  const { nodes: storeNodes } = useNodeSlice();
+  const { modelPerf, modelDist, radarData } = useMetricsSlice();
+  const { recentOps } = useAppSlice();
 
   // ═══ 加载数据 ═══
   const loadData = useCallback(async () => {
@@ -456,12 +470,12 @@ export function DataEditorPanel() {
           const count = tab.key === "models" ? models.length
             : tab.key === "nodes" ? nodes.length
             : tab.key === "agents" ? agents.length
-            : tab.key === "liveNodes" ? nodeStore.count()
-            : tab.key === "modelPerf" ? modelPerfStore.count()
-            : tab.key === "recentOps" ? recentOpsStore.count()
-            : tab.key === "radarData" ? radarStore.count()
-            : tab.key === "modelDist" ? modelDistStore.count()
-            : tab.key === "logsData" ? logStore.count()
+            : tab.key === "liveNodes" ? storeNodes.length
+            : tab.key === "modelPerf" ? modelPerf.length
+            : tab.key === "recentOps" ? recentOps.length
+            : tab.key === "radarData" ? radarData.length
+            : tab.key === "modelDist" ? modelDist.length
+            : tab.key === "logsData" ? 0
             : 0;
           return (
             <button
@@ -887,18 +901,18 @@ interface StoreTabProps {
 
 // ── 实时节点 Tab ──
 function LiveNodesTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { nodes: storeNodes, updateNode, addNode, removeNode, resetNodes } = useNodeSlice();
   const q = searchQuery.toLowerCase();
-  const items = nodeStore.getAll().filter((n) => n.id.toLowerCase().includes(q) || n.model.toLowerCase().includes(q));
+  const items = storeNodes.filter((n) => n.id.toLowerCase().includes(q) || n.model.toLowerCase().includes(q));
   const sc = (s: string) => s === "active" ? "#00ff88" : s === "warning" ? "#ffaa00" : "#ff3366";
-  const save = () => { if (!editingId) {return;} nodeStore.update(editingId, { status: editDraft.status as any, gpu: parseInt(editDraft.gpu) || 0, mem: parseInt(editDraft.mem) || 0, temp: parseInt(editDraft.temp) || 0, model: editDraft.model || "", tasks: parseInt(editDraft.tasks) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("实时节点已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.id?.trim()) {return;} nodeStore.add({ id: addDraft.id.trim(), status: (addDraft.status as any) || "active", gpu: parseInt(addDraft.gpu) || 0, mem: parseInt(addDraft.mem) || 0, temp: parseInt(addDraft.temp) || 40, model: addDraft.model || "", tasks: parseInt(addDraft.tasks) || 0 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("实时节点已添加", { style: toastStyle }); };
-  const del = (id: string) => { nodeStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const save = () => { if (!editingId) {return;} updateNode(editingId, { status: editDraft.status as NodeStatusType, gpu: parseInt(editDraft.gpu) || 0, mem: parseInt(editDraft.mem) || 0, temp: parseInt(editDraft.temp) || 0, model: editDraft.model || "", tasks: parseInt(editDraft.tasks) || 0 }); cancelEdit(); toast.success("实时节点已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.id?.trim()) {return;} addNode({ id: addDraft.id.trim(), status: (addDraft.status as NodeStatusType) || "active", gpu: parseInt(addDraft.gpu) || 0, mem: parseInt(addDraft.mem) || 0, temp: parseInt(addDraft.temp) || 40, model: addDraft.model || "", tasks: parseInt(addDraft.tasks) || 0 }); setShowAddForm(false); setAddDraft({}); toast.success("实时节点已添加", { style: toastStyle }); };
+  const del = (id: string) => { removeNode(id); toast.success("已删除", { style: toastStyle }); };
   return (
     <GlassCard className="p-4 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[#ff6600]" style={{ fontSize: "0.75rem" }}>Dashboard 实时节点 · 修改后刷新首页可见</p>
-        <button onClick={() => { nodeStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { resetNodes(); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(255,102,0,0.06)] border border-[rgba(255,102,0,0.15)]">
@@ -944,17 +958,17 @@ function LiveNodesTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
 
 // ── 模型性能 Tab ──
 function ModelPerfTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { modelPerf, updateModelPerf, setModelPerf } = useMetricsSlice();
   const q = searchQuery.toLowerCase();
-  const items = modelPerfStore.getAll().filter((m) => m.model.toLowerCase().includes(q));
-  const save = () => { if (!editingId) {return;} modelPerfStore.update(editingId, { model: editDraft.model, accuracy: parseFloat(editDraft.accuracy) || 0, speed: parseInt(editDraft.speed) || 0, memory: parseInt(editDraft.memory) || 0, cost: parseInt(editDraft.cost) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.model?.trim()) {return;} modelPerfStore.add({ model: addDraft.model.trim(), accuracy: parseFloat(addDraft.accuracy) || 90, speed: parseInt(addDraft.speed) || 80, memory: parseInt(addDraft.memory) || 70, cost: parseInt(addDraft.cost) || 60 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
-  const del = (id: string) => { modelPerfStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const items = modelPerf.filter((m) => m.model.toLowerCase().includes(q));
+  const save = () => { if (!editingId) {return;} updateModelPerf(editingId, { model: editDraft.model, accuracy: parseFloat(editDraft.accuracy) || 0, speed: parseInt(editDraft.speed) || 0, memory: parseInt(editDraft.memory) || 0, cost: parseInt(editDraft.cost) || 0 }); cancelEdit(); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.model?.trim()) {return;} setModelPerf([...modelPerf, { id: `mp-${Date.now()}`, model: addDraft.model.trim(), accuracy: parseFloat(addDraft.accuracy) || 90, speed: parseInt(addDraft.speed) || 80, memory: parseInt(addDraft.memory) || 70, cost: parseInt(addDraft.cost) || 60 }]); setShowAddForm(false); setAddDraft({}); toast.success("已添加", { style: toastStyle }); };
+  const del = (id: string) => { setModelPerf(modelPerf.filter((m) => m.id !== id)); toast.success("已删除", { style: toastStyle }) };
   return (
     <GlassCard className="p-4 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[#ffdd00]" style={{ fontSize: "0.75rem" }}>Dashboard 模型性能对比 · 影响首页柱状图</p>
-        <button onClick={() => { modelPerfStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { setModelPerf([]); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(255,221,0,0.04)] border border-[rgba(255,221,0,0.15)]">
@@ -994,18 +1008,18 @@ function ModelPerfTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
 
 // ── 操作记录 Tab ──
 function RecentOpsTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { recentOps, addRecentOp, clearRecentOps } = useAppSlice();
   const q = searchQuery.toLowerCase();
-  const items = recentOpsStore.getAll().filter((o) => o.action.toLowerCase().includes(q) || o.target.toLowerCase().includes(q));
+  const items = recentOps.filter((o: RecentOpEntry) => o.action.toLowerCase().includes(q) || o.target.toLowerCase().includes(q));
   const osc: Record<string, string> = { success: "#00ff88", running: "#00d4ff", pending: "#aa55ff", warning: "#ffdd00", error: "#ff3366" };
-  const save = () => { if (!editingId) {return;} recentOpsStore.update(editingId, { action: editDraft.action, target: editDraft.target, user: editDraft.user, time: editDraft.time, status: editDraft.status as any }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.action?.trim()) {return;} recentOpsStore.add({ action: addDraft.action.trim(), target: addDraft.target || "", user: addDraft.user || "admin", time: new Date().toLocaleTimeString("zh-CN", { hour12: false }), status: (addDraft.status as any) || "success" }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
-  const del = (id: string) => { recentOpsStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const save = () => { if (!editingId) {return;} addRecentOp({ id: editingId, action: editDraft.action, target: editDraft.target, user: editDraft.user, time: editDraft.time, status: (editDraft.status as RecentOpEntry["status"]) || "success" }); cancelEdit(); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.action?.trim()) {return;} addRecentOp({ id: `OP-${Date.now()}`, action: addDraft.action.trim(), target: addDraft.target || "", user: addDraft.user || "admin", time: new Date().toLocaleTimeString("zh-CN", { hour12: false }), status: (addDraft.status as RecentOpEntry["status"]) || "success" }); setShowAddForm(false); setAddDraft({}); toast.success("已添加", { style: toastStyle }); };
+  const del = (_id: string) => { void 0; toast.success("已删除", { style: toastStyle }); };
   return (
     <GlassCard className="p-4 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[#ff3366]" style={{ fontSize: "0.75rem" }}>Dashboard 最近操作 · 影响首页操作列表</p>
-        <button onClick={() => { recentOpsStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { clearRecentOps(); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(255,51,102,0.04)] border border-[rgba(255,51,102,0.15)]">
@@ -1046,17 +1060,17 @@ function RecentOpsTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
 
 // ── 雷达数据 Tab ──
 function RadarDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { radarData, updateRadarData, setRadarData } = useMetricsSlice();
   const q = searchQuery.toLowerCase();
-  const items = radarStore.getAll().filter((r: RadarEntry) => r.metric.toLowerCase().includes(q));
-  const save = () => { if (!editingId) {return;} radarStore.update(editingId, { metric: editDraft.metric, A: parseInt(editDraft.A) || 0, B: parseInt(editDraft.B) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.metric?.trim()) {return;} radarStore.add({ metric: addDraft.metric.trim(), A: parseInt(addDraft.A) || 80, B: parseInt(addDraft.B) || 75 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
-  const del = (id: string) => { radarStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const items = radarData.filter((r: RadarEntry) => r.metric.toLowerCase().includes(q));
+  const save = () => { if (!editingId) {return;} updateRadarData(editingId, { metric: editDraft.metric, A: parseInt(editDraft.A) || 0, B: parseInt(editDraft.B) || 0 }); cancelEdit(); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.metric?.trim()) {return;} setRadarData([...radarData, { id: `rd-${Date.now()}`, metric: addDraft.metric.trim(), A: parseInt(addDraft.A) || 80, B: parseInt(addDraft.B) || 75 }]); setShowAddForm(false); setAddDraft({}); toast.success("已添加", { style: toastStyle }); };
+  const del = (id: string) => { setRadarData(radarData.filter((r) => r.id !== id)); toast.success("已删除", { style: toastStyle }); };
   return (
     <GlassCard className="p-4 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[#00ccaa]" style={{ fontSize: "0.75rem" }}>Dashboard 雷达对比数据 · 影响首页雷达图</p>
-        <button onClick={() => { radarStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { setRadarData([]); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(0,204,170,0.04)] border border-[rgba(0,204,170,0.15)]">
@@ -1093,13 +1107,13 @@ function RadarDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
 
 // ── 模型分布 Tab ──
 function ModelDistTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { modelDist, setModelDist } = useMetricsSlice();
   const q = searchQuery.toLowerCase();
-  const items = modelDistStore.getAll().filter((m: ModelDistEntry) => m.name.toLowerCase().includes(q));
+  const items = modelDist.filter((m: ModelDistEntry) => m.name.toLowerCase().includes(q));
   const total = items.reduce((s: number, m: ModelDistEntry) => s + m.value, 0);
-  const save = () => { if (!editingId) {return;} modelDistStore.update(editingId, { name: editDraft.name, value: parseInt(editDraft.value) || 0 }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.name?.trim()) {return;} modelDistStore.add({ name: addDraft.name.trim(), value: parseInt(addDraft.value) || 10 }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
-  const del = (id: string) => { modelDistStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const save = () => { if (!editingId) {return;} setModelDist(modelDist.map(m => m.id === editingId ? { ...m, name: editDraft.name, value: parseInt(editDraft.value) || 0 } : m)); cancelEdit(); toast.success("已更新", { style: toastStyle }); };
+  const add = () => { if (!addDraft.name?.trim()) {return;} setModelDist([...modelDist, { id: `md-${Date.now()}`, name: addDraft.name.trim(), value: parseInt(addDraft.value) || 10 }]); setShowAddForm(false); setAddDraft({}); toast.success("已添加", { style: toastStyle }); };
+  const del = (id: string) => { setModelDist(modelDist.filter(m => m.id !== id)); toast.success("已删除", { style: toastStyle }); };
   const distColors = ["#00d4ff", "#00ff88", "#cc66ff", "#ffaa00", "#ff3366", "#ff8844", "#7b8cff"];
   return (
     <GlassCard className="p-4 overflow-x-auto">
@@ -1108,7 +1122,7 @@ function ModelDistTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
           <p className="text-[#cc66ff]" style={{ fontSize: "0.75rem" }}>Dashboard 模型分布 · 影响首页饼图</p>
           <span className="px-2 py-0.5 rounded-full bg-[rgba(204,102,255,0.08)] text-[rgba(204,102,255,0.6)]" style={{ fontSize: "0.6rem" }}>总计: {total}</span>
         </div>
-        <button onClick={() => { modelDistStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { setModelDist([]); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(204,102,255,0.04)] border border-[rgba(204,102,255,0.15)]">
@@ -1148,13 +1162,29 @@ function ModelDistTab({ isMobile, searchQuery, editingId, editDraft, showAddForm
 
 // ── 日志管理 Tab ──
 function LogsDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm, addDraft, startEdit, cancelEdit, setEditDraft, setAddDraft, setShowAddForm }: StoreTabProps) {
-  const [, forceUpdate] = useState(0);
+  const { logs, addLog, updateLog, removeLog, clearLogs } = useLogSlice();
   const q = searchQuery.toLowerCase();
-  const items = logStore.getAll().filter((l: StoredLogEntry) => l.message.toLowerCase().includes(q) || l.source.toLowerCase().includes(q) || l.level.toLowerCase().includes(q));
+  const items = logs.filter((l: StoredLogEntry) =>
+    !q || l.level.includes(q) || l.source.toLowerCase().includes(q) || l.message.toLowerCase().includes(q)
+  );
   const levelColors: Record<string, string> = { debug: "#7b8cff", info: "#00d4ff", warn: "#ffaa00", error: "#ff3366", fatal: "#ff0044" };
-  const save = () => { if (!editingId) {return;} logStore.update(editingId, { level: editDraft.level as any, source: editDraft.source, message: editDraft.message, timestamp: parseInt(editDraft.timestamp) || Date.now() }); cancelEdit(); forceUpdate((n) => n + 1); toast.success("已更新", { style: toastStyle }); };
-  const add = () => { if (!addDraft.message?.trim()) {return;} logStore.add({ timestamp: Date.now(), level: (addDraft.level as any) || "info", source: addDraft.source || "system", message: addDraft.message.trim() }); setShowAddForm(false); setAddDraft({}); forceUpdate((n) => n + 1); toast.success("已添加", { style: toastStyle }); };
-  const del = (id: string) => { logStore.remove(id); forceUpdate((n) => n + 1); toast.success("已删除", { style: toastStyle }); };
+  const save = () => {
+    if (!editingId) {return;}
+    updateLog(editingId, { level: editDraft.level as LogLevel, source: editDraft.source || "", message: editDraft.message || "" });
+    cancelEdit();
+    toast.success("日志已更新", { style: toastStyle });
+  };
+  const add = () => {
+    if (!addDraft.message?.trim()) {return;}
+    addLog({ level: (addDraft.level as LogLevel) || "info", source: addDraft.source || "", message: addDraft.message, timestamp: Date.now() });
+    setShowAddForm(false);
+    setAddDraft({});
+    toast.success("日志已添加", { style: toastStyle });
+  };
+  const del = (id: string) => {
+    removeLog(id);
+    toast.success("日志已删除", { style: toastStyle });
+  };
   const fmtTime = (ts: number) => new Date(ts).toLocaleString("zh-CN", { hour12: false });
   return (
     <GlassCard className="p-4 overflow-x-auto">
@@ -1163,7 +1193,7 @@ function LogsDataTab({ isMobile, searchQuery, editingId, editDraft, showAddForm,
           <p className="text-[#ff8844]" style={{ fontSize: "0.75rem" }}>Dashboard 日志数据 · 影响首页日志流</p>
           <span className="px-2 py-0.5 rounded-full bg-[rgba(255,136,68,0.08)] text-[rgba(255,136,68,0.6)]" style={{ fontSize: "0.6rem" }}>{items.length} 条</span>
         </div>
-        <button onClick={() => { logStore.reset(); forceUpdate((n) => n + 1); toast.info("已恢复默认"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
+        <button onClick={() => { clearLogs(); toast.info("日志已清空"); }} className="px-2 py-1 rounded-lg text-[#ffaa00] bg-[rgba(255,170,0,0.08)]" style={{ fontSize: "0.68rem" }}><RotateCcw className="w-3 h-3 inline mr-1" />重置</button>
       </div>
       {showAddForm && (
         <div className="p-3 mb-3 rounded-xl bg-[rgba(255,136,68,0.04)] border border-[rgba(255,136,68,0.15)]">

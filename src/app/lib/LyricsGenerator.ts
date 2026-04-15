@@ -1,15 +1,12 @@
 /**
- * LyricsGenerator.ts
- * ===================
- * AI 歌词生成器
- * 基于主题、情感、风格生成创意歌词
- *
- * @file LyricsGenerator.ts
- * @description AI 歌词生成系统，支持多种风格和主题
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: LyricsGenerator.ts
+ * @description: AI 歌词生成系统，支持多种风格和主题
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { FAMILY_MEMBERS } from "../components/ai-family/shared";

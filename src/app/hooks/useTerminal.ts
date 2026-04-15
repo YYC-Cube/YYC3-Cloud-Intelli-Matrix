@@ -1,15 +1,12 @@
 /**
- * useTerminal.ts
- * ===============
- * CLI 终端模拟 Hook
- * 解析 cpim 命令、维护历史记录、模拟命令补全
- *
- * 支持:
- * - cpim 系列管理命令
- * - env 命令 — 真实读写 env-config.ts (localStorage 持久化)
- * - 常见 *nix 工具命令 (ls, cat, ping …)
- * - goto / open 路由跳转
- * - ai <prompt> Text-to-CLI (模拟)
+ * @file: useTerminal.ts
+ * @description: useTerminal.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useRef } from "react";

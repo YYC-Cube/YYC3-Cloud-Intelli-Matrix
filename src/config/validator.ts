@@ -1,7 +1,12 @@
 /**
- * config/validator.ts
- * =================
- * 配置验证器
+ * @file: validator.ts
+ * @description: config/validator.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { AppConfig, ConfigValidationError } from "./types";

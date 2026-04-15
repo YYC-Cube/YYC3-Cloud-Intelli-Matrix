@@ -1,8 +1,12 @@
 /**
- * FollowUpEditDialog.tsx
- * =====================
- * 后续跟进任务编辑对话框
- * 支持创建和编辑跟进任务
+ * @file: FollowUpEditDialog.tsx
+ * @description: FollowUpEditDialog.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";
@@ -81,8 +85,8 @@ export function FollowUpEditDialog({
 
   const handleChange = (
     field: keyof FollowUpRecord,
-    value: any
-  ) => {
+    value: unknown
+   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

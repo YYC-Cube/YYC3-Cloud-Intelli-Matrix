@@ -1,13 +1,12 @@
 /**
- * useAudioEngine.test.ts
- * =======================
- * 音频引擎 Hook 单元测试
- *
- * @file useAudioEngine.test.ts
- * @description 音频引擎核心功能测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useAudioEngine.test.tsx
+ * @description: 音频引擎核心功能测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

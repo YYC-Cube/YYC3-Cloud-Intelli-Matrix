@@ -1,10 +1,12 @@
 /**
- * usePageConfig.ts
- * =================
- * 页面配置钩子 - 获取和修改当前页面配置
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: usePageConfig.ts
+ * @description: usePageConfig.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";

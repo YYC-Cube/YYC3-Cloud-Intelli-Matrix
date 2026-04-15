@@ -1,13 +1,12 @@
 /**
- * rf002-error-log-dual-write.test.ts
- * ====================================
- * RF-002 错误日志双写 - 验证测试
- *
- * 确保:
- * 1. captureError 同步写 localStorage + 异步写 IndexedDB
- * 2. clearErrorLog 同时清除两个存储路径
- * 3. getFullErrorLog 从 IndexedDB 读取完整日志
- * 4. IndexedDB 不可用时静默降级到 localStorage
+ * @file: rf002-error-log-dual-write.test.ts
+ * @description: rf002-error-log-dual-write.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

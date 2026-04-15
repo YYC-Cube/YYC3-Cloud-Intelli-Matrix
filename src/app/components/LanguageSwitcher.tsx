@@ -1,7 +1,12 @@
 /**
- * LanguageSwitcher.tsx
- * =====================
- * 语言切换器组件 · 支持中文/English 动态切换
+ * @file: LanguageSwitcher.tsx
+ * @description: LanguageSwitcher.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect } from "react";

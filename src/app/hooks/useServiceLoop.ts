@@ -1,10 +1,24 @@
 /**
- * useServiceLoop.ts
- * ==================
- * 一站式服务闭环 Hook
+ * @file: useServiceLoop.ts
+ * @description: 一站式服务闭环 Hook · 六层管道自动流转管理
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[service-loop],[automation]
  *
- * 实现: 监测 → 分析 → 决策 → 执行 → 验证 → 优化
- * 六层管道自动流转 + 手动干预
+ * @brief: 一站式服务闭环管理
+ *
+ * @details:
+ * - 六层管道：监测 → 分析 → 决策 → 执行 → 验证 → 优化
+ * - 自动流转 + 手动干预
+ * - 数据流管理
+ * - 阶段状态跟踪
+ *
+ * @dependencies: React, toast
+ * @exports: useServiceLoop
+ * @notes: 使用 usePersistedList 持久化运行历史
  */
 
 import { useState, useCallback, useMemo, useRef } from "react";
@@ -186,7 +200,7 @@ export const DATA_FLOW_EDGES: DataFlowEdge[] = [
 ];
 
 export const DATA_FLOW_NODES: DataFlowNode[] = [
-  { type: "device",    label: "本地设备",     sublabel: "192.168.3.x",      color: "#00d4ff" },
+  { type: "device",    label: "本地设备",     sublabel: "localhost",      color: "#00d4ff" },
   { type: "storage",   label: "本地存储",     sublabel: "PostgreSQL + NAS", color: "#7b2ff7" },
   { type: "dashboard", label: "YYC³ Dashboard", sublabel: "React + PWA",   color: "#00ff88" },
   { type: "terminal",  label: "终端集成",     sublabel: "CLI / IDE",        color: "#ffaa00" },

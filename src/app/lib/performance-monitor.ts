@@ -1,16 +1,12 @@
 /**
- * performance-monitor.ts
- * =======================
- * 性能监控仪表板 - 实现性能指标收集和可视化
- *
- * 功能:
- * - 性能指标收集 (FPS, 内存, CPU, 网络)
- * - 性能快照和报告生成
- * - 性能告警和阈值监控
- * - 性能数据持久化
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: performance-monitor.ts
+ * @description: performance-monitor.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 // ============================================================

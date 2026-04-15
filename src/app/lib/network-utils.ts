@@ -1,10 +1,12 @@
 /**
- * network-utils.ts
- * ================
- * YYC3 网络工具函数
- * - WebRTC 本机 IP 检测
- * - 网络接口信息获取
- * - WebSocket 连接测试
+ * @file: network-utils.ts
+ * @description: network-utils.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { NetworkInterface, NetworkConfig, ConnectionTestResult } from "../types";
@@ -17,7 +19,7 @@ export function generateWsUrl(address: string, port: string): string {
 }
 
 // RF-001: DEFAULT_NETWORK_CONFIG.wsUrl 由 serverAddress+port 推导，保持内部一致
-const _DEFAULT_SERVER = "192.168.3.45";
+const _DEFAULT_SERVER = "localhost";
 const _DEFAULT_PORT = "3113";
 
 export const DEFAULT_NETWORK_CONFIG: NetworkConfig = {

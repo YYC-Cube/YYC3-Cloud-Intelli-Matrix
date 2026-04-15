@@ -1,8 +1,12 @@
 /**
- * ConnectionPool.ts
- * =================
- * 数据库连接池管理
- * 支持连接池配置、获取、释放、统计
+ * @file: ConnectionPool.ts
+ * @description: ConnectionPool.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type {

@@ -1,7 +1,12 @@
 /**
- * LogViewer.tsx
- * ==============
- * 日志查看器组件 · 筛选 / 搜索 / 实时日志流
+ * @file: LogViewer.tsx
+ * @description: LogViewer.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

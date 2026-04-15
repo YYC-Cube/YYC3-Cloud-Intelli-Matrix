@@ -1,14 +1,12 @@
 /**
- * FamilyMusic.integration.test.tsx
- * =================================
- * FamilyMusic 组件集成测试
- * 测试完整播放流程与组件集成
- *
- * @file FamilyMusic.integration.test.tsx
- * @description FamilyMusic完整播放流程集成测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: FamilyMusic.integration.test.tsx
+ * @description: FamilyMusic完整播放流程集成测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

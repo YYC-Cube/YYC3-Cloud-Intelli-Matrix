@@ -1,11 +1,12 @@
 /**
- * pwa-i18n-types.test.ts
- * ==============
- * PWA & 离线 + 国际化 类型定义验证
- *
- * 覆盖范围:
- * - SWStatus / CacheEntry / PWAState
- * - Locale / LocaleInfo
+ * @file: pwa-i18n-types.test.ts
+ * @description: pwa-i18n-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

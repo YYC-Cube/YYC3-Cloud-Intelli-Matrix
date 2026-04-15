@@ -1,10 +1,12 @@
 /**
- * FamilyHome.tsx
- * ================
- * AI Family 家园首页 —— 温馨的数字家园
- * 欢迎回家 · 家人状态 · 家庭动态 · 家园空间入口
- *
- * 重构: 使用 shared.ts 共享数据 + FadeIn 沙箱安全动画
+ * @file: FamilyHome.tsx
+ * @description: FamilyHome.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useMemo } from "react";

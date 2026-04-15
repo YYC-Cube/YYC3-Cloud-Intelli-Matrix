@@ -1,9 +1,12 @@
 /**
- * FollowUpManager.tsx
- * ==================
- * 后续跟进任务管理器
- * 使用 dashboard-stores.ts 中的 followUpStore
- * 支持创建、编辑、删除、状态管理
+ * @file: FollowUpManager.tsx
+ * @description: FollowUpManager.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";
@@ -14,13 +17,15 @@ import {
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
-import { followUpStore, type FollowUpRecord } from "../stores/dashboard-stores";
-import { userStore } from "../stores/dashboard-stores";
+import { useFollowUpSlice } from "../store/slices/follow-up-slice";
+import type { FollowUpRecord } from "../stores/dashboard-stores";
+import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
 import { FollowUpEditDialog } from "./FollowUpEditDialog";
 
 export function FollowUpManager() {
-  const { t: _t } = useI18n();
-  const [followUps, setFollowUps] = useState<FollowUpRecord[]>([]);
+  const { t } = useI18n();
+  const { followUps, addFollowUp, updateFollowUp, removeFollowUp } = useFollowUpSlice();
+  const { users } = useUserMgmtSlice();
   const [filteredFollowUps, setFilteredFollowUps] = useState<FollowUpRecord[]>([]);
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUpRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -30,13 +35,6 @@ export function FollowUpManager() {
   const [filterAssignee, setFilterAssignee] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"dueDate" | "priority" | "createdAt">("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [users, _setUsers] = useState(userStore.getAll());
-
-  const loadFollowUps = () => {
-    const allFollowUps = followUpStore.getAll();
-    setFollowUps(allFollowUps);
-    setFilteredFollowUps(allFollowUps);
-  };
 
   const applyFilters = () => {
     let filtered = [...followUps];
@@ -82,10 +80,6 @@ export function FollowUpManager() {
   };
 
   useEffect(() => {
-    loadFollowUps();
-  }, []);
-
-  useEffect(() => {
     applyFilters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [followUps, searchQuery, filterStatus, filterPriority, filterAssignee, sortBy, sortOrder]);
@@ -101,9 +95,8 @@ export function FollowUpManager() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm("确定要删除此跟进任务吗？")) {
-      followUpStore.remove(id);
-      loadFollowUps();
+    if (window.confirm(t("collab.confirmDelete"))) {
+      removeFollowUp(id);
     }
   };
 
@@ -114,24 +107,16 @@ export function FollowUpManager() {
       if (status === "completed") {
         updates.completedAt = Date.now();
       }
-      followUpStore.update(id, updates);
-      loadFollowUps();
+      updateFollowUp(id, updates);
     }
   };
 
   const handleSave = (followUp: FollowUpRecord) => {
     if (followUp.id) {
-      followUpStore.update(followUp.id, followUp);
+      updateFollowUp(followUp.id, followUp);
     } else {
-      const newFollowUp: FollowUpRecord = {
-        ...followUp,
-        id: `fu-${Date.now()}`,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      followUpStore.add(newFollowUp);
+      addFollowUp(followUp);
     }
-    loadFollowUps();
     setIsEditDialogOpen(false);
     setSelectedFollowUp(null);
   };
@@ -204,27 +189,33 @@ export function FollowUpManager() {
             <Flag className="w-6 h-6 text-[#00d4ff]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#e0f0ff]">后续跟进任务</h1>
-            <p className="text-sm text-[rgba(0,212,255,0.5)]">
-              管理和跟踪所有待处理的跟进任务
+            <h1 className="text-xl font-bold text-[#e0f0ff]">{t("collab.title")}</h1>
+            <p className="text-xs text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.76rem" }}>
+              {t("collab.subtitle")}
             </p>
           </div>
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-[#00d4ff] text-[#060e1f] rounded-lg font-medium hover:bg-[#00b8e6] transition-colors"
+          className="flex items-center gap-2 px-5 py-2 rounded-lg font-medium transition-all"
+          style={{
+            background: "linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,212,255,0.04))",
+            border: "1px solid rgba(0,212,255,0.3)",
+            color: "#00d4ff",
+            fontSize: "0.82rem",
+          }}
         >
           <Plus className="w-4 h-4" />
-          新建任务
+          {t("collab.create")}
         </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="总数" value={stats.total} color="#00d4ff" />
-        <StatCard label="待处理" value={stats.pending} color="#ffaa00" />
-        <StatCard label="进行中" value={stats.inProgress} color="#00d4ff" />
-        <StatCard label="已完成" value={stats.completed} color="#00ff88" />
-        <StatCard label="已过期" value={stats.overdue} color="#ff3366" />
+        <StatCard label={t("collab.stats.total")} value={stats.total} color="#00d4ff" />
+        <StatCard label={t("collab.stats.pending")} value={stats.pending} color="#ffaa00" />
+        <StatCard label={t("collab.stats.inProgress")} value={stats.inProgress} color="#00d4ff" />
+        <StatCard label={t("collab.stats.completed")} value={stats.completed} color="#00ff88" />
+        <StatCard label={t("collab.stats.overdue")} value={stats.overdue} color="#ff3366" />
       </div>
 
       <GlassCard className="p-4">
@@ -233,7 +224,7 @@ export function FollowUpManager() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(0,212,255,0.5)]" />
             <input
               type="text"
-              placeholder="搜索任务..."
+              placeholder={t("collab.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] placeholder-[rgba(0,212,255,0.4)] focus:outline-none focus:border-[#00d4ff]"
@@ -244,26 +235,26 @@ export function FollowUpManager() {
             <Filter className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={(e) => setFilterStatus(e.target.value as "all"|"pending"|"in_progress"|"completed"|"cancelled")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
-              <option value="all">所有状态</option>
-              <option value="pending">待处理</option>
-              <option value="in_progress">进行中</option>
-              <option value="completed">已完成</option>
-              <option value="cancelled">已取消</option>
+              <option value="all">{t("collab.filter.allStatus")}</option>
+              <option value="pending">{t("collab.status.pending")}</option>
+              <option value="in_progress">{t("collab.status.inProgress")}</option>
+              <option value="completed">{t("collab.status.completed")}</option>
+              <option value="cancelled">{t("collab.status.cancelled")}</option>
             </select>
 
             <select
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as any)}
+              onChange={(e) => setFilterPriority(e.target.value as "all"|"critical"|"high"|"medium"|"low")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
-              <option value="all">所有优先级</option>
-              <option value="critical">紧急</option>
-              <option value="high">高</option>
-              <option value="medium">中</option>
-              <option value="low">低</option>
+              <option value="all">{t("collab.filter.allPriority")}</option>
+              <option value="critical">{t("collab.priority.critical")}</option>
+              <option value="high">{t("collab.priority.high")}</option>
+              <option value="medium">{t("collab.priority.medium")}</option>
+              <option value="low">{t("collab.priority.low")}</option>
             </select>
 
             <select
@@ -271,7 +262,7 @@ export function FollowUpManager() {
               onChange={(e) => setFilterAssignee(e.target.value)}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
-              <option value="all">所有负责人</option>
+              <option value="all">{t("collab.filter.allAssignee")}</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
@@ -283,12 +274,12 @@ export function FollowUpManager() {
           <div className="flex items-center gap-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as "dueDate"|"priority"|"createdAt")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
-              <option value="dueDate">截止日期</option>
-              <option value="priority">优先级</option>
-              <option value="createdAt">创建时间</option>
+              <option value="dueDate">{t("collab.sort.dueDate")}</option>
+              <option value="priority">{t("collab.sort.priority")}</option>
+              <option value="createdAt">{t("collab.sort.createdAt")}</option>
             </select>
 
             <button
@@ -305,9 +296,9 @@ export function FollowUpManager() {
         {filteredFollowUps.length === 0 ? (
           <GlassCard className="p-8 text-center">
             <Flag className="w-12 h-12 text-[rgba(0,212,255,0.3)] mx-auto mb-4" />
-            <p className="text-[#e0f0ff] mb-2">暂无跟进任务</p>
+            <p className="text-[#e0f0ff] mb-2">{t("collab.empty.title")}</p>
             <p className="text-sm text-[rgba(0,212,255,0.5)]">
-              点击&ldquo;新建任务&rdquo;创建第一个跟进任务
+              {t("collab.empty.hint")}
             </p>
           </GlassCard>
         ) : (
@@ -389,9 +380,9 @@ export function FollowUpManager() {
                       >
                         <Calendar className="w-4 h-4" />
                         {overdue ? (
-                          <span>已过期 {Math.abs(daysUntilDue)} 天</span>
+                          <span>{t("collab.overdue.prefix")} {Math.abs(daysUntilDue)} {t("collab.overdue.suffix")}</span>
                         ) : (
-                          <span>剩余 {daysUntilDue} 天</span>
+                          <span>{t("collab.remaining.prefix")} {daysUntilDue} {t("collab.remaining.suffix")}</span>
                         )}
                         <span className="text-xs opacity-70">
                           ({formatDate(followUp.dueDate)})
@@ -411,7 +402,7 @@ export function FollowUpManager() {
                           onClick={() => handleStatusChange(followUp.id, "in_progress")}
                           className="px-3 py-1.5 bg-[rgba(0,212,255,0.1)] text-[#00d4ff] rounded-lg text-sm hover:bg-[rgba(0,212,255,0.2)] transition-colors"
                         >
-                          开始处理
+                          {t("collab.action.start")}
                         </button>
                       )}
                       {followUp.status === "in_progress" && (
@@ -419,7 +410,7 @@ export function FollowUpManager() {
                           onClick={() => handleStatusChange(followUp.id, "completed")}
                           className="px-3 py-1.5 bg-[rgba(0,255,136,0.1)] text-[#00ff88] rounded-lg text-sm hover:bg-[rgba(0,255,136,0.2)] transition-colors"
                         >
-                          标记完成
+                          {t("collab.action.complete")}
                         </button>
                       )}
                       {followUp.status === "completed" && (
@@ -427,7 +418,7 @@ export function FollowUpManager() {
                           onClick={() => handleStatusChange(followUp.id, "pending")}
                           className="px-3 py-1.5 bg-[rgba(255,170,0,0.1)] text-[#ffaa00] rounded-lg text-sm hover:bg-[rgba(255,170,0,0.2)] transition-colors"
                         >
-                          重新打开
+                          {t("collab.action.reopen")}
                         </button>
                       )}
                     </div>

@@ -1,10 +1,12 @@
 /**
- * DataFlowDiagram.tsx
- * =====================
- * 数据流向可视化组件
- *
- * 展示: 本地设备 ↔ 本地存储 ↔ Dashboard ↔ 终端集成
- * 连线带动画、带宽标注
+ * @file: DataFlowDiagram.tsx
+ * @description: DataFlowDiagram.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

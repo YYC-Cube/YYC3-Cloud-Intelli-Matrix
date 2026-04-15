@@ -1,10 +1,12 @@
 /**
- * bridge-client-enhanced.test.ts
- * ===============================
- * Bridge Client 增强测试
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: bridge-client-enhanced.test.ts
+ * @description: bridge-client-enhanced.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";

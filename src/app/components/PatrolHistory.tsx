@@ -1,8 +1,12 @@
 /**
- * PatrolHistory.tsx
- * ==================
- * 巡查历史记录列表
- * 支持时间范围筛选、查看历史报告
+ * @file: PatrolHistory.tsx
+ * @description: PatrolHistory.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

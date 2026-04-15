@@ -1,12 +1,25 @@
 /**
  * @file: App.tsx
- * @description: App.tsx description
+ * @description: 根组件 · 提供认证、路由、国际化上下文
  * @author: YanYuCloudCube Team
  * @version: v1.0.0
  * @created: 2026-03-31
- * @updated: 2026-03-31
+ * @updated: 2026-04-09
  * @status: active
- * @tags: [component]
+ * @tags: [component],[root],[context]
+ *
+ * @brief: 应用根组件
+ *
+ * @details:
+ * - 提供认证上下文（AuthContext）
+ * - 提供国际化上下文（I18nContext）
+ * - 配置路由（React Router）
+ * - 全局错误边界处理
+ * - Figma 平台错误过滤
+ *
+ * @dependencies: React, React Router, AuthContext, I18nContext
+ * @exports: App (default)
+ * @notes: 所有上下文提供者都在此组件中初始化
  */
 
 import React, { useState, useEffect, useCallback } from "react";

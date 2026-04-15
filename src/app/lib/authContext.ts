@@ -1,7 +1,12 @@
 /**
- * authContext.ts
- * ===============
- * AuthContext 独立模块 — 打破 App.tsx ↔ Layout.tsx 的循环依赖
+ * @file: authContext.ts
+ * @description: authContext.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { createContext } from "react";

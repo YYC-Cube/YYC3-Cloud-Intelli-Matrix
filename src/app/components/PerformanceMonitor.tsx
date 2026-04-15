@@ -1,17 +1,12 @@
 /**
- * PerformanceMonitor.tsx
- * =======================
- * 实时性能监控面板 · 路由: /performance
- *
- * 功能:
- * - Web Vitals (FCP/LCP/CLS/INP/TTFB) 实时采集
- * - 内存使用监控 (JS Heap)
- * - 资源加载分析 (静态资源/脚本/样式)
- * - 帧率 (FPS) 实时图
- * - localStorage 使用量
- * - 可编辑告警阈值 + 自动告警 (localStorage 持久化)
- * - 性能趋势图 (recharts)
- * - 全部数据可导出
+ * @file: PerformanceMonitor.tsx
+ * @description: PerformanceMonitor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";

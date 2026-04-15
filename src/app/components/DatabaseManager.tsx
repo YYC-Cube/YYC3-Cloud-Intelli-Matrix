@@ -1,10 +1,12 @@
 /**
- * DatabaseManager.tsx
- * ====================
- * 本地数据库管理器 · 路由: /database
- *
- * 功能: 连接管理 / 表浏览+数据预览 / SQL 查询控制台+模板+历史 / 备份恢复
- * 后端接口预留: POST /api/db/{detect|connect|query|tables|backup|restore|test|table-data}
+ * @file: DatabaseManager.tsx
+ * @description: DatabaseManager.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -32,6 +34,9 @@ const DB_TYPE_LABELS: Record<DatabaseType, { label: string; color: string; icon:
   postgresql: { label: "PostgreSQL", color: "#336791", icon: "PG" },
   mysql: { label: "MySQL", color: "#4479A1", icon: "My" },
   redis: { label: "Redis", color: "#DC382D", icon: "Rd" },
+  sqlite: { label: "SQLite", color: "#003B57", icon: "SQ" },
+  mongodb: { label: "MongoDB", color: "#47A248", icon: "MG" },
+  custom: { label: "Custom", color: "#6B7280", icon: "CT" },
 };
 
 type ActiveTab = "connections" | "tables" | "query" | "history" | "backups";

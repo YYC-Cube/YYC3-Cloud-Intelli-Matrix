@@ -1,7 +1,12 @@
 /**
- * ShareDialog.tsx
- * ================
- * IDE 分享对话框 — 链接复制 + 权限设置
+ * @file: ShareDialog.tsx
+ * @description: ShareDialog.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

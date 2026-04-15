@@ -1,8 +1,12 @@
 /**
- * FileExplorer.tsx
- * =================
- * IDE 中栏 — 文件资源管理器
- * 文件树 + 搜索过滤 + CRUD 文件操作 + 右键菜单 + Git/Explorer 切换
+ * @file: FileExplorer.tsx
+ * @description: FileExplorer.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

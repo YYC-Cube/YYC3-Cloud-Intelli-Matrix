@@ -1,17 +1,12 @@
 /**
- * state-sync-manager.ts
- * ======================
- * 状态同步管理器 - 改进状态同步和持久化
- *
- * 功能:
- * - 跨组件状态同步
- * - 变更追踪和版本控制
- * - 自动持久化 (localStorage + IndexedDB)
- * - 状态回滚和恢复
- * - 变更通知和订阅
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: state-sync-manager.ts
+ * @description: state-sync-manager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 // ============================================================

@@ -1,10 +1,12 @@
 /**
- * ComponentShowcase.tsx
- * ======================
- * 9.1 Atoms / Molecules / Organisms / Templates 组件展示面板
- *
- * 交互原型 + 状态设计文档 合一
- * 每个组件展示：使用场景 / API / 状态变体 / 响应式行为
+ * @file: ComponentShowcase.tsx
+ * @description: ComponentShowcase.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

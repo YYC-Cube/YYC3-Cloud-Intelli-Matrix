@@ -1,14 +1,12 @@
 /**
- * playwright.config.ts
- * =====================
- * YYC3 Cloud Intelli-Matrix Playwright E2E 测试配置
- *
- * 使用方式 (独立环境):
- *   npx playwright install
- *   npx playwright test
- *
- * 本文件为配置参考模板，Figma Make 环境不支持直接运行 Playwright。
- * 部署到独立 Vite/Node 环境后可直接使用。
+ * @file: playwright.config.ts
+ * @description: playwright.config.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // import { defineConfig, devices } from "@playwright/test";

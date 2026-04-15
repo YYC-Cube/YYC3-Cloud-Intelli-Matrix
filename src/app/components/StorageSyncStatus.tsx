@@ -1,8 +1,12 @@
 /**
- * StorageSyncStatus.tsx
- * =====================
- * 存储同步状态组件
- * 显示同步状态、进度和历史记录
+ * @file: StorageSyncStatus.tsx
+ * @description: StorageSyncStatus.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect } from "react";

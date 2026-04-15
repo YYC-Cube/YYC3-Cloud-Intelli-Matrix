@@ -1,14 +1,12 @@
 /**
- * ConfigExportCenter.tsx
- * =======================
- * 全局配置导入导出统一入口
- *
- * 整合:
- * - useModelProvider (服务商 + 已配置模型)
- * - useSettingsStore (系统设置)
- * - db-queries (模型/节点/Agent 数据)
- *
- * 支持: 全量导出 / 分模块导出 / 导入 / 重置
+ * @file: ConfigExportCenter.tsx
+ * @description: ConfigExportCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback } from "react";

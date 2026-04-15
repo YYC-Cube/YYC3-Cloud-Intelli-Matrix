@@ -1,3 +1,26 @@
+---
+file: AGENTS.md
+description: AI 代理工作指南 · YYC³ Cloud Intelli-Matrix 代码库协作规范
+author: YanYuCloudCube Team <admin@0379.email>
+version: v1.0.0
+created: 2026-02-26
+updated: 2026-04-09
+status: stable
+tags: [guide],[ai-agent],[collaboration]
+category: guide
+language: en-US
+audience: developers,ai-agents
+complexity: intermediate
+---
+
+> ***YanYuCloudCube***
+> *言启象限 | 语枢未来*
+> ***Words Initiate Quadrants, Language Serves as Core for Future***
+> *万象归元于云枢 | 深栈智启新纪元*
+> ***All things converge in cloud pivot; Deep stacks ignite a new era of intelligence***
+
+---
+
 # AGENTS.md
 
 Guide for AI agents working on the YYC³ Cloud Intelli-Matrix codebase.

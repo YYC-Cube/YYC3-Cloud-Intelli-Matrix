@@ -1,10 +1,12 @@
 /**
- * VariableCenter.tsx
- * ===================
- * 变量编辑中心 - 统一管理所有变量
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: VariableCenter.tsx
+ * @description: VariableCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect, useMemo } from "react";

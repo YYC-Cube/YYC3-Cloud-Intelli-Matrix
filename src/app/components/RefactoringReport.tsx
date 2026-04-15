@@ -1,12 +1,12 @@
 /**
- * RefactoringReport.tsx
- * =====================
- * YYC3 深度代码分析 & 重构方案报告
- *
- * 基于全量代码审计生成的可交互式报告：
- *  - 识别不稳定板块、冲突、潜在影响
- *  - 按优先级分级呈现重构方案
- *  - 赛博朋克风格 UI
+ * @file: RefactoringReport.tsx
+ * @description: RefactoringReport.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useMemo } from "react";

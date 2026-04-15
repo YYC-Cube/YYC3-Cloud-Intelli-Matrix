@@ -1,8 +1,12 @@
 /**
- * DatabaseAdapter.integration.test.ts
- * =================================
- * 数据库适配器集成测试
- * 测试 DatabaseAdapter、ConnectionManager、QueryCache 等组件的协同工作
+ * @file: DatabaseAdapter.integration.test.ts
+ * @description: DatabaseAdapter.integration.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

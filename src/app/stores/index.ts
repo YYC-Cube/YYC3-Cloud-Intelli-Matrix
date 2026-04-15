@@ -1,14 +1,12 @@
 /**
- * stores/index.ts
- * ================
- * YYC³ 全局状态管理
- * 
- * 使用 Zustand 统一管理应用状态
- * - 用户状态
- * - 主题配置
- * - 语言设置
- * - UI 状态
- * - 缓存数据
+ * @file: index.ts
+ * @description: stores/index.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { create } from 'zustand';

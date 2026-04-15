@@ -1,15 +1,12 @@
 /**
- * design-system.ts
- * =================
- * YYC³ 设计系统变量中心 - 统一管理所有设计变量
- *
- * 设计原则：
- * - 所有设计变量从此处导入，确保全局一致性
- * - 支持主题切换和自定义
- * - 新增变量必须在此注册
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: design-system.ts
+ * @description: design-system.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ═══════════════════════════════════════════════════════════════

@@ -1,18 +1,12 @@
 /**
- * AIAssistant.test.tsx
- * =====================
- * AIAssistant 组件测试
- *
- * 覆盖范围:
- * - 浮动按钮渲染与点击打开
- * - 面板打开后 header/tab/content 渲染
- * - Chat Tab: 欢迎消息, 发送消息, 输入框, 发送按钮
- * - Commands Tab: 分类过滤, 命令列表, 执行命令
- * - Prompts Tab: 预设列表, 应用预设, 自定义编辑
- * - Settings Tab: API Key, 模型选择, 参数调节
- * - 关闭面板
- * - 清空对话
- * - 最大化/还原
+ * @file: AIAssistant.test.tsx
+ * @description: AIAssistant.test.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

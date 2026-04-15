@@ -15,6 +15,7 @@ import {
   ArrowUpRight, ArrowDownRight, BarChart3, Layers,
   RefreshCw, Eye, Maximize2, Network, AlertTriangle,
   CheckCircle2, TrendingUp, GitBranch, Gauge,
+  Wifi, XCircle, Radio,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -29,7 +30,9 @@ import { useI18n } from "../hooks/useI18n";
 import type { NodeData } from "../types";
 import { useSwipeable } from "react-swipeable";
 import { useNavigate } from "react-router";
-import { modelPerfStore, modelDistStore, radarStore, recentOpsStore } from "../stores/dashboard-stores";
+import { useMetricsSlice } from "../store/slices/metrics-slice";
+import { useAppSlice } from "../store/slices/app-slice";
+import { useNodeSlice } from "../store/slices/node-slice";
 
 // ============================================================
 // Static reference data → 从 localStorage 读取 (可编辑)
@@ -97,6 +100,9 @@ function ChartTabBar({ active, onChange }: { active: AnalyticsTab; onChange: (t:
 // ============================================================
 
 export function Dashboard() {
+  // ★ SSOT原则: 节点数据统一从 useNodeSlice 获取
+  // WebSocketContext 仅用于: 连接状态/QPS/Latency/吞吐量/告警 等非节点类实时指标
+  // 禁止从此处读取 nodes 相关数据（2026-04-15 架构审计确认）
   const ws = useContext(WebSocketContext);
   const view = useContext(ViewContext);
   const { t } = useI18n();
@@ -109,6 +115,11 @@ export function Dashboard() {
   const isMobile = view?.isMobile ?? false;
   const isTablet = view?.isTablet ?? false;
   const _isDesktop = !isMobile && !isTablet;
+
+  // ★ 统一 Store — 图表数据从此获取
+  const { modelPerf: _modelPerf, modelDist, radarData: _radarData } = useMetricsSlice();
+  const { recentOps } = useAppSlice();
+  const { nodes, derived } = useNodeSlice();
 
   // Swipe handlers for chart tabs
   const swipeHandlers = useSwipeable({
@@ -142,11 +153,10 @@ export function Dashboard() {
   const qpsTrend = ws?.qpsTrend ?? "+12.3%";
   const liveLatency = ws?.liveLatency ?? 48;
   const latencyTrend = ws?.latencyTrend ?? "-5.2%";
-  const activeNodesStr = ws?.activeNodes ?? "7/8";
-  const gpuUtilStr = ws?.gpuUtil ?? "82.4%";
+  const activeNodesStr = derived.activeRatio;
+  const gpuUtilStr = `${derived.avgGpu}%`;
   const tokenTP = ws?.tokenThroughput ?? "138K/s";
   const storageStr = ws?.storageUsed ?? "12.8TB";
-  const nodes = ws?.nodes ?? [];
   const throughputHistory = ws?.throughputHistory ?? [];
 
   const isQPSUp = qpsTrend.startsWith("+");
@@ -169,6 +179,103 @@ export function Dashboard() {
     <div className="space-y-3 md:space-y-4">
       {/* ===== Alert Banner → 一键跟进入口 ===== */}
       <AlertBanner compact={isMobile} />
+
+      {/* ===== Connection Status Bar ===== */}
+      <GlassCard className="p-2.5 md:p-3">
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* Connection State Indicator */}
+          <div className="flex items-center gap-2">
+            {ws?.connectionState === "connected" ? (
+              <Wifi className="w-4 h-4 text-[#00ff88]" />
+            ) : ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? (
+              <Radio className="w-4 h-4 text-[#ffdd00] animate-pulse" />
+            ) : (
+              <XCircle className="w-4 h-4 text-[#ff3366]" />
+            )}
+            <span className="font-medium" style={{
+              fontSize: "0.78rem",
+              color: ws?.connectionState === "connected" ? "#00ff88" :
+                     ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? "#ffdd00" : "#ff3366",
+            }}>
+              {ws?.connectionState === "connected" ? "已连接" :
+               ws?.connectionState === "connecting" ? "连接中..." :
+               ws?.connectionState === "reconnecting" ? "重连中..." :
+               ws?.connectionState === "disconnected" ? "已断开" :
+               ws?.connectionState === "simulated" ? "模拟模式" : "未知"}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+
+          {/* Latency & QPS */}
+          <div className="flex items-center gap-3 md:gap-4 text-[rgba(0,212,255,0.6)]" style={{ fontSize: "0.68rem" }}>
+            <span className="flex items-center gap-1">
+              <Activity className="w-3 h-3" style={{ color: "#00d4ff" }} />
+              延迟: <strong className="text-[#e0f0ff]">{liveLatency}ms</strong>
+            </span>
+            <span className="flex items-center gap-1">
+              <Radio className="w-3 h-3" style={{ color: "#aa55ff" }} />
+              QPS: <strong className="text-[#e0f0ff]">{liveQPS.toLocaleString()}</strong>
+            </span>
+            <span className="hidden sm:flex items-center gap-1">
+              <Zap className="w-3 h-3" style={{ color: "#ffdd00" }} />
+              吞吐: <strong className="text-[#e0f0ff]">{tokenTP}</strong>
+            </span>
+          </div>
+
+          {/* Health Score Bar (if connected) */}
+          {ws?.connectionState === "connected" && (
+            <>
+              <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+              <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+                <span className="text-[rgba(0,212,255,0.45)] shrink-0" style={{ fontSize: "0.62rem" }}>通道质量</span>
+                <div className="flex-1 h-1.5 rounded-full bg-[rgba(0,40,80,0.6)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, 100 - liveLatency * 1.2))}%`,
+                      background: liveLatency < 50 ? "#00ff88" : liveLatency < 100 ? "#ffdd00" : "#ff3366",
+                      boxShadow: `0 0 6px ${liveLatency < 50 ? "#00ff8840" : liveLatency < 100 ? "#ffdd0030" : "#ff336620"}`,
+                    }}
+                  />
+                </div>
+                <span className="shrink-0 font-mono text-xs" style={{
+                  fontSize: "0.58rem",
+                  color: liveLatency < 50 ? "#00ff88" : liveLatency < 100 ? "#ffdd00" : "#ff3366",
+                }}>
+                  {liveLatency < 50 ? "优" : liveLatency < 100 ? "良" : "差"}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Disconnected Reason */}
+          {(ws?.connectionState === "disconnected" || ws?.connectionState === undefined) && (
+            <>
+              <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(255,51,102,0.06)] border border-[rgba(255,51,102,0.1)]">
+                <AlertTriangle className="w-3 h-3 text-[#ffaa00]" />
+                <span className="text-[rgba(255,170,0,0.7)]" style={{ fontSize: "0.62rem" }}>
+                  {ws?.connectionState === "disconnected"
+                    ? "WebSocket 服务未连接 — 数据为模拟值"
+                    : "等待连接..."}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Reconnect hint for reconnecting state */}
+          {ws?.connectionState === "reconnecting" && (
+            <>
+              <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+              <span className="text-[rgba(255,221,0,0.7)]" style={{ fontSize: "0.62rem" }}>
+                正在尝试重新连接...
+              </span>
+            </>
+          )}
+        </div>
+      </GlassCard>
 
       {/* ===== Stats Row ===== */}
       <div className={`grid gap-2 md:gap-3 ${isMobile ? "grid-cols-2" : isTablet ? "grid-cols-3" : "grid-cols-6"}`}>
@@ -247,7 +354,7 @@ export function Dashboard() {
             <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("monitor.modelLoadDist")}</h3>
           </div>
           {(() => {
-            const distData = modelDistStore.getAll();
+            const distData = modelDist;
             return (
               <>
                 <ResponsiveContainer width="100%" height={isMobile ? 140 : 160}>
@@ -390,7 +497,7 @@ export function Dashboard() {
             </button>
           </div>
           <div className="space-y-2">
-            {recentOpsStore.getAll().map((op) => (
+            {recentOps.map((op) => (
               <div key={op.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-2.5 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all cursor-pointer">
                 <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${
                   op.status === "success" ? "bg-[rgba(0,255,136,0.1)]" :
@@ -445,9 +552,10 @@ export function Dashboard() {
 
 function RadarSection({ isMobile }: { isMobile: boolean }) {
   const { t } = useI18n();
+  const { radarData } = useMetricsSlice();
   return (
     <ResponsiveContainer width="100%" height={isMobile ? 240 : 220}>
-      <RadarChart data={radarStore.getAll()}>
+      <RadarChart data={radarData}>
         <PolarGrid stroke="rgba(0,180,255,0.15)" />
         <PolarAngleAxis dataKey="metric" tick={{ fill: "rgba(0,212,255,0.5)", fontSize: isMobile ? 10 : 11 }} />
         <PolarRadiusAxis tick={false} axisLine={false} domain={[0, 100]} />
@@ -462,11 +570,12 @@ function RadarSection({ isMobile }: { isMobile: boolean }) {
 
 function PerformanceSection({ isMobile }: { isMobile: boolean }) {
   const { t } = useI18n();
+  const { modelPerf } = useMetricsSlice();
   return (
     <div className={isMobile ? "overflow-x-auto -mx-3" : ""}>
       <div style={isMobile ? { minWidth: "420px", paddingLeft: 12, paddingRight: 12 } : undefined}>
         <ResponsiveContainer width="100%" height={isMobile ? 220 : 220}>
-          <BarChart data={modelPerfStore.getAll()} barGap={2}>
+          <BarChart data={modelPerf} barGap={2}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,180,255,0.08)" />
             <XAxis dataKey="model" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 9 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} />
             <YAxis tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} domain={[0, 100]} />

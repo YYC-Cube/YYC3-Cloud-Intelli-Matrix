@@ -1,8 +1,12 @@
 /**
- * SlowQueryMonitor.ts
- * ==================
- * 慢查询监控器
- * 监控查询执行时间，记录慢查询，触发告警
+ * @file: SlowQueryMonitor.ts
+ * @description: SlowQueryMonitor.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { SlowQueryAlert, QueryResult, DatabaseConfig } from "./types";

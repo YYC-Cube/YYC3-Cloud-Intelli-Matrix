@@ -1,10 +1,12 @@
 /**
- * DesignSystemEditor.tsx
- * =======================
- * 设计系统编辑器 - 用于编辑设计系统变量
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: DesignSystemEditor.tsx
+ * @description: DesignSystemEditor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState } from "react";
@@ -24,7 +26,6 @@ export function DesignSystemEditor() {
     spacing,
     shadows,
     animation,
-    setColor,
     getColor,
     applyOverrides,
     reset,

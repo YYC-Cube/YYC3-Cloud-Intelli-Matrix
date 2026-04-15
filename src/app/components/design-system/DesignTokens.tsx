@@ -1,7 +1,12 @@
 /**
- * DesignTokens.tsx
- * ==================
- * 9.1 Design Tokens 展示 — 色彩 / 字体 / 间距 / 阴影 / 动效
+ * @file: DesignTokens.tsx
+ * @description: DesignTokens.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

@@ -1,17 +1,12 @@
 /**
- * websocket-manager.ts
- * =====================
- * WebSocket 连接管理器 - 增强实时通信可靠性
- *
- * 功能:
- * - 自动重连机制 (指数退避)
- * - 心跳检测 (保持连接活跃)
- * - 消息队列 (离线消息缓存)
- * - 连接状态监控
- * - 多端点故障转移
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: websocket-manager.ts
+ * @description: websocket-manager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 // ============================================================

@@ -1,8 +1,12 @@
 /**
- * GPUNodeCard.tsx
- * ================
- * GPU 节点状态卡片组件
- * 显示 GPU 利用率、内存、温度、模型等关键指标
+ * @file: GPUNodeCard.tsx
+ * @description: GPUNodeCard.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

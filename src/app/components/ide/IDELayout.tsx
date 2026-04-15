@@ -1,21 +1,12 @@
 /**
- * IDELayout.tsx
- * ==============
- * IDE 主布局 — 多联式可调面板系统
- *
- * 三栏布局 + 底部终端 (智能终端切换):
- *   左栏 (25%): AI 对话面板
- *   中栏 (45%): 文件资源管理器
- *   右栏 (30%): 代码编辑器
- *   底部: 集成终端 (根据布局模式智能切换位置)
- *
- * 布局模式:
- *   编辑模式 (edit):   终端仅在右栏显示
- *   预览模式 (preview): 终端跨越中栏+右栏显示
- *   自由模式 (free):   可拖拽面板系统 (新功能)
- *
- * 使用自定义 SplitContainer 实现面板拖拽调节 (基于 mouse 事件)
- * 自由模式支持完全自定义拖拽面板布局
+ * @file: IDELayout.tsx
+ * @description: IDELayout.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

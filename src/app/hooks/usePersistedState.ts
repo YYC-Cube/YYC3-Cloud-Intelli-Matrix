@@ -1,15 +1,12 @@
 /**
- * usePersistedState.ts
- * =====================
- * IndexedDB 持久化 Hook — 通用状态持久化层
- *
- * 将 React 状态与 IndexedDB 双向绑定:
- * - 初始化时从 IndexedDB 加载
- * - 状态变更后异步写回 IndexedDB
- * - 支持 BroadcastChannel 跨标签页同步
- *
- * 使用方式:
- *   const [rules, setRules] = usePersistedList<AlertRule>("alertRules");
+ * @file: usePersistedState.ts
+ * @description: usePersistedState.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";

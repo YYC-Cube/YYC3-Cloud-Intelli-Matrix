@@ -1,8 +1,12 @@
 /**
- * FamilyPageHeader.tsx
- * =====================
- * AI Family 子页面统一头部导航
- * 包含返回按钮、标题、副标题、可选操作按钮
+ * @file: FamilyPageHeader.tsx
+ * @description: FamilyPageHeader.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

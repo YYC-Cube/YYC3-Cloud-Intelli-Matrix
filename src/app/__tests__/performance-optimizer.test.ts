@@ -1,7 +1,12 @@
 /**
- * performance-optimizer.test.ts
- * =================================
- * 性能优化工具单元测试
+ * @file: performance-optimizer.test.ts
+ * @description: performance-optimizer.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

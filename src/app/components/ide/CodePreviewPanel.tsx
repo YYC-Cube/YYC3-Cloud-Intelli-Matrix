@@ -1,8 +1,12 @@
 /**
- * CodePreviewPanel.tsx
- * =====================
- * IDE 右栏 — 代码编辑 / 文件预览
- * Tab 式多文件编辑 + 语法高亮
+ * @file: CodePreviewPanel.tsx
+ * @description: CodePreviewPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

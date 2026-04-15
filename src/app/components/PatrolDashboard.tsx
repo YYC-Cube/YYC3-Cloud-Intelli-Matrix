@@ -1,10 +1,12 @@
 /**
- * PatrolDashboard.tsx
- * =====================
- * 巡查模式主面板
- * 路由: /patrol
- *
- * i18n 已迁移
+ * @file: PatrolDashboard.tsx
+ * @description: PatrolDashboard.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useContext } from "react";

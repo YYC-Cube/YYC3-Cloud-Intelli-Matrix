@@ -1,7 +1,12 @@
 /**
- * security-types.test.ts
- * ========================
- * 安全监控相关类型定义测试
+ * @file: security-types.test.ts
+ * @description: security-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

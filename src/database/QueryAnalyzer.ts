@@ -1,8 +1,12 @@
 /**
- * QueryAnalyzer.ts
- * ===============
- * 查询性能分析器
- * 分析 SQL 查询，提供执行计划、优化建议和性能指标
+ * @file: QueryAnalyzer.ts
+ * @description: QueryAnalyzer.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type {
@@ -10,6 +14,37 @@ import type {
   DatabaseConfig,
   IndexInfo,
 } from "./types";
+
+export interface DbConnection {
+  query(sql: string): Promise<{ rows: Record<string, unknown>[]; rowCount?: number }>;
+  collection(name: string): { explain(pipeline: unknown[]): Promise<unknown> };
+}
+
+export interface PgExecutionPlan {
+  "Node Type"?: string;
+  "Relation Name"?: string;
+  "Alias"?: string;
+  "Startup Cost"?: number;
+  "Total Cost"?: number;
+  "Plan Rows"?: number;
+  "Plan Width"?: number;
+  "Actual Rows"?: number;
+  "Index Name"?: string | undefined;
+  [key: string]: unknown;
+}
+
+export interface MysqlExecutionPlan {
+  cost?: number;
+  rows_examined?: number;
+  key?: string | null;
+  type?: string;
+  Using_temp_table?: boolean;
+  Using_filesort?: boolean;
+  EXPLAIN?: string;
+  [key: string]: unknown;
+}
+
+export type ExecutionPlan = PgExecutionPlan | MysqlExecutionPlan | Record<string, unknown>;
 
 export interface QueryMetrics {
   executionTime: number;
@@ -32,10 +67,10 @@ export interface OptimizationSuggestion {
 }
 
 export class QueryAnalyzer {
-  private connection: any;
+  private connection: DbConnection;
   private config: DatabaseConfig;
 
-  constructor(connection: any, config: DatabaseConfig) {
+  constructor(connection: DbConnection, config: DatabaseConfig) {
     this.connection = connection;
     this.config = config;
   }
@@ -45,7 +80,7 @@ export class QueryAnalyzer {
    */
   public async analyzeQuery(query: string): Promise<QueryAnalysis> {
     // 检查是否在测试环境中
-    const isTestEnvironment = typeof window !== "undefined" && (window as any).__VITEST__;
+    const isTestEnvironment = typeof window !== "undefined" && (window as unknown as Record<string, unknown>).__VITEST__;
     
     if (isTestEnvironment) {
       // 在测试环境中返回模拟数据
@@ -99,7 +134,7 @@ export class QueryAnalyzer {
   /**
    * 获取执行计划
    */
-  public async getExecutionPlan(query: string): Promise<any> {
+  public async getExecutionPlan(query: string): Promise<ExecutionPlan> {
     if (this.config.type === "postgresql") {
       return this.getPostgresExecutionPlan(query);
     } else if (this.config.type === "mysql") {
@@ -113,7 +148,7 @@ export class QueryAnalyzer {
   /**
    * 获取查询指标
    */
-  public async getQueryMetrics(query: string, executionPlan: any): Promise<QueryMetrics> {
+  public async getQueryMetrics(query: string, executionPlan: ExecutionPlan): Promise<QueryMetrics> {
     const startTime = Date.now();
 
     try {
@@ -142,7 +177,7 @@ export class QueryAnalyzer {
   public generateOptimizations(
     query: string,
     metrics: QueryMetrics,
-    _executionPlan: any
+    _executionPlan: ExecutionPlan
   ): string[] {
     const optimizations: string[] = [];
 
@@ -193,7 +228,7 @@ export class QueryAnalyzer {
    */
   public async suggestIndexes(
     query: string,
-    _executionPlan: any
+    _executionPlan: ExecutionPlan
   ): Promise<IndexInfo[]> {
     const suggestions: IndexInfo[] = [];
 
@@ -240,15 +275,13 @@ export class QueryAnalyzer {
   /**
    * 估算查询成本
    */
-  private estimateCost(executionPlan: any): number {
-    if (!executionPlan) {
-      return 0;
-    }
+  private estimateCost(executionPlan: ExecutionPlan): number {
+    if (!executionPlan) { return 0; }
 
     if (this.config.type === "postgresql") {
-      return executionPlan["Total Cost"] || 0;
+      return (executionPlan["Total Cost"] as number) || 0;
     } else if (this.config.type === "mysql") {
-      return executionPlan.cost || 0;
+      return (executionPlan.cost as number) || 0;
     }
 
     return 0;
@@ -257,39 +290,39 @@ export class QueryAnalyzer {
   /**
    * PostgreSQL 执行计划
    */
-  private async getPostgresExecutionPlan(query: string): Promise<any> {
+  private async getPostgresExecutionPlan(query: string): Promise<PgExecutionPlan> {
     const sql = `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${query}`;
     const result = await this.connection.query(sql);
-    return result.rows[0]["QUERY PLAN"][0];
+    return result.rows[0]["QUERY PLAN"] as PgExecutionPlan;
   }
 
   /**
    * MySQL 执行计划
    */
-  private async getMySQLExecutionPlan(query: string): Promise<any> {
+  private async getMySQLExecutionPlan(query: string): Promise<MysqlExecutionPlan> {
     const sql = `EXPLAIN FORMAT=JSON ${query}`;
     const result = await this.connection.query(sql);
-    return JSON.parse(result.rows[0].EXPLAIN);
+    return JSON.parse(result.rows[0].EXPLAIN as string) as MysqlExecutionPlan;
   }
 
   /**
    * MongoDB 执行计划
    */
-  private async getMongoDBExecutionPlan(query: string): Promise<any> {
+  private async getMongoDBExecutionPlan(query: string): Promise<ExecutionPlan> {
     const collection = this.extractMongoCollection(query);
     const pipeline = this.extractMongoPipeline(query);
     const result = await this.connection.collection(collection).explain(pipeline);
-    return result;
+    return result as ExecutionPlan;
   }
 
   /**
    * 提取扫描行数
    */
-  private extractRowsScanned(executionPlan: any): number {
+  private extractRowsScanned(executionPlan: ExecutionPlan): number {
     if (this.config.type === "postgresql") {
-      return executionPlan["Actual Rows"] || 0;
+      return (executionPlan["Actual Rows"] as number) || 0;
     } else if (this.config.type === "mysql") {
-      return executionPlan.rows_examined || 0;
+      return (executionPlan.rows_examined as number) || 0;
     }
     return 0;
   }
@@ -297,7 +330,7 @@ export class QueryAnalyzer {
   /**
    * 提取索引使用情况
    */
-  private extractIndexUsed(executionPlan: any): boolean {
+  private extractIndexUsed(executionPlan: ExecutionPlan): boolean {
     if (this.config.type === "postgresql") {
       return executionPlan["Index Name"] !== undefined;
     } else if (this.config.type === "mysql") {
@@ -309,11 +342,11 @@ export class QueryAnalyzer {
   /**
    * 提取索引名称
    */
-  private extractIndexName(executionPlan: any): string | undefined {
+  private extractIndexName(executionPlan: ExecutionPlan): string | undefined {
     if (this.config.type === "postgresql") {
-      return executionPlan["Index Name"];
+      return executionPlan["Index Name"] as string | undefined;
     } else if (this.config.type === "mysql") {
-      return executionPlan.key;
+      return executionPlan.key as string | undefined;
     }
     return undefined;
   }
@@ -321,7 +354,7 @@ export class QueryAnalyzer {
   /**
    * 提取临时表数量
    */
-  private extractTempTables(executionPlan: any): number {
+  private extractTempTables(executionPlan: ExecutionPlan): number {
     if (this.config.type === "mysql") {
       return executionPlan.Using_temp_table ? 1 : 0;
     }
@@ -331,7 +364,7 @@ export class QueryAnalyzer {
   /**
    * 提取文件排序
    */
-  private extractFilesort(executionPlan: any): boolean {
+  private extractFilesort(executionPlan: ExecutionPlan): boolean {
     if (this.config.type === "mysql") {
       return executionPlan.Using_filesort === true;
     }
@@ -341,7 +374,7 @@ export class QueryAnalyzer {
   /**
    * 提取全表扫描
    */
-  private extractFullTableScan(executionPlan: any): boolean {
+  private extractFullTableScan(executionPlan: ExecutionPlan): boolean {
     if (this.config.type === "postgresql") {
       return executionPlan["Node Type"] === "Seq Scan";
     } else if (this.config.type === "mysql") {
@@ -426,7 +459,7 @@ export class QueryAnalyzer {
   /**
    * 提取 MongoDB 管道
    */
-  private extractMongoPipeline(query: string): any[] {
+  private extractMongoPipeline(query: string): unknown[] {
     try {
       const match = query.match(/\.aggregate\((.*)\)/);
       if (match) {

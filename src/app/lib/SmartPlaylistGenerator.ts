@@ -1,15 +1,12 @@
 /**
- * SmartPlaylistGenerator.ts
- * ==========================
- * 智能播放列表生成器
- * 基于情感历史自动生成播放列表
- *
- * @file SmartPlaylistGenerator.ts
- * @description 智能播放列表生成引擎
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: SmartPlaylistGenerator.ts
+ * @description: 智能播放列表生成引擎
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import {
@@ -278,7 +275,7 @@ class SmartPlaylistGeneratorClass {
     const remaining = [...tracks];
 
     while (remaining.length > 0) {
-      const weights = remaining.map((track, index) => {
+      const weights = remaining.map((track, _index) => {
         const lastTrack = result[result.length - 1];
         if (!lastTrack) {
           return 1;
@@ -350,8 +347,8 @@ class SmartPlaylistGeneratorClass {
   generateFocusPlaylist(availableTracks: TrackInfo[]): PlaylistConfig {
     const focusTracks = availableTracks.filter((track) => {
       const energy = track.energy ?? 50;
-      const speechiness = (track as any).speechiness ?? 20;
-      const instrumentalness = (track as any).instrumentalness ?? 50;
+      const speechiness = ((track as unknown) as Record<string, unknown>).speechiness as number ?? 20;
+      const instrumentalness = ((track as unknown) as Record<string, unknown>).instrumentalness as number ?? 50;
 
       return (
         energy >= 30 &&

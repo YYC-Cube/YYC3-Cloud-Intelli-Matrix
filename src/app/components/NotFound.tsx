@@ -1,13 +1,12 @@
 /**
- * NotFound.tsx
- * =============
- * RF-011: 404 通配路由页面
- *
- * 赛博朋克风格 404 页面：
- * - 错误码展示 + 动态光效
- * - 返回首页按钮
- * - 当前路径提示
- * - 完整 i18n 支持
+ * @file: NotFound.tsx
+ * @description: NotFound.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

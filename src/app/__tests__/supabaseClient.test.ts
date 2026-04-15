@@ -1,19 +1,27 @@
 /**
- * supabaseClient.test.ts
- * ============
- * YYC³ 认证模块 - 单元测试
- *
- * 覆盖范围:
- * - Mock 登录成功/失败
- * - 会话持久化（localStorage）
- * - 会话过期检测
- * - 登出清除状态
- * - 认证状态监听
+ * @file: supabaseClient.test.ts
+ * @description: supabaseClient.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import React from "react";
-import { supabase, ghostSignIn, isGhostMode } from "../lib/supabaseClient";
+
+// ============================================================
+// Mock import.meta.env - 必须在 import supabaseClient 之前
+// ============================================================
+vi.stubEnv("VITE_MOCK_ADMIN_PASSWORD", "admin123");
+vi.stubEnv("VITE_MOCK_DEV_PASSWORD", "dev123");
+
+// 动态导入 (确保 env stubs 生效)
+let supabase: typeof import("../lib/supabaseClient").supabase;
+let ghostSignIn: typeof import("../lib/supabaseClient").ghostSignIn;
+let isGhostMode: typeof import("../lib/supabaseClient").isGhostMode;
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -29,9 +37,16 @@ const localStorageMock = (() => {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
 
 describe("supabaseClient (Mock)", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorageMock.clear();
     vi.clearAllMocks();
+
+    // 重置模块并重新加载以确保环境变量生效
+    vi.resetModules();
+    const module = await import("../lib/supabaseClient");
+    supabase = module.supabase;
+    ghostSignIn = module.ghostSignIn;
+    isGhostMode = module.isGhostMode;
   });
 
   // ----------------------------------------------------------

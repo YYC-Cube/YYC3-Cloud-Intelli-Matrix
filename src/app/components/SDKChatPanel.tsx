@@ -1,16 +1,12 @@
 /**
- * SDKChatPanel.tsx
- * =================
- * AI 对话面板 · 基于 BigModel SDK 桥接层
- *
- * 功能:
- * - 模型选择 (从 useModelProvider 已配置模型中选取)
- * - 流式对话 (mock / 真实 API)
- * - 会话历史管理
- * - 使用统计展示
- * - 赛博朋克 GlassCard 风格
- *
- * i18n 已迁移
+ * @file: SDKChatPanel.tsx
+ * @description: SDKChatPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect, useCallback, useContext } from "react";

@@ -1,15 +1,12 @@
 /**
- * InlineEditableTable.tsx
- * ========================
- * 可内联编辑的数据表格组件
- *
- * 功能:
- *  - 双击单元格进入编辑模式, Enter/Tab 确认, Esc 取消
- *  - 自动生成 UPDATE SQL + 反向 Rollback SQL
- *  - 批量 DELETE: 勾选行 → 生成 DELETE SQL + INSERT rollback
- *  - 批量提交前确认弹窗 (防止误操作)
- *  - 已提交变更的 Undo 回滚支持 (IndexedDB 持久化, 跨刷新)
- *  - 主键列保护 (不可编辑)
+ * @file: InlineEditableTable.tsx
+ * @description: InlineEditableTable.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useRef, useEffect } from "react";

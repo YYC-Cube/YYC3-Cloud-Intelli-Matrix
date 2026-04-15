@@ -1,19 +1,12 @@
 /**
- * XtermIntegration.ts
- * ====================
- * IDE 终端 Xterm.js 集成方案
- *
- * 技术选型:
- * - @xterm/xterm v6.x (MIT 许可证，100% 商用自由)
- * - xterm-addon-fit (自适应容器尺寸)
- * - xterm-addon-web-links (链接可点击)
- * - xterm-addon-search (搜索功能)
- *
- * 官方开源地址: https://github.com/xtermjs/xterm.js
- * 特性:
- * - 纯前端渲染
- * - 支持 WebGL 加速
- * - 适配 Mac / Windows / Linux / ARM
+ * @file: XtermIntegration.ts
+ * @description: XtermIntegration.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import type { Terminal as XTermTerminal, ITerminalOptions } from "@xterm/xterm";

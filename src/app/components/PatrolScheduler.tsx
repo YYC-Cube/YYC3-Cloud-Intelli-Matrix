@@ -1,8 +1,12 @@
 /**
- * PatrolScheduler.tsx
- * =====================
- * 巡查计划配置面板
- * 设置自动巡查间隔、开关
+ * @file: PatrolScheduler.tsx
+ * @description: PatrolScheduler.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

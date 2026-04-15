@@ -1,7 +1,12 @@
 /**
- * ide-mock-data.ts
- * =================
- * IDE 页面 Mock 数据
+ * @file: ide-mock-data.ts
+ * @description: ide-mock-data.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import type { IDEFile, IDEProject, ChatMessage, GitChange, GitCommit, GitBranch, IDENotification } from "./ide-types";
@@ -114,11 +119,11 @@ export function GlassCard({ children, className = "", glowColor, ...rest }: Glas
 
 export const ENV = {
   APP_NAME: "YYC3 Cloud Intelli-Matrix",
-  APP_VERSION: "2.4.0",
-  API_BASE_URL: "http://192.168.3.100:3118",
-  WS_URL: "ws://192.168.3.100:3118/ws",
+  APP_VERSION: "3.2.0",
+  API_BASE_URL: "http://localhost:3113",
+  WS_URL: "ws://localhost:3113/ws",
   NODE_ENV: "production",
-  DB_HOST: "192.168.3.100",
+  DB_HOST: "localhost",
   DB_PORT: 5432,
   OLLAMA_ENDPOINT: "http://localhost:11434",
   ZHIPU_API_BASE: "https://open.bigmodel.cn/api/paas/v4",
@@ -365,7 +370,7 @@ pnpm install
 pnpm dev
 \`\`\`
 
-Open http://192.168.3.100:3118
+Open http://localhost:3113
 
 ## Architecture
 

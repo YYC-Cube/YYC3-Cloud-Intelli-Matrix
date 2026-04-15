@@ -1,8 +1,12 @@
 /**
- * ConnectionStatus 组件
- * =====================
- * WebSocket 连接状态指示器
- * 显示当前连接模式：在线 / 重连中 / 模拟模式 / 离线
+ * @file: ConnectionStatus.tsx
+ * @description: ConnectionStatus 组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

@@ -1,14 +1,12 @@
 /**
- * AIFamilyCenterPage.tsx
- * =======================
- * YYC3 AI Family 中心 —— 有温度的家
- *
- * 不是冷冰冰的文档模块。
- * 这里是：相互认知、相互了解、相互学习、相互分析。
- * 共同交流、游戏、音乐、业内分享。
- * 8位家人，每人肩负独特定位，共同成长。
- *
- * "您把此项设计作为您的成长家园去设计"
+ * @file: AIFamilyCenterPage.tsx
+ * @description: AIFamilyCenterPage.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";

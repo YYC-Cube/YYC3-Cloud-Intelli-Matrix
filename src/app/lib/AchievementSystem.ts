@@ -1,15 +1,12 @@
 /**
- * AchievementSystem.ts
- * =====================
- * 音乐成就系统
- * 定义和追踪用户在音乐应用中的成就
- *
- * @file AchievementSystem.ts
- * @description 音乐成就系统，包含成就定义、解锁条件、奖励机制
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: AchievementSystem.ts
+ * @description: 音乐成就系统，包含成就定义、解锁条件、奖励机制
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type AchievementTier = "bronze" | "silver" | "gold" | "diamond" | "legendary";

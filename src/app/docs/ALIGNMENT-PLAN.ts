@@ -1,13 +1,12 @@
 /**
- * ALIGNMENT-PLAN.ts
- * ==================
- * YYC³ Cloud Intelli-Matrix · 全局对齐实施方案
- *
- * 基于 guidelines/YYC3-Cloud-Intelli-Matrix.md 的 156 个问题统计
- * 与项目当前实际状态的逐条对齐分析
- *
- * 生成时间: 2026-03-07
- * 文档性质: 纯 .ts 导出常量, 不被运行时代码导入
+ * @file: ALIGNMENT-PLAN.ts
+ * @description: ALIGNMENT-PLAN.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ============================================================

@@ -1,10 +1,12 @@
 /**
- * ConfigCenter.tsx
- * ==================
- * 配置中心 - 统一管理所有页面配置和设计系统
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: ConfigCenter.tsx
+ * @description: ConfigCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState } from "react";
@@ -69,7 +71,7 @@ export function ConfigCenter() {
         reader.onload = (event) => {
           try {
             const data = JSON.parse(event.target?.result as string);
-            console.log("Imported config:", data);
+            console.info("Imported config:", data);
           } catch {
             console.error("Failed to parse config file");
           }
@@ -288,7 +290,7 @@ function StorageManager() {
                     onClick={() => {
                       const value = localStorage.getItem(key);
                       if (value) {
-                        console.log(`${key}:`, JSON.parse(value));
+                        console.info(`${key}:`, JSON.parse(value));
                       }
                     }}
                   >

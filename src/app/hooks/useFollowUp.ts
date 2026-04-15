@@ -1,9 +1,12 @@
 /**
- * useFollowUp.ts
- * ===============
- * 一键跟进系统 状态管理 Hook
- * 管理告警列表、抽屉面板开关、快速操作回调
- * Phase-3: localStorage 持久化 + CRUD
+ * @file: useFollowUp.ts
+ * @description: useFollowUp.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback } from "react";

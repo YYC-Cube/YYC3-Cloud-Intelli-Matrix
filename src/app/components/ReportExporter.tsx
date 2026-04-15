@@ -1,9 +1,12 @@
 /**
- * ReportExporter.tsx
- * ====================
- * 性能报表生成与导出
- * JSON / CSV(Excel) / PDF(Print) 三种格式
- * 赛博朋克风格 #060e1f + #00d4ff
+ * @file: ReportExporter.tsx
+ * @description: ReportExporter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

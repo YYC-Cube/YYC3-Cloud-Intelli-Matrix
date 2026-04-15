@@ -1,15 +1,12 @@
 /**
- * view-context.ts
- * ================
- * ViewContext & WebSocketContext — extracted from Layout.tsx
- *
- * WHY: Layout.tsx statically imports IntegratedTerminal.tsx,
- *      which imported ViewContext back from Layout.tsx, creating
- *      a circular dependency that broke dynamic module loading
- *      in the Figma Make iframe sandbox.
- *
- * RULE: All components that need ViewContext or WebSocketContext
- *       must import from this file, NEVER from Layout.tsx.
+ * @file: view-context.ts
+ * @description: view-context.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import * as React from "react";

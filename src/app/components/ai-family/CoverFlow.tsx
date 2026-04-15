@@ -1,12 +1,12 @@
 /**
- * @file CoverFlow.tsx
- * @description 3D 封面流滚动组件，支持拖拽、键盘导航、反射效果
- * @module components/ai-family/CoverFlow
- * @author YYC³ Team
- * @version 1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
- * @source D-Music-e
+ * @file: CoverFlow.tsx
+ * @description: 3D 封面流滚动组件，支持拖拽、键盘导航、反射效果
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";

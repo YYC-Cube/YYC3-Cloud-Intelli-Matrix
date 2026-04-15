@@ -1,7 +1,12 @@
 /**
- * websocket-manager.test.ts
- * ============================
- * WebSocket 连接管理器测试
+ * @file: websocket-manager.test.ts
+ * @description: websocket-manager.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

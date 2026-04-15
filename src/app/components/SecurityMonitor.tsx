@@ -1,9 +1,12 @@
 /**
- * SecurityMonitor.tsx
- * ====================
- * 安全与性能监控主页面
- * 4 Tab: 安全检测 | 性能监控 | 系统诊断 | 数据管理
- * 赛博朋克风格，深色 #060e1f + 青色 #00d4ff
+ * @file: SecurityMonitor.tsx
+ * @description: SecurityMonitor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -287,7 +290,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>{t("security.memoryTitle")}</span>
           </div>
           <span style={{ fontSize: "0.7rem", color: riskColor(memory.leakRisk) }}>
-            {t("security.memoryLeakRisk")}: {t(`security.memory${memory.leakRisk.charAt(0).toUpperCase() + memory.leakRisk.slice(1)}` as any)}
+            {t("security.memoryLeakRisk")}: {t(`security.memory${memory.leakRisk.charAt(0).toUpperCase() + memory.leakRisk.slice(1)}` as unknown as string)}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -330,7 +333,7 @@ function PerformanceTabContent({ state, t }: { state: ReturnType<typeof useSecur
             <div key={v.name}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[rgba(224,240,255,0.7)]" style={{ fontSize: "0.72rem" }}>
-                  {t(`security.vitals${v.name}` as any)}
+                  {t(`security.vitals${v.name}` as unknown as string)}
                 </span>
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: "0.85rem", color: vitalColor(v.rating), fontFamily: "'Orbitron', sans-serif" }}>
@@ -423,7 +426,7 @@ function DiagnosticsTabContent({ state, t }: { state: ReturnType<typeof useSecur
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between" style={{ fontSize: "0.72rem" }}>
               <span className="text-[rgba(0,212,255,0.5)]">{item.label}</span>
-              <span style={{ color: (item as any).color || "#e0f0ff" }}>{item.value}</span>
+              <span style={{ color: (item as Record<string, unknown>).color as string || "#e0f0ff" }}>{item.value}</span>
             </div>
           ))}
         </div>

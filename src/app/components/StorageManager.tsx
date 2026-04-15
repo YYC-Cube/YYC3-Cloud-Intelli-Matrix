@@ -1,8 +1,12 @@
 /**
- * StorageManager.tsx
- * ==================
- * 存储管理页面
- * 组合存储配置和同步状态组件
+ * @file: StorageManager.tsx
+ * @description: StorageManager.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState } from "react";

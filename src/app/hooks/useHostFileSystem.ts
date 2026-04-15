@@ -1,19 +1,12 @@
 /**
- * useHostFileSystem.ts
- * =====================
- * 宿主机文件系统访问 Hook — File System Access API
- *
- * 功能:
- *  - 打开本地目录 (showDirectoryPicker) / 自动识别 YYC³ 存储目录
- *  - 文件浏览 / 递归读取 / 搜索
- *  - 文件创建 / 编辑 / 保存 / 删除 / 重命名
- *  - 文件上传 (拖拽/选择) / 下载
- *  - 文件版本控制 (IndexedDB fileVersions store)
- *  - 最近文件记录
- *
- * 后端接口预留:
- *  - 当 File System Access API 不可用时, 通过 HTTP API 降级
- *  - API 端点: POST /api/fs/{read|write|delete|rename|list|upload|search}
+ * @file: useHostFileSystem.ts
+ * @description: useHostFileSystem.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";

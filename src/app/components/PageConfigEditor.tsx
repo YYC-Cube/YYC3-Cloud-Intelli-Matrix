@@ -1,14 +1,16 @@
 /**
- * PageConfigEditor.tsx
- * =====================
- * 页面配置编辑器 - 用于编辑页面级配置
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: PageConfigEditor.tsx
+ * @description: PageConfigEditor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect } from "react";
-import { usePageConfig } from "../hooks/usePageConfig";
+import { usePageConfig, usePageConfigById } from "../hooks/usePageConfig";
 import type { PageConfig } from "../config";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -21,12 +23,18 @@ import { Badge } from "./ui/badge";
 import { RotateCcw, Save, Eye, Code } from "lucide-react";
 
 interface PageConfigEditorProps {
+  pageId?: string;
   onSave?: (config: PageConfig) => void;
   onReset?: () => void;
 }
 
-export function PageConfigEditor({ onSave, onReset }: PageConfigEditorProps) {
-  const { config, updateConfig, resetConfig, isEditable, storageKeys } = usePageConfig();
+export function PageConfigEditor({ pageId, onSave, onReset }: PageConfigEditorProps) {
+  const routeConfig = usePageConfig();
+  const pageConfig = usePageConfigById(pageId || "");
+  
+  const { config, updateConfig, resetConfig, isEditable, storageKeys } = pageId 
+    ? pageConfig 
+    : routeConfig;
   const [localConfig, setLocalConfig] = useState<Partial<PageConfig>>({});
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -348,7 +356,7 @@ export function PageConfigEditor({ onSave, onReset }: PageConfigEditorProps) {
                           onClick={() => {
                             const value = localStorage.getItem(key);
                             if (value) {
-                              console.log(`${key}:`, JSON.parse(value));
+                              console.info(`${key}:`, JSON.parse(value));
                             }
                           }}
                         >

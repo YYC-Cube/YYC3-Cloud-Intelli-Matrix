@@ -1,8 +1,12 @@
 /**
- * shared.ts
- * ==========
- * AI Family 共享数据模块
- * 每位家人都有完整的人格：号码、性格、爱好、技能定位
+ * @file: shared.ts
+ * @description: shared.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import type React from "react";

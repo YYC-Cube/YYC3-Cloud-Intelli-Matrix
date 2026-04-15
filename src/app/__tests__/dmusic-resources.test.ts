@@ -1,13 +1,12 @@
 /**
- * dmusic-resources.test.ts
- * ============================
- * D-Music 资源数据校验测试
- *
- * @file dmusic-resources.test.ts
- * @description D-Music 音乐资源数据完整性验证测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
+ * @file: dmusic-resources.test.ts
+ * @description: D-Music 音乐资源数据完整性验证测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

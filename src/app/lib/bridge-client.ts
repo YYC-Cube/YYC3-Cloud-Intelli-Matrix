@@ -1,8 +1,12 @@
 /**
- * bridge-client.ts
- * ==================
- * 渲染进程桥接客户端封装
- * 提供类型安全的 IPC 调用接口
+ * @file: bridge-client.ts
+ * @description: bridge-client.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type {
@@ -89,7 +93,7 @@ export const fileSystemClient = {
   /**
    * 列出目录内容
    */
-  async listDirectory(path: string, recursive = false): Promise<any[]> {
+  async listDirectory(path: string, recursive = false): Promise<unknown[]> {
     const bridge = getBridgeAPI();
     if (!bridge) {
       return [];
@@ -100,12 +104,12 @@ export const fileSystemClient = {
   /**
    * 获取文件信息
    */
-  async getFileInfo(path: string): Promise<any> {
+  async getFileInfo(path: string): Promise<Record<string, unknown>> {
     const bridge = getBridgeAPI();
     if (!bridge) {
       throw new Error("File system not available in web environment");
     }
-    return bridge.fileSystem.getFileInfo(path);
+    return bridge.fileSystem.getFileInfo(path) as unknown as Promise<Record<string, unknown>>;
   },
 
   /**

@@ -1,8 +1,12 @@
 /**
- * CreateRuleModal.tsx
- * ====================
- * 完整的新建告警规则表单 Modal
- * 赛博朋克风格 #060e1f + #00d4ff
+ * @file: CreateRuleModal.tsx
+ * @description: CreateRuleModal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback } from "react";
@@ -135,7 +139,7 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule }: CreateRul
     setThresholds((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const updateThreshold = useCallback((index: number, field: keyof AlertThreshold, value: any) => {
+  const updateThreshold = useCallback((index: number, field: keyof AlertThreshold, value: unknown) => {
     setThresholds((prev) =>
       prev.map((th, i) => (i === index ? { ...th, [field]: value } : th))
     );
@@ -154,7 +158,7 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule }: CreateRul
     setEscalation((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const updateEscalation = useCallback((index: number, field: string, value: any) => {
+  const updateEscalation = useCallback((index: number, field: string, value: unknown) => {
     setEscalation((prev) =>
       prev.map((esc, i) => (i === index ? { ...esc, [field]: value } : esc))
     );

@@ -1,15 +1,25 @@
 /**
- * api-config.ts
- * ==============
- * 统一后端 API 端点配置
+ * @file: api-config.ts
+ * @description: 统一后端 API 端点配置 · 集中管理所有接口 URL
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [lib],[api],[config]
  *
- * 所有后端接口 URL 集中管理，支持用户通过设置页面编辑，
- * localStorage 持久化，接入真实后端时仅需修改此处配置。
+ * @brief: 统一后端 API 端点配置
  *
- * BroadcastChannel 实时同步到其他标签页。
+ * @details:
+ * - 所有后端接口 URL 集中管理
+ * - 支持用户通过设置页面编辑
+ * - localStorage 持久化
+ * - BroadcastChannel 实时同步到其他标签页
+ * - 集成 Zod 配置验证
  *
- * @module api-config
- * @version 2.0.0 - 集成 Zod 配置验证
+ * @dependencies: broadcast-channel, config-validator, error-handler
+ * @exports: getAPIConfig, setAPIConfig, validateAPIConfig
+ * @notes: 接入真实后端时仅需修改此处配置
  */
 
 import { getSharedChannel } from "./broadcast-channel";

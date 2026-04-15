@@ -1,17 +1,12 @@
 /**
- * PAGE-API-REFERENCE.ts
- * ======================
- * YYC³ 页面 API 参考文档
- *
- * 本文档详细记录每个页面的：
- * - 页面配置（标题、路径、权限）
- * - 布局规范（头部、侧边栏、最大宽度）
- * - 存储键（localStorage 使用的键名）
- * - 可编辑配置项
- * - 依赖组件
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: PAGE-API-REFERENCE.ts
+ * @description: PAGE-API-REFERENCE.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ═══════════════════════════════════════════════════════════════

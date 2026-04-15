@@ -1,7 +1,12 @@
 /**
- * bridge-client.test.ts
- * =======================
- * 桥接客户端单元测试
+ * @file: bridge-client.test.ts
+ * @description: bridge-client.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

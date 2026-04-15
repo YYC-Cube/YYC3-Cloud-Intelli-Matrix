@@ -1,10 +1,12 @@
 /**
- * PWAInstallPrompt.tsx
- * ====================
- * PWA 安装提示横幅组件
- * - 底部浮动提示安装到桌面
- * - 可关闭并记住选择
- * - 赛博朋克风格
+ * @file: PWAInstallPrompt.tsx
+ * @description: PWAInstallPrompt.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

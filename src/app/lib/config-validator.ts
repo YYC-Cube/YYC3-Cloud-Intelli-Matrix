@@ -1,15 +1,12 @@
 /**
- * config-validator.ts
- * ====================
- * YYC³ API 配置验证器
- *
- * 使用 Zod 实现配置验证，确保：
- * - URL 格式正确（支持 http/https/ws/wss 协议）
- * - 数值参数在合理范围内
- * - 提供详细的错误信息和恢复建议
- *
- * @module config-validator
- * @version 1.0.0
+ * @file: config-validator.ts
+ * @description: config-validator.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { z } from "zod";

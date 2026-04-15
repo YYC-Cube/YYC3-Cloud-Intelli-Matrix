@@ -1,10 +1,12 @@
 /**
- * FamilyChat.tsx
- * ==============
- * AI Family 家人对话空间
- * 与8位AI家人自由交流，多人群聊 / 一对一私聊
- *
- * 重构: 使用 shared.ts 共享数据 + 沙箱安全（无 motion/react）
+ * @file: FamilyChat.tsx
+ * @description: FamilyChat.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";

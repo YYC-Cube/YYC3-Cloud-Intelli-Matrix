@@ -1,15 +1,12 @@
 /**
- * VoiceProfileManager.ts
- * ========================
- * 家人语音档案管理器
- * 管理 8 位 AI 家人的语音风格配置
- *
- * @file VoiceProfileManager.ts
- * @description 家人语音风格配置与语音合成管理
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: VoiceProfileManager.ts
+ * @description: 家人语音风格配置与语音合成管理
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { FAMILY_MEMBERS, type FamilyMember } from "../components/ai-family/shared";

@@ -1,15 +1,12 @@
 /**
- * FamilyMusicThemes.ts
- * =====================
- * 家人主题音乐皮肤配置
- * 为 8 位 AI 家人设计独特的音乐播放器主题
- *
- * @file FamilyMusicThemes.ts
- * @description 家人角色主题皮肤配置，包含颜色、动画、背景等视觉元素
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: FamilyMusicThemes.ts
+ * @description: 家人角色主题皮肤配置，包含颜色、动画、背景等视觉元素
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { FamilyMember } from "../components/ai-family/shared";

@@ -1,13 +1,12 @@
 /**
- * useServiceLoop.test.ts
- * =========================
- * 一站式服务闭环 Hook 测试
- *
- * @file useServiceLoop.test.ts
- * @description useServiceLoop Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useServiceLoop.test.ts
+ * @description: useServiceLoop Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

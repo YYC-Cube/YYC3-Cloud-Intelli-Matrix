@@ -241,7 +241,7 @@ export class SmartDetect {
    */
   public showProgress(message: string): void {
     if (typeof console !== "undefined") {
-      console.log(`[YYC³ 智能校测] ${message}`);
+      console.info(`[YYC³ 智能校测] ${message}`);
     }
   }
 
@@ -312,7 +312,7 @@ export const SmartDetect = {
    */
   run: async () => {
     const result = await SmartDetect.getInstance().quickCheck();
-    console.log(result.report);
+    console.info(result.report);
     return result;
   },
 };

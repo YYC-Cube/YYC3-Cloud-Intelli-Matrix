@@ -1,10 +1,12 @@
 /**
- * usePWAManager.ts
- * ==================
- * PWA & 缓存管理 Hook
- *
- * 模拟 Service Worker 状态、缓存策略管理
- * 在真实部署中会对接 SW Registration API
+ * @file: usePWAManager.ts
+ * @description: usePWAManager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useMemo } from "react";

@@ -1,15 +1,24 @@
 /**
- * yyc3-storage.ts
- * ================
- * YYC³ 统一本地存储层 — 双层缓存策略
+ * @file: yyc3-storage.ts
+ * @description: 统一本地存储层 · 双层缓存策略（localStorage + IndexedDB）
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [lib],[storage],[indexeddb]
  *
- * 架构:
- *   localStorage  → 轻量配置 (认证/语言/网络/主题, < 5KB 单项)
- *   IndexedDB     → 大数据持久化 (告警规则/巡查历史/闭环历史/操作模板/诊断记录/报表/错误日志)
- *   BroadcastChannel → 多标签页实时同步
+ * @brief: 统一本地存储层
  *
- * Guidelines 10.1: IndexedDB + localStorage 双层缓存策略
- * Guidelines 4.1:  存储支持 CLI 终端数据导入导出
+ * @details:
+ * - localStorage → 轻量配置 (认证/语言/网络/主题, < 5KB 单项)
+ * - IndexedDB → 大数据持久化 (告警规则/巡查历史/闭环历史/操作模板/诊断记录/报表/错误日志)
+ * - BroadcastChannel → 多标签页实时同步
+ * - 支持 CLI 终端数据导入导出
+ *
+ * @dependencies: broadcast-channel
+ * @exports: idbPut, idbGet, idbGetAll, idbDelete, idbClear, localStorage helpers
+ * @notes: 遵循 Guidelines 10.1 双层缓存策略
  */
 
 // ============================================================

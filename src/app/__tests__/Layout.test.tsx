@@ -1,18 +1,12 @@
 /**
- * Layout.test.tsx
- * ================
- * Layout 组件测试
- *
- * 覆盖范围:
- * - 上下文提供: WebSocketContext / ViewContext
- * - TopBar 渲染
- * - Sidebar 渲染 (桌面端)
- * - BottomNav 渲染 (移动端)
- * - AIAssistant 浮窗渲染
- * - CommandPalette / IntegratedTerminal 渲染
- * - Suspense fallback 渲染
- * - 背景元素渲染
- * - 导出: WebSocketContext / ViewContext
+ * @file: Layout.test.tsx
+ * @description: Layout.test.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

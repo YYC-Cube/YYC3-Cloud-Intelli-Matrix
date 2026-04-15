@@ -1,18 +1,12 @@
 /**
- * FamilyVoiceSystem.tsx
- * ======================
- * AI Family 语音系统 —— 让每位家人都有自己的声音
- *
- * 功能：
- *  - 8 位家人独立语音档案（音高/语速/音量）
- *  - Web Speech API TTS 实时预览
- *  - Web Speech Recognition 语音识别输入
- *  - 语音对话模式：说话 → 识别 → 家人语音回复
- *  - 整点关爱语音播报
- *  - 语音命令控制音乐播放
- *  - 情感检测与音乐推荐联动
- *
- * @version v2.0.0 - 集成语音命令与情感检测
+ * @file: FamilyVoiceSystem.tsx
+ * @description: FamilyVoiceSystem.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0 - 集成语音命令与情感检测
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -267,24 +261,24 @@ function VoiceConversationPanel({
   const [isResponding, setIsResponding] = useState(false);
   const [srSupported, setSrSupported] = useState(true);
   const [textInput, setTextInput] = useState("");
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const rgb = hexToRgb(member.color);
 
   const memberConvs = conversations.filter(c => c.memberId === member.id).slice(-10);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = ((window as unknown) as Record<string, unknown>).SpeechRecognition || ((window as unknown) as Record<string, unknown>).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setSrSupported(false);
       return;
     }
-    const recognition = new SpeechRecognition();
+    const recognition = new (SpeechRecognition as new () => SpeechRecognition)();
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = "zh-CN";
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
       let final = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -313,7 +307,7 @@ function VoiceConversationPanel({
         if (emotionState.confidence > 0.6) {
           const suggestion = emotionMusicBridge.suggestMusicAction(emotionState.type);
           if (suggestion.action === "change_playlist") {
-            console.log(`[VoiceSystem] Emotion-based suggestion: ${suggestion.reason}`);
+            console.info(`[VoiceSystem] Emotion-based suggestion: ${suggestion.reason}`);
           }
         }
       } else {
@@ -325,7 +319,7 @@ function VoiceConversationPanel({
       setIsListening(false);
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.warn("Speech recognition error:", event.error);
       setIsListening(false);
     };
@@ -593,7 +587,7 @@ export function FamilyVoiceSystem() {
   }, []);
 
   const srSupported = typeof window !== "undefined" && (
-    !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition
+    !!(window as unknown as Record<string, unknown>).SpeechRecognition || !!(window as unknown as Record<string, unknown>).webkitSpeechRecognition
   );
 
   return (

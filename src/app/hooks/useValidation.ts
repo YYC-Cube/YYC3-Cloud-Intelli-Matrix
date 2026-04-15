@@ -1,17 +1,12 @@
 /**
- * useValidation.ts
- * ==================
- * 统一输入校验工具
- *
- * 提供:
- * - URL 格式校验
- * - API Key 格式校验
- * - 数值范围校验
- * - 必填项校验
- * - 端口号校验
- * - IP 地址校验
- * - 模型名称校验
- * - 批量校验 + 错误提示聚合
+ * @file: useValidation.ts
+ * @description: useValidation.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useCallback, useState, useMemo } from "react";

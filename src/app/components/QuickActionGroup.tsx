@@ -1,8 +1,12 @@
 /**
- * QuickActionGroup.tsx
- * =====================
- * 一键操作按钮组
- * 根据告警上下文显示快速操作按钮
+ * @file: QuickActionGroup.tsx
+ * @description: QuickActionGroup.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

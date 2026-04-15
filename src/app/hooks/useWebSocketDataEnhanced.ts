@@ -1,13 +1,17 @@
 /**
- * useWebSocketDataEnhanced.ts
- * ============================
- * 增强版 WebSocket Hook
- * 
- * 新增功能：
- * - 心跳检测机制（30秒间隔）
- * - 指数退避重连（最大重试 10 次）
- * - 连接状态可视化
- * - 自动降级到模拟模式
+ * @file: useWebSocketDataEnhanced.ts
+ * @description: useWebSocketDataEnhanced.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: deprecated
+ * @tags: [hook]
+ *
+ * @deprecated 此Hook已被 useWebSocketData.ts 完全替代。
+ * useWebSocketData 已接入 DataBus 统一合并引擎，具备相同功能。
+ * 计划于 Phase 4 删除此文件。最后更新: 2026-04-15
+ * @see useWebSocketData - 替代方案
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -20,7 +24,7 @@ import type {
   WebSocketDataState,
 } from "../types";
 import { getAPIConfig } from "../lib/api-config";
-import { nodeStore } from "../stores/dashboard-stores";
+import { useNodeSlice } from "../store/slices/node-slice";
 
 // ============================================================
 // 配置常量
@@ -43,7 +47,7 @@ function jitter(base: number, range: number): number {
 }
 
 function generateSimulatedNodes(): NodeData[] {
-  const storedNodes = nodeStore.getAll();
+  const storedNodes = useNodeSlice.getState().nodes;
   return storedNodes.map((n) => ({
     ...n,
     gpu: n.status === "inactive" ? 0 : Math.min(100, Math.round(jitter(n.gpu, 5))),
@@ -82,7 +86,7 @@ export function useWebSocketDataEnhanced(): WebSocketDataState {
   const [gpuUtil, setGpuUtil] = useState("82.4%");
   const [tokenThroughput, setTokenThroughput] = useState("138K/s");
   const [storageUsed] = useState("12.8TB");
-  const [nodes, setNodes] = useState<NodeData[]>(() => nodeStore.getAll());
+  const [nodes, setNodes] = useState<NodeData[]>(() => useNodeSlice.getState().nodes);
   const [throughputHistory, setThroughputHistory] = useState<ThroughputPoint[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [lastSyncTime, setLastSyncTime] = useState(

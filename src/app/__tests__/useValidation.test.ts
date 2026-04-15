@@ -1,13 +1,12 @@
 /**
- * useValidation.test.ts
- * =======================
- * 统一输入校验工具测试
- *
- * @file useValidation.test.ts
- * @description useValidation Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useValidation.test.ts
+ * @description: useValidation Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

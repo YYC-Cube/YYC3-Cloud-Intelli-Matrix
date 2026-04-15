@@ -1,12 +1,12 @@
 /**
- * XtermTerminal.tsx
- * ==================
- * 基于 Xterm.js 的真实终端组件
- *
- * 使用方法:
- * 1. 安装依赖: pnpm add @xterm/xterm @xterm/addon-fit @xterm/addon-web-links
- * 2. 导入样式: import "@xterm/xterm/css/xterm.css"
- * 3. 使用组件: <XtermTerminal sessionId="term-1" />
+ * @file: XtermTerminal.tsx
+ * @description: XtermTerminal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

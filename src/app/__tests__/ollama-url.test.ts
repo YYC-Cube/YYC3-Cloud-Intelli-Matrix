@@ -1,13 +1,12 @@
 /**
- * ollama-url.test.ts
- * ===================
- * Ollama端点解析工具测试
- *
- * @file ollama-url.test.ts
- * @description ollama-url模块单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: ollama-url.test.ts
+ * @description: ollama-url模块单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

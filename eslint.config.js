@@ -1,3 +1,26 @@
+/**
+ * @file: eslint.config.js
+ * @description: ESLint 配置文件 · 代码质量检查规则
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [config],[eslint],[linting]
+ *
+ * @brief: ESLint 代码检查配置
+ *
+ * @details:
+ * - TypeScript 严格模式检查
+ * - React Hooks 规则
+ * - 未使用导入清理
+ * - YYC³ 自定义规则
+ *
+ * @dependencies: ESLint, TypeScript ESLint, React Plugin
+ * @exports: default config
+ * @notes: 配合 Prettier 使用，避免规则冲突
+ */
+
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
@@ -39,6 +62,7 @@ export default [
       "**/*.test.tsx",
       "**/*.spec.ts",
       "**/*.spec.tsx",
+      "hotel-quick-verify.ts",
     ],
   },
   {

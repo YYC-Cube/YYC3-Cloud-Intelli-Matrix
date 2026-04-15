@@ -1,7 +1,12 @@
 /**
- * FileBrowser.tsx
- * ================
- * 文件浏览器组件 · 浏览 ~/.yyc3-cloudpivot/ 目录结构
+ * @file: FileBrowser.tsx
+ * @description: FileBrowser.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

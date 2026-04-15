@@ -1,15 +1,12 @@
 /**
- * useEmotionMusic.ts
- * ===================
- * 情感感知音乐 Hook
- * 提供情感检测与音乐推荐的集成功能
- *
- * @file useEmotionMusic.ts
- * @description 情感感知音乐控制 Hook
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: useEmotionMusic.ts
+ * @description: 情感感知音乐控制 Hook
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -108,8 +105,8 @@ export function useEmotionMusic(options: UseEmotionMusicOptions = {}): UseEmotio
       onMusicSuggestionRef.current?.(suggestion);
     };
 
-    const unsubDetected = musicEventBus.subscribe("emotion:detected", handleEmotionDetected as any);
-    const unsubChanged = musicEventBus.subscribe("emotion:changed", handleEmotionChanged as any);
+    const unsubDetected = musicEventBus.subscribe("emotion:detected", handleEmotionDetected as (data: unknown) => void);
+    const unsubChanged = musicEventBus.subscribe("emotion:changed", handleEmotionChanged as (data: unknown) => void);
 
     return () => {
       unsubDetected();

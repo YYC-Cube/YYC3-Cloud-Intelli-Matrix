@@ -1,7 +1,12 @@
 /**
- * YYC3LogoSvg.tsx
- * ================
- * YYC³ 品牌 Logo — 直接使用本地 PNG 图标资源
+ * @file: YYC3LogoSvg.tsx
+ * @description: YYC3LogoSvg.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

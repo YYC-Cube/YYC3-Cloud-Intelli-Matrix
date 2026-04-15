@@ -1,15 +1,12 @@
 /**
- * ThemeSwitcher.tsx
- * ==================
- * 家人主题切换器组件
- * 实现 8 位 AI 家人主题皮肤的切换功能
- *
- * @file ThemeSwitcher.tsx
- * @description 家人主题切换器，支持实时预览和动态切换
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: ThemeSwitcher.tsx
+ * @description: 家人主题切换器，支持实时预览和动态切换
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect, useCallback } from "react";

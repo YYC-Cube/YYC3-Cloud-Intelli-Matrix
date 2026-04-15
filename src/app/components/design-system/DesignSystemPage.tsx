@@ -1,15 +1,12 @@
 /**
- * DesignSystemPage.tsx
- * =====================
- * 第九章 · 设计交付物 · Design System 总览页面
- *
- * 路由: /design-system
- *
- * 包含:
- * 9.1 Design Tokens (色彩/字体/间距/阴影/动效)
- * 9.1 组件库 (Atoms/Molecules/Organisms/Templates)
- * 9.2 交互原型 (状态设计 + 交互规范)
- * 9.3 阶段审核总结
+ * @file: DesignSystemPage.tsx
+ * @description: DesignSystemPage.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useContext } from "react";

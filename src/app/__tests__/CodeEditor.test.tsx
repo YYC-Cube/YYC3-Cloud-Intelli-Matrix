@@ -309,7 +309,7 @@ describe("CodeEditor", () => {
   it("should render with JavaScript file", () => {
     render(
       <CodeEditor
-        value="console.log('test');"
+        value="console.info('test');"
         onChange={() => {}}
         filename="app.js"
       />

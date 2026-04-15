@@ -1,19 +1,12 @@
 /**
- * LOCAL-DESIGN-GUIDE.ts
- * ======================
- * YYC3 Cloud Intelli-Matrix -- 本地封装完整设计指南
- *
- * 审计日期: 2026-03-02
- * 适用版本: 1.0.0-rc.2
- *
- * 本文件是面向开发者的完整设计规范，涵盖：
- * - 设计系统 (Design Tokens / 组件规范 / 交互规范)
- * - 本地闭环部署指南
- * - 组件 API 速查
- * - 样式编码规范
- * - 响应式与无障碍规范
- *
- * 导出为 TypeScript 常量，可在 DevGuidePage / DesignSystemPage 中直接引用渲染。
+ * @file: LOCAL-DESIGN-GUIDE.ts
+ * @description: LOCAL-DESIGN-GUIDE.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

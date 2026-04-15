@@ -1,14 +1,24 @@
 /**
- * useMobileView Hook
- * ==================
- * YYC³ 响应式布局 - 断点检测
+ * @file: useMobileView.ts
+ * @description: 响应式布局断点检测 Hook · 检测设备类型和屏幕尺寸
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[responsive],[viewport]
  *
- * 断点定义：
- *   sm:  <768px   移动端（竖屏手机）
- *   md:  768-1023  平板端（竖屏平板）
- *   lg:  1024-1279 桌面端
- *   xl:  1280-1535 大桌面端
- *   2xl: ≥1536     超大屏
+ * @brief: 响应式布局断点检测
+ *
+ * @details:
+ * - 断点定义：sm (<768px), md (768-1023), lg (1024-1279), xl (1280-1535), 2xl (≥1536)
+ * - 自动检测设备类型：移动端、平板、桌面
+ * - 响应窗口大小变化
+ * - 提供便捷的布尔值判断
+ *
+ * @dependencies: React
+ * @exports: useMobileView
+ * @notes: 断点定义与 Tailwind CSS 一致
  */
 
 import { useState, useEffect } from "react";

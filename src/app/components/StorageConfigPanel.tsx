@@ -1,8 +1,12 @@
 /**
- * StorageConfigPanel.tsx
- * =====================
- * 存储配置面板
- * 支持选择存储类型和配置数据库连接
+ * @file: StorageConfigPanel.tsx
+ * @description: StorageConfigPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect } from "react";
@@ -111,7 +115,7 @@ export function StorageConfigPanel({
             <Label htmlFor="storage-type">{t("storage.config.storageType")}</Label>
             <Select 
               value={localConfig.type} 
-              onValueChange={handleStorageTypeChange as any}
+              onValueChange={handleStorageTypeChange as (value: string) => void}
             >
               <SelectTrigger id="storage-type">
                 <SelectValue placeholder={t("storage.config.selectStorageType")} />
@@ -174,7 +178,7 @@ export function StorageConfigPanel({
               <Label htmlFor="conflict-resolution">{t("storage.config.conflictResolution")}</Label>
               <Select 
                 value={localConfig.conflictResolution} 
-                onValueChange={handleConflictResolutionChange as any}
+                onValueChange={handleConflictResolutionChange as (value: string) => void}
               >
                 <SelectTrigger id="conflict-resolution">
                   <SelectValue placeholder={t("storage.config.selectConflictResolution")} />

@@ -1,8 +1,12 @@
 /**
- * QueryCache.ts
- * =============
- * 查询结果缓存管理器
- * 支持基于 SQL 和参数的缓存键生成、过期策略、命中率统计
+ * @file: QueryCache.ts
+ * @description: QueryCache.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { QueryResult } from "./types";
@@ -110,13 +114,14 @@ export class QueryCache {
   /**
    * 设置缓存
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   public set<T = any>(
     sql: string,
     result: QueryResult<T>,
     params: any[] = [],
     ttl?: number
   ): void {
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     const key = this.generateKey(sql, params);
     const size = this.calculateSize(result);
 
@@ -146,6 +151,7 @@ export class QueryCache {
   /**
    * 删除缓存
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public delete(sql: string, params: any[] = []): boolean {
     const key = this.generateKey(sql, params);
     const deleted = this.cache.delete(key);

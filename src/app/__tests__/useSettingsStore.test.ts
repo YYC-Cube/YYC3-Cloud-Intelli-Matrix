@@ -1,13 +1,12 @@
 /**
- * useSettingsStore.test.ts
- * =========================
- * 系统设置持久化Hook测试
- *
- * @file useSettingsStore.test.ts
- * @description useSettingsStore Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useSettingsStore.test.ts
+ * @description: useSettingsStore Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

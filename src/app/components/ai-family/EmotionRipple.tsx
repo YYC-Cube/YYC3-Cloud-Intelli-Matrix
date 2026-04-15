@@ -1,12 +1,12 @@
 /**
- * @file EmotionRipple.tsx
- * @description 情感波纹可视化组件，基于 Canvas 实现动态涟漪效果
- * @module components/ai-family/EmotionRipple
- * @author YYC³ Team
- * @version 1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
- * @source D-Music-B
+ * @file: EmotionRipple.tsx
+ * @description: 情感波纹可视化组件，基于 Canvas 实现动态涟漪效果
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useRef, useEffect, useCallback } from "react";

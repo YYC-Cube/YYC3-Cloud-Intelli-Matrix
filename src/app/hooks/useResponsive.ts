@@ -1,11 +1,12 @@
 /**
- * @file useResponsive.ts
- * @description 响应式检测 Hook，用于适配移动端和桌面端
- * @module hooks/useResponsive
- * @author YYC³ Team
- * @version 1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: useResponsive.ts
+ * @description: 响应式检测 Hook，用于适配移动端和桌面端
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect } from "react";

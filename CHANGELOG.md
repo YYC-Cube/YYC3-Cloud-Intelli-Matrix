@@ -1,3 +1,24 @@
+---
+file: CHANGELOG.md
+description: YYC³ Cloud Intelli-Matrix 版本更新日志 · 记录所有重要变更
+author: YanYuCloudCube Team <admin@0379.email>
+version: v1.0.0
+created: 2026-02-26
+updated: 2026-04-09
+status: stable
+tags: [changelog],[version],[release]
+category: general
+language: zh-CN
+---
+
+> ***YanYuCloudCube***
+> *言启象限 | 语枢未来*
+> ***Words Initiate Quadrants, Language Serves as Core for Future***
+> *万象归元于云枢 | 深栈智启新纪元*
+> ***All things converge in cloud pivot; Deep stacks ignite a new era of intelligence***
+
+---
+
 # 更新日志 (CHANGELOG)
 
 本文件记录 YYC³ Cloud Intelli-Matrix 项目的所有重要更改。

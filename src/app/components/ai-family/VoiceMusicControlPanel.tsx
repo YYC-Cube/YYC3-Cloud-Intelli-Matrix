@@ -1,15 +1,12 @@
 /**
- * VoiceMusicControlPanel.tsx
- * ==========================
- * 语音音乐控制面板
- * 提供语音识别界面和命令反馈
- *
- * @file VoiceMusicControlPanel.tsx
- * @description 语音音乐控制面板组件
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: VoiceMusicControlPanel.tsx
+ * @description: 语音音乐控制面板组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";

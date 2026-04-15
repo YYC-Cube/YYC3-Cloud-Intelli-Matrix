@@ -1,7 +1,12 @@
 /**
- * ai-service-manager.test.ts
- * ============================
- * AI 服务管理器测试
+ * @file: ai-service-manager.test.ts
+ * @description: ai-service-manager.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

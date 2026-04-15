@@ -1,10 +1,12 @@
 /**
- * NetworkConfig.tsx
- * =================
- * 网络连接配置弹窗组件
- * - 三种配置方式：自动检测 / WiFi 配置 / 手动配置
- * - GlassCard 统一风格
- * - 连接测试 + 状态指示
+ * @file: NetworkConfig.tsx
+ * @description: NetworkConfig.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -31,16 +33,22 @@ import { GlassCard } from "./GlassCard";
 import { useNetworkConfig } from "../hooks/useNetworkConfig";
 import type { TestStatus } from "../types";
 import { toast } from "sonner";
-import { wifiNetworkStore, type WifiNetwork } from "../stores/dashboard-stores";
-import {
-  getWifiAutoReconnectConfig,
-  updateWifiAutoReconnectConfig,
-  type WifiAutoReconnectSettings,
-} from "../stores/dashboard-stores";
+import type { WifiAutoReconnectSettings } from "../stores/dashboard-stores";
+import { useNetworkSlice } from "../store/slices/network-slice";
 
 interface NetworkConfigProps {
   open: boolean;
   onClose: () => void;
+}
+
+interface WifiNetworkEntry {
+  id: string;
+  ssid: string;
+  signal?: number;
+  security?: string;
+  connected?: boolean;
+  password?: string;
+  lastConnectedAt?: number;
 }
 
 const tabs = [
@@ -103,28 +111,20 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
   } = useNetworkConfig();
 
   const [activeTab, setActiveTab] = useState<TabId>("auto");
-  const [wifiNetworks, setWifiNetworks] = useState<WifiNetwork[]>(() => wifiNetworkStore.getAll());
+  const { networks: wifiNetworks, addNetwork, updateNetwork, removeNetwork, autoReconnect: arConfig, updateAutoReconnect } = useNetworkSlice();
   const [wifiScanning, setWifiScanning] = useState(false);
   const [editingWifi, setEditingWifi] = useState<string | null>(null);
   const [wifiPassword, setWifiPassword] = useState("");
 
-  // GAP-002: WiFi 自动重连设置 localStorage 持久化
-  const [arConfig, setArConfig] = useState<WifiAutoReconnectSettings>(() => getWifiAutoReconnectConfig());
-
   const updateArSetting = <K extends keyof WifiAutoReconnectSettings>(
     key: K,
-    value: WifiAutoReconnectSettings[K]
+    value: unknown
   ) => {
-    const updated = updateWifiAutoReconnectConfig({ [key]: value });
-    if (updated) {
-      setArConfig(updated);
-      toast.success("自动重连设置已保存", {
-        style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
-      });
-    }
+    updateAutoReconnect({ [key]: value });
+    toast.success("自动重连设置已保存", {
+      style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
+    });
   };
-
-  const refreshWifiFromStore = () => setWifiNetworks(wifiNetworkStore.getAll());
 
   const scanWifi = async () => {
     setWifiScanning(true);
@@ -139,14 +139,14 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
       { ssid: "EdgeNode-WiFi", signal: 55, security: "WPA2" },
     ];
     // Merge with existing stored data (preserve connected state & passwords)
-    const existing = wifiNetworkStore.getAll();
-    const existingMap = new Map(existing.map(n => [n.ssid, n]));
+    const existing = wifiNetworks;
+    const existingMap = new Map(existing.map((n: WifiNetworkEntry) => [n.ssid, n]));
 
     // Clear old and rebuild
-    for (const old of existing) {wifiNetworkStore.remove(old.id);}
+    for (const old of existing) {removeNetwork(old.id);}
     for (const s of scannedList) {
       const prev = existingMap.get(s.ssid);
-      wifiNetworkStore.add({
+      addNetwork({
         ssid: s.ssid,
         signal: s.signal,
         security: s.security,
@@ -155,7 +155,6 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
         lastConnectedAt: prev?.lastConnectedAt,
       });
     }
-    refreshWifiFromStore();
     setWifiScanning(false);
     toast.success("扫描完成，发现 " + scannedList.length + " 个网络", {
       style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
@@ -163,16 +162,16 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
   };
 
   const connectWifi = (ssid: string) => {
-    const all = wifiNetworkStore.getAll();
+    const all = wifiNetworks;
     // Disconnect all first, then connect target
     for (const n of all) {
       if (n.connected && n.ssid !== ssid) {
-        wifiNetworkStore.update(n.id, { connected: false });
+        updateNetwork(n.id, { connected: false });
       }
     }
-    const target = all.find(n => n.ssid === ssid);
+    const target = all.find((n: WifiNetworkEntry) => n.ssid === ssid);
     if (target) {
-      wifiNetworkStore.update(target.id, {
+      updateNetwork(target.id, {
         connected: true,
         password: wifiPassword || target.password,
         lastConnectedAt: Date.now(),
@@ -180,17 +179,15 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
     }
     setEditingWifi(null);
     setWifiPassword("");
-    refreshWifiFromStore();
     toast.success(`已连接到 ${ssid}`, {
       style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" },
     });
   };
 
   const disconnectWifi = (ssid: string) => {
-    const target = wifiNetworks.find(n => n.ssid === ssid);
+    const target = wifiNetworks.find((n: WifiNetworkEntry) => n.ssid === ssid);
     if (target) {
-      wifiNetworkStore.update(target.id, { connected: false });
-      refreshWifiFromStore();
+      updateNetwork(target.id, { connected: false });
       toast.info(`已断开 ${ssid}`);
     }
   };
@@ -372,7 +369,7 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                   className="text-[rgba(0,212,255,0.35)]"
                   style={{ fontSize: "0.68rem" }}
                 >
-                  检测到的网络类型：{(navigator as any).connection?.effectiveType || "未知"}
+                  检测到的网络类型：{(navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType || "未知"}
                 </span>
               </div>
             </div>
@@ -394,9 +391,9 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                 <div className="space-y-2">
                   {[
                     { label: "网络状态", value: navigator.onLine ? "已连接" : "未连接" },
-                    { label: "连接类型", value: (navigator as any).connection?.effectiveType || "4g" },
-                    { label: "下行带宽", value: `${(navigator as any).connection?.downlink || "~10"} Mbps` },
-                    { label: "RTT", value: `${(navigator as any).connection?.rtt || "~50"} ms` },
+                    { label: "连接类型", value: (navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType || "4g" },
+                    { label: "下行带宽", value: `${(navigator as Navigator & { connection?: { downlink?: number } }).connection?.downlink || "~10"} Mbps` },
+                    { label: "RTT", value: `${(navigator as Navigator & { connection?: { rtt?: number } }).connection?.rtt || "~50"} ms` },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between">
                       <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.75rem" }}>
@@ -604,11 +601,11 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
 
           {/* Connection History Tab */}
           {activeTab === "history" && (() => {
-            const allNetworks = wifiNetworkStore.getAll();
+            const allNetworks = wifiNetworks;
             const historyNetworks = allNetworks
-              .filter(n => n.lastConnectedAt)
-              .sort((a, b) => (b.lastConnectedAt || 0) - (a.lastConnectedAt || 0));
-            const connectedNetwork = allNetworks.find(n => n.connected);
+              .filter((n: WifiNetworkEntry) => n.lastConnectedAt)
+              .sort((a: WifiNetworkEntry, b: WifiNetworkEntry) => (b.lastConnectedAt || 0) - (a.lastConnectedAt || 0));
+            const connectedNetwork = allNetworks.find((n: WifiNetworkEntry) => n.connected);
 
             return (
               <div className="space-y-3">
@@ -799,7 +796,6 @@ export function NetworkConfig({ open, onClose }: NetworkConfigProps) {
                         <button
                           onClick={() => {
                             connectWifi(network.ssid);
-                            refreshWifiFromStore();
                           }}
                           disabled={network.connected}
                           className={`shrink-0 ml-2 px-2.5 py-1 rounded-lg transition-all ${

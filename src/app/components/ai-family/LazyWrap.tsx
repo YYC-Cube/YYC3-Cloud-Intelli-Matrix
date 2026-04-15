@@ -1,8 +1,12 @@
 /**
- * LazyWrap.tsx
- * =============
- * React.lazy Suspense 包装器
- * 独立 .tsx 文件以支持 JSX 语法
+ * @file: LazyWrap.tsx
+ * @description: LazyWrap.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { Suspense } from "react";

@@ -1,16 +1,12 @@
 /**
- * dependency-scanner.ts
- * =======================
- * 依赖扫描器 - 更新依赖并修复安全漏洞
- *
- * 功能:
- * - 依赖版本检查
- * - 安全漏洞扫描
- * - 过时依赖检测
- * - 更新建议生成
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: dependency-scanner.ts
+ * @description: dependency-scanner.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 // ============================================================

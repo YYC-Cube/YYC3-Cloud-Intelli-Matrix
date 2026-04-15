@@ -1,13 +1,12 @@
 /**
- * AISuggestionPanel.tsx
- * ======================
- * AI 辅助决策主面板 · 路由: /ai
- *
- * 功能:
- * - Tab 1: AI 分析 (异常模式 + 推荐操作) — 原有功能
- * - Tab 2: AI 对话 (SDKChatPanel) — 新增
- *
- * i18n 已迁移
+ * @file: AISuggestionPanel.tsx
+ * @description: AISuggestionPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useContext } from "react";

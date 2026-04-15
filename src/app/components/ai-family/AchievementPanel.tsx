@@ -1,15 +1,12 @@
 /**
- * AchievementPanel.tsx
- * =====================
- * 成就系统面板组件
- * 显示用户成就进度和解锁状态
- *
- * @file AchievementPanel.tsx
- * @description 成就系统 UI 组件
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: AchievementPanel.tsx
+ * @description: 成就系统 UI 组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect, useCallback } from "react";

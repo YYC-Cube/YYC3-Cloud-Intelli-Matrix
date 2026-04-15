@@ -1,8 +1,12 @@
 /**
- * IDETerminal.tsx
- * ================
- * IDE 底部集成终端面板
- * 多 Tab + 命令行交互 + 输出展示 + Git/NPM/系统命令
+ * @file: IDETerminal.tsx
+ * @description: IDETerminal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -154,7 +158,7 @@ const COMMAND_REGISTRY: Record<string, (args: string[]) => TerminalLine[]> = {
     { type: "output", content: "Enumerating objects: 12, done." },
     { type: "output", content: "Counting objects: 100% (12/12), done." },
     { type: "output", content: "Writing objects: 100% (8/8), 2.34 KiB | 2.34 MiB/s, done." },
-    { type: "success", content: "To 192.168.3.100:yyc3/cloudpivot-matrix.git" },
+    { type: "success", content: "To origin:yyc3/cloudpivot-matrix.git" },
     { type: "success", content: "   b7e1a4f..a3f8c2d  develop -> develop" },
   ],
   "git pull": () => [
@@ -168,8 +172,8 @@ const COMMAND_REGISTRY: Record<string, (args: string[]) => TerminalLine[]> = {
   "pnpm dev": () => [
     { type: "output", content: "  VITE v6.3.5  ready in 342 ms" },
     { type: "output", content: "" },
-    { type: "success", content: "  ➜  Local:   http://192.168.3.100:3118/" },
-    { type: "output", content: "  ➜  Network: http://192.168.3.100:3118/" },
+    { type: "success", content: "  ➜  Local:   http://localhost:3113/" },
+    { type: "output", content: "  ➜  Network: http://localhost:3113/" },
     { type: "output", content: "  ➜  press h + enter to show help" },
   ],
   "pnpm build": () => [
@@ -226,7 +230,7 @@ const COMMAND_REGISTRY: Record<string, (args: string[]) => TerminalLine[]> = {
     { type: "output", content: "  Memory:  48GB" },
     { type: "output", content: "  Disk:    2TB NVMe" },
     { type: "output", content: "  GPU:     Apple M4 Max 40-core" },
-    { type: "output", content: "  Network: 192.168.3.100" },
+    { type: "output", content: "  Network: localhost" },
   ],
 };
 

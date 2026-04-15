@@ -1,14 +1,25 @@
 /**
- * useSettingsStore.ts
- * ====================
- * 系统设置统一持久化 Hook
+ * @file: useSettingsStore.ts
+ * @description: 系统设置统一持久化 Hook · 集中管理所有配置项
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[settings],[storage]
  *
- * 功能:
+ * @brief: 系统设置统一持久化管理
+ *
+ * @details:
  * - 所有 SystemSettings 配置项集中管理
  * - localStorage 持久化 (key: yyc3_system_settings)
- * - 开关类 (toggles) 和文本类 (values) 分开管理
- * - 导出/导入/重置
+ * - 开关类 和文本类 分开管理
+ * - 导出/导入/重置功能
  * - BroadcastChannel 多标签页同步
+ *
+ * @dependencies: React, localStorage, BroadcastChannel
+ * @exports: useSettingsStore
+ * @notes: 设置变更会自动同步到所有标签页
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -234,6 +245,16 @@ export function useSettingsStore() {
         toggles: { ...prev.toggles, [key]: !prev.toggles[key] },
       };
       broadcast(next);
+
+      // SSOT 桥接: darkMode 变更同步到 GlobalStore.theme
+      if (key === "darkMode") {
+        try {
+          const { useGlobalStore } = require("../stores/global-store");
+          const newTheme = next.toggles.darkMode ? "dark" : "light";
+          useGlobalStore.getState().setTheme(newTheme);
+        } catch { /* GlobalStore unavailable */ }
+      }
+
       return next;
     });
   }, [broadcast]);

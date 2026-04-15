@@ -1,7 +1,12 @@
 /**
- * PageHeader.tsx
- * ===============
- * 通用页面头部组件
+ * @file: page-header.tsx
+ * @description: PageHeader.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

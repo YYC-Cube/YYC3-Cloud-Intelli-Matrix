@@ -1,13 +1,12 @@
 /**
- * AddModelModal.tsx
- * ==================
- * 添加模型 模态框
- *
- * UI 匹配截图:
- * - 服务商下拉 (Z.ai / Z.ai-plan / Kimi-CN / ... / Ollama)
- * - 模型下拉 (根据服务商动态切换; Ollama 自动识别)
- * - API 密钥输入 (Ollama 不需要)
- * - 添加模型按钮
+ * @file: AddModelModal.tsx
+ * @description: AddModelModal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useRef } from "react";

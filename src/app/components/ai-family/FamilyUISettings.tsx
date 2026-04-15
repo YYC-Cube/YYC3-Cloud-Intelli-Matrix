@@ -1,15 +1,12 @@
 /**
- * FamilyUISettings.tsx
- * =====================
- * AI Family 独立 UI 控制设置页面 & 生态可视操作面板
- *
- * 功能：
- *  - 全局主题偏好（动画速度、信息密度、配色模式）
- *  - 家人显示偏好（可见性、排序、默认展开）
- *  - 通知与播报设置
- *  - 系统链路健康总览（一站式测通 & 自动修复）
- *  - 数据管理（缓存清理、全量导出、全量导入）
- *  - 生态模块状态可视面板
+ * @file: FamilyUISettings.tsx
+ * @description: FamilyUISettings.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -423,14 +420,15 @@ export function FamilyUISettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [ALL_STORAGE_KEYS]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleImportAll = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) {return;}
       const reader = new FileReader();
       reader.onload = (ev) => {

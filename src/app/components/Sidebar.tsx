@@ -1,9 +1,12 @@
 /**
- * Sidebar.tsx
- * ============
- * 可折叠图标侧边栏 · 赛博朋克风格
- * 悬停展开子菜单 flyout · 支持固定展开
- * 仅桌面端渲染（移动/平板用 TopBar 汉堡菜单）
+ * @file: Sidebar.tsx
+ * @description: Sidebar.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -23,6 +26,7 @@ import {
   UserCircle2,
   Zap,
   MessageCircle, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, MessageSquare, FileText, Trophy, Settings2,
+  Building2, Radio,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { useI18n } from "../hooks/useI18n";
@@ -102,6 +106,8 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.aiFamilyData",  path: "/ai-family/data",    icon: Database },
       { key: "nav.aiFamilyComm",  path: "/ai-family/comm",    icon: MessageSquare },
       { key: "nav.aiFamilySettings", path: "/ai-family/settings", icon: Settings2 },
+      { key: "nav.aiFamilyHotel", path: "/ai-family/hotel",   icon: Building2 },
+      { key: "nav.aiFamilyCluster",path: "/ai-family/cluster", icon: Radio },
     ],
   },
   {
@@ -126,6 +132,7 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.audit",   path: "/audit",    icon: ClipboardList },
       { key: "nav.userMgmt", path: "/users",    icon: Users },
       { key: "nav.settings", path: "/settings", icon: Cog },
+      { key: "nav.unifiedSettings", path: "/unified-settings", icon: Settings2 },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
       { key: "nav.pwa",     path: "/pwa",      icon: Smartphone },
       { key: "nav.dataEditor", path: "/data-editor", icon: Package },

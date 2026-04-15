@@ -1,8 +1,12 @@
 /**
- * storageManager.ts
- * =================
- * 存储管理服务
- * 处理存储配置的持久化和应用
+ * @file: storageManager.ts
+ * @description: storageManager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { DatabaseAdapter } from "../../database/DatabaseAdapter";

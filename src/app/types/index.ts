@@ -1,16 +1,29 @@
 /**
- * types/index.ts
- * ===============
- * YYC³ 全局统一类型定义
+ * @file: index.ts
+ * @description: YYC³ 全局统一类型定义 · 所有业务类型集中管理
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [type],[global],[typescript]
  *
- * 设计原则：
- * - 同一业务概念只定义一次，全局引用
- * - 所有组件、Hooks、工具函数从此处 import 类型
+ * @copyright: YanYuCloudCube Team
+ * @license: MIT
+ *
+ * @brief: 全局类型定义，统一管理所有业务类型
+ *
+ * @details:
+ * - 用户与认证类型
+ * - 节点与集群类型
+ * - WebSocket 数据类型
+ * - AI 服务类型
+ * - 数据库操作类型
  * - 字段命名遵循 camelCase (前端) / snake_case (DB Schema) 双标准
  *
- * ============================================================
- *  1. 用户与认证
- * ============================================================
+ * @dependencies: React
+ * @exports: All types
+ * @notes: 同一业务概念只定义一次，全局引用
  */
 
 import type { ElementType } from "react";
@@ -966,13 +979,13 @@ export interface HostFSState {
  * ============================================================
  */
 
-/** 数据库类型 */
-export type DatabaseType = "postgresql" | "mysql" | "redis";
+/** 数据库类型 (统一: 合并 types + dashboard-stores 定义) */
+export type DatabaseType = "postgresql" | "mysql" | "sqlite" | "redis" | "mongodb" | "custom";
 
-/** 数据库连接状态 */
-export type DBConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
+/** 数据库连接状态 (统一: 合并 types + dashboard-stores 定义) */
+export type DBConnectionStatus = "disconnected" | "connecting" | "connected" | "error" | "testing";
 
-/** 数据库连接配置 */
+/** 数据库连接配置 (统一: 合并 types + dashboard-stores DBConnection) */
 export interface DBConnection {
   id: string;
   name: string;
@@ -984,9 +997,11 @@ export interface DBConnection {
   /** 加密存储, 前端仅做 mask 展示 */
   password: string;
   status: DBConnectionStatus;
-  lastConnected: number | null;
-  createdAt: number;
-  color: string;
+  lastConnected?: number | null;
+  lastTestAt?: number;
+  createdAt?: number;
+  color?: string;
+  options?: string;
 }
 
 /** 数据库表信息 */
@@ -1778,4 +1793,119 @@ export interface ProjectStats {
 export interface AcceptanceItem {
   category: string;
   items: { label: string; passed: boolean }[];
+}
+
+/**
+ * ============================================================
+ *  38. Dashboard 数据类型 (从 dashboard-stores.ts 统一迁移)
+ *  迁移日期: 2026-04-16
+ *  原文件: src/app/stores/dashboard-stores.ts (类型定义部分)
+ * ============================================================
+ */
+
+/** 模型性能评估条目 */
+export interface ModelPerfEntry {
+  id: string;
+  model: string;
+  accuracy: number;
+  speed: number;
+  memory: number;
+  cost: number;
+}
+
+/** 模型分布条目 */
+export interface ModelDistEntry {
+  id: string;
+  name: string;
+  value: number;
+}
+
+/** 最近操作条目 */
+export interface RecentOpEntry {
+  id: string;
+  action: string;
+  target: string;
+  user: string;
+  time: string;
+  status: "success" | "running" | "pending" | "warning" | "error";
+}
+
+/** 雷达图数据条目 */
+export interface RadarEntry {
+  id: string;
+  metric: string;
+  A: number;
+  B: number;
+}
+
+/** 持久化日志条目 */
+export interface StoredLogEntry {
+  id: string;
+  timestamp: number;
+  level: LogLevel;
+  source: string;
+  message: string;
+}
+
+/** 已部署模型条目 */
+export interface DeployedModel {
+  id: string;
+  name: string;
+  version: string;
+  size: string;
+  status: "deployed" | "deploying" | "standby" | "error";
+  gpu: string;
+}
+
+/** WiFi 网络条目 */
+export interface WifiNetwork {
+  id: string;
+  ssid: string;
+  signal: number;
+  security: string;
+  connected: boolean;
+  password?: string;
+  lastConnectedAt?: number;
+}
+
+/** 用户管理记录 */
+export interface UserRecord {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  status: "online" | "offline";
+  lastLogin: string;
+  sessions: number;
+  apiCalls: number;
+  locked: boolean;
+}
+
+/** WiFi 自动重连设置 */
+export interface WifiAutoReconnectSettings {
+  id: string;
+  enabled: boolean;
+  preferStrongestSignal: boolean;
+  intervalSeconds: number;
+  maxRetries: number;
+  preferredSsid: string;
+  lastUpdatedAt: number;
+}
+
+/** 跟进任务记录 */
+export interface FollowUpRecord {
+  id: string;
+  taskId: string;
+  taskName: string;
+  assignee: string;
+  assigneeName: string;
+  priority: "low" | "medium" | "high" | "critical";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  dueDate: number;
+  completedAt?: number;
+  notes?: string;
+  createdAt: number;
+  updatedAt: number;
+  category: "maintenance" | "optimization" | "security" | "feature" | "bugfix";
 }

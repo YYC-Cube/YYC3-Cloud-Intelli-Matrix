@@ -1,13 +1,12 @@
 /**
- * ModelProviderPanel.tsx
- * =======================
- * AI 模型提供商管理面板 · 路由: /models
- *
- * 功能:
- * - 服务商管理 (查看 / 编辑 / 添加自定义 / 删除)
- * - 已配置模型列表 (添加 / 删除 / 测试连接)
- * - Ollama 本地模型状态
- * - 配置导入/导出
+ * @file: ModelProviderPanel.tsx
+ * @description: ModelProviderPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useContext, useState } from "react";

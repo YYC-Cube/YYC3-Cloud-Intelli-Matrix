@@ -1,14 +1,12 @@
 /**
- * EnvConfigEditor.tsx
- * ====================
- * 环境变量 UI 编辑面板 · 路由: /env-config
- *
- * 功能:
- * - 所有 env-config.ts 变量可视化展示 + 编辑
- * - 分组: 系统标识 / 网络端点 / 存储 / AI / 安全 / 功能开关
- * - 每项: 内联编辑 + 类型校验 + 不可逆标记
- * - 批量操作: 重置全部 / 导出 JSON / 导入 JSON
- * - localStorage 实时持久化
+ * @file: EnvConfigEditor.tsx
+ * @description: EnvConfigEditor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useRef } from "react";

@@ -1,7 +1,12 @@
 /**
- * config/env.ts
- * ============
- * 环境变量管理
+ * @file: env.ts
+ * @description: config/env.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { AppConfig } from "./types";

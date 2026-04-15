@@ -1,8 +1,12 @@
 /**
- * ColorPicker.tsx
- * ================
- * HEX 颜色选择器 · 赛博朋克风格
- * 包含: 色相/饱和度/明度面板 + 色相滑条 + HEX/R/G/B 输入
+ * @file: ColorPicker.tsx
+ * @description: ColorPicker.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useRef, useEffect, useCallback, useState } from "react";

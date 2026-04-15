@@ -1,12 +1,12 @@
 /**
- * settings-model-unified-dataflow.test.ts
- * =========================================
- * 集成测试：验证 Settings 页作为全局唯一数据源
- *
- * 覆盖三大核心问题：
- * 1. 模型配置统一可编辑（不硬编码）
- * 2. 监控中心数据从 Store 读取（动态）
- * 3. 设置页 = 全局数据源，多组件共享
+ * @file: settings-model-unified-dataflow.test.ts
+ * @description: settings-model-unified-dataflow.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // Mock localStorage

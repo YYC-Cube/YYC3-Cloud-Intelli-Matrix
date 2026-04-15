@@ -1,8 +1,12 @@
 /**
- * FollowUpCard.tsx
- * =================
- * 告警/异常跟进卡片
- * 显示告警信息、严重级别、操作链路摘要，支持展开操作
+ * @file: FollowUpCard.tsx
+ * @description: FollowUpCard.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

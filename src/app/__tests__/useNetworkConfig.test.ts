@@ -1,13 +1,12 @@
 /**
- * useNetworkConfig.test.ts
- * =========================
- * 网络配置管理Hook测试
- *
- * @file useNetworkConfig.test.ts
- * @description useNetworkConfig Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useNetworkConfig.test.ts
+ * @description: useNetworkConfig Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

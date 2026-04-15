@@ -1,8 +1,12 @@
 /**
- * FollowUpDrawer.tsx
- * ====================
- * 侧边抽屉式详细面板
- * 显示告警完整详情、操作链路、关联告警、AI 建议
+ * @file: FollowUpDrawer.tsx
+ * @description: FollowUpDrawer.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useRef } from "react";

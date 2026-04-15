@@ -1,10 +1,12 @@
 /**
- * useVariables.ts
- * =================
- * 变量管理 Hook
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: useVariables.ts
+ * @description: useVariables.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -183,7 +185,7 @@ export function useVariableValue<T = unknown>(key: string, defaultValue?: T): T 
     }
   }, [key]);
 
-  const setVariable = useCallback(
+  const _setVariable = useCallback(
     (newValue: T) => {
       setVariableValue(key, newValue, "user");
       setValue(newValue);

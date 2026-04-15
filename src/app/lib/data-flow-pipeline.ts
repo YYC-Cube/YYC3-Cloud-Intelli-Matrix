@@ -1,17 +1,12 @@
 /**
- * data-flow-pipeline.ts
- * ======================
- * 数据流管道 - 统一数据处理和转换
- *
- * 功能:
- * - 数据验证和清洗
- * - 数据转换和映射
- * - 数据聚合和统计
- * - 数据缓存和过期管理
- * - 数据订阅和发布
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: data-flow-pipeline.ts
+ * @description: data-flow-pipeline.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { NodeData, ThroughputPoint, AlertData } from "../types";

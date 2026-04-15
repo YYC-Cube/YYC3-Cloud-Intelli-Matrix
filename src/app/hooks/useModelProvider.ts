@@ -1,14 +1,12 @@
 /**
- * useModelProvider.ts
- * ====================
- * AI 模型提供商管理 Hook — 统一数据源
- *
- * 功能:
- * - 服务商 CRUD (localStorage 持久化, 内置 + 自定义)
- * - 已配置模型 CRUD (localStorage 持久化)
- * - Ollama 本地模型自动识别 (http://localhost:11434/api/tags)
- * - 统一 availableModels 列表供全局消费
- * - 服务商模型列表可动态编辑
+ * @file: useModelProvider.ts
+ * @description: useModelProvider.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -20,12 +18,14 @@ import type {
   OllamaTagsResponse,
 } from "../types";
 import { getOllamaTagsUrl } from "../lib/ollama-url";
+import { testAIConnection, type AIConnectionConfig } from "../lib/connection-test-engine";
 
 // ============================================================
 // 内置服务商默认值 (仅首次初始化时写入 localStorage)
+// 导出供外部测试和类型检查使用
 // ============================================================
 
-const BUILTIN_PROVIDERS: ModelProviderDef[] = [
+export const BUILTIN_PROVIDERS: ModelProviderDef[] = [
   {
     id: "zhipu",
     label: "Z.ai",
@@ -119,17 +119,17 @@ const BUILTIN_PROVIDERS: ModelProviderDef[] = [
 ];
 
 // ============================================================
-// Storage Keys
+// Storage Keys (导出供外部使用)
 // ============================================================
 
-const PROVIDERS_KEY = "yyc3_model_providers";
-const MODELS_KEY = "yyc3_configured_models";
+export const PROVIDERS_KEY = "yyc3_model_providers";
+export const MODELS_KEY = "yyc3_configured_models";
 
 // ============================================================
-// 持久化工具函数
+// 持久化工具函数 (导出供外部测试)
 // ============================================================
 
-function loadProviders(): ModelProviderDef[] {
+export function loadProviders(): ModelProviderDef[] {
   try {
     const raw = localStorage.getItem(PROVIDERS_KEY);
     if (raw) {
@@ -147,13 +147,18 @@ function loadProviders(): ModelProviderDef[] {
   }
 }
 
-function saveProviders(providers: ModelProviderDef[]) {
+export function saveProviders(providers: ModelProviderDef[]) {
   try {
     localStorage.setItem(PROVIDERS_KEY, JSON.stringify(providers));
   } catch { /* Storage unavailable */ }
+  // SSOT 桥接: 同步到 GlobalStore
+  try {
+    const { bridgeProvidersToGlobal } = require("../stores/global-store");
+    bridgeProvidersToGlobal(providers);
+  } catch { /* GlobalStore not available */ }
 }
 
-function loadModels(): ConfiguredModel[] {
+export function loadModels(): ConfiguredModel[] {
   try {
     const raw = localStorage.getItem(MODELS_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -162,10 +167,15 @@ function loadModels(): ConfiguredModel[] {
   }
 }
 
-function saveModels(models: ConfiguredModel[]) {
+export function saveModels(models: ConfiguredModel[]) {
   try {
     localStorage.setItem(MODELS_KEY, JSON.stringify(models));
   } catch { /* Storage unavailable */ }
+  // SSOT 桥接: 同步到 GlobalStore
+  try {
+    const { bridgeModelsToGlobal } = require("../stores/global-store");
+    bridgeModelsToGlobal(models);
+  } catch { /* GlobalStore not available */ }
 }
 
 // ============================================================
@@ -277,7 +287,9 @@ export function useModelProvider() {
 
   // ========== Ollama 自动识别 ==========
   const fetchOllamaModels = useCallback(async (baseUrl?: string) => {
-    const ollamaProvider = providers.find((p) => p.id === "ollama");
+    // 使用 getProviders() 获取最新状态，避免依赖 providers 导致无限循环
+    const currentProviders = loadProviders();
+    const ollamaProvider = currentProviders.find((p) => p.id === "ollama");
     const url = baseUrl || ollamaProvider?.baseUrl || "http://localhost:11434";
     setOllamaLoading(true);
     setOllamaError(null);
@@ -378,7 +390,7 @@ export function useModelProvider() {
     } finally {
       setOllamaLoading(false);
     }
-  }, [providers]);
+  }, []); // 移除 providers 依赖，使用 loadProviders() 获取最新状态
 
   // ========== 初始化时自动获取 Ollama 模型 ==========
   useEffect(() => {
@@ -428,7 +440,9 @@ export function useModelProvider() {
     customBaseUrl?: string,
     proxyUrl?: string,
   ) => {
-    const provider = providers.find((p) => p.id === providerId);
+    // 使用 loadProviders() 获取最新状态，避免依赖 providers
+    const currentProviders = loadProviders();
+    const provider = currentProviders.find((p) => p.id === providerId);
     if (!provider) {return;}
 
     const newModel: ConfiguredModel = {
@@ -446,7 +460,7 @@ export function useModelProvider() {
 
     setConfiguredModels((prev) => [...prev, newModel]);
     return newModel;
-  }, [providers]);
+  }, []); // 移除 providers 依赖，使用 loadProviders() 获取最新状态
 
   // ========== 更新已配置模型 ==========
   const updateModel = useCallback((id: string, updates: Partial<ConfiguredModel>) => {
@@ -460,14 +474,54 @@ export function useModelProvider() {
     setConfiguredModels((prev) => prev.filter((m) => m.id !== id));
   }, []);
 
-  // ========== 测试连接 (Mock) ==========
+  // ========== 测试连接 (真实调用引擎) ==========
   const testConnection = useCallback(async (id: string) => {
-    setConfiguredModels((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, status: "active" as const, lastUsed: Date.now() } : m
-      )
-    );
-  }, []);
+    const model = configuredModels.find((m) => m.id === id);
+    if (!model) { return; }
+
+    const isLocal = model.providerId === "ollama" || model.providerLabel.toLowerCase().includes("ollama");
+    const baseUrl = model.baseUrl || (isLocal ? (typeof window !== "undefined"
+      ? `${window.location.protocol}//${window.location.hostname}:11434`
+      : "http://localhost:11434") : "");
+
+    try {
+      const config: AIConnectionConfig = {
+        providerId: model.providerId,
+        providerLabel: model.providerLabel,
+        baseUrl,
+        authType: "bearer",
+        apiKey: model.apiKey || "",
+        modelId: model.id,
+        modelName: model.model,
+        isLocal,
+        proxyUrl: model.proxyUrl,
+      };
+
+      const result = await testAIConnection(config);
+
+      setConfiguredModels((prev) =>
+        prev.map((m) => {
+          if (m.id !== id) { return m; }
+          return {
+            ...m,
+            status: result.overallStatus === "pass" ? "active" as const :
+                   result.overallStatus === "warn" ? "active" as const :
+                   "error" as const,
+            lastUsed: Date.now(),
+          };
+        })
+      );
+    } catch (err: unknown) {
+      console.error("[useModelProvider] testConnection error:", err);
+      setConfiguredModels((prev) =>
+        prev.map((m) => {
+          if (m.id !== id) { return m; }
+          return { ...m, status: "error" as const, lastUsed: Date.now() };
+        })
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configuredModels]);
 
   // ========== 导出/导入配置 ==========
   const exportConfig = useCallback(() => {

@@ -1,17 +1,12 @@
 /**
- * ai-service-manager.ts
- * ======================
- * AI 服务管理器 - 统一管理多模型 AI 服务
- *
- * 功能:
- * - 请求队列管理 (并发控制、优先级)
- * - 智能重试机制 (指数退避)
- * - 响应缓存优化
- * - 性能监控统计
- * - 错误恢复策略
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: ai-service-manager.ts
+ * @description: ai-service-manager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { ConfiguredModel, SDKChatResponse, ChatRole } from "../types";

@@ -1,17 +1,12 @@
 /**
- * ArchitectureAudit.tsx
- * ======================
- * YYC3 项目架构全景审计面板
- *
- * 详细展示当前项目的:
- * - 架构概览统计
- * - 路由/页面组成
- * - 组件层级分类
- * - 数据层 (stores + localStorage)
- * - 类型系统覆盖
- * - 测试覆盖矩阵
- * - 功能完成度清单
- * - 已知缺口与 TODO
+ * @file: ArchitectureAudit.tsx
+ * @description: ArchitectureAudit.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useMemo } from "react";

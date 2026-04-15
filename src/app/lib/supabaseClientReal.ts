@@ -1,13 +1,12 @@
 /**
- * supabaseClientReal.ts
- * ======================
- * 真实 Supabase 客户端实现
- * 
- * 功能：
- * - 连接真实 Supabase 后端
- * - 类型适配器（Supabase → App 类型）
- * - 环境变量配置
- * - Mock 模式降级
+ * @file: supabaseClientReal.ts
+ * @description: supabaseClientReal.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -17,9 +16,11 @@ import type { AppUser, AppSession } from '../types';
 // 环境配置
 // ============================================================
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const USE_MOCK = !SUPABASE_URL || !SUPABASE_ANON_KEY || import.meta.env.VITE_USE_MOCK_AUTH === 'true';
+// @ts-ignore - Vite env
+const env = import.meta.env;
+const SUPABASE_URL = env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY;
+const USE_MOCK = !SUPABASE_URL || !SUPABASE_ANON_KEY || env.VITE_USE_MOCK_AUTH === 'true';
 
 // ============================================================
 // 类型适配器
@@ -79,15 +80,25 @@ function getSupabaseClient(): SupabaseClient {
 
 // ============================================================
 // Mock 客户端（降级方案）
+// 安全设计：密码从环境变量读取，未配置时为空（需通过UI设置）
+// 用户数据归用户 — 所有凭据均可在 SystemSettings 界面中修改
 // ============================================================
+
+const getDefaultPassword = (email: string): string => {
+  const envMap: Record<string, string | undefined> = {
+    "admin@cloudpivot.local": env.VITE_MOCK_ADMIN_PASSWORD,
+    "dev@cloudpivot.local": env.VITE_MOCK_DEV_PASSWORD,
+  };
+  return envMap[email] || "";
+};
 
 const MOCK_USERS: Record<string, { password: string; user: AppUser }> = {
   "admin@cloudpivot.local": {
-    password: "admin123",
+    password: getDefaultPassword("admin@cloudpivot.local"),
     user: { id: "usr-001", email: "admin@cloudpivot.local", role: "admin", name: "YYC Admin" },
   },
   "dev@cloudpivot.local": {
-    password: "dev123",
+    password: getDefaultPassword("dev@cloudpivot.local"),
     user: { id: "usr-002", email: "dev@cloudpivot.local", role: "developer", name: "YYC Developer" },
   },
 };

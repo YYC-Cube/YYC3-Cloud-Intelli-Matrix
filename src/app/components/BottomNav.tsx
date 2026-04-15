@@ -1,16 +1,12 @@
 /**
- * BottomNav 组件
- * ==============
- * 移动端底部导航栏 · 专业级重构
- *
- * 优化点：
- * - 4 核心 Tab + "更多" 弹出抽屉
- * - 拇指热区优化 (48x48 最小触控)
- * - 激活态发光 + 微动效
- * - 安全区域适配 (iPhone notch)
- * - 长按快捷预览（预留）
- *
- * i18n 完整覆盖
+ * @file: BottomNav.tsx
+ * @description: BottomNav 组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

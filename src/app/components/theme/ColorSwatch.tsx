@@ -1,7 +1,12 @@
 /**
- * ColorSwatch.tsx
- * ================
- * 单个颜色变量卡片 · 显示 OKLch + HEX，点击弹出颜色选择器
+ * @file: ColorSwatch.tsx
+ * @description: ColorSwatch.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect } from "react";

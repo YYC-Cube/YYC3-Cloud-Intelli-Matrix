@@ -1,19 +1,46 @@
 /**
- * broadcast-channel.ts
- * =====================
- * RF-009: BroadcastChannel 单例工厂
+ * @file: broadcast-channel.ts
+ * @description: YYC³ 统一 BroadcastChannel 管理 + 跨存储层同步中枢
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-16
+ * @status: active
+ * @tags: [lib],[sync],[ssot]
  *
- * 统一 BroadcastChannel 使用模式 — 全局单例缓存，
- * 避免 api-config.ts 中每次 new/close 的性能开销和泄漏风险。
+ * @brief: 统一所有存储层的跨标签页同步通道
  *
- * 使用规范：
- *   1. 所有模块通过 getSharedChannel(name) 获取单例
- *   2. 不要手动 close()，由工厂统一管理生命周期
- *   3. 每个 name 对应唯一实例，多次获取返回同一对象
+ * @details:
+ * - v1: 独立频道 (yyc3-store-sync, yyc3_settings_sync, etc.)
+ * - v2: 统一频道 + 域路由, 一次广播所有层都感知
  */
 
 /** 全局单例缓存 */
 const channelMap = new Map<string, BroadcastChannel>();
+
+/** 统一同步频道名称 */
+export const UNIFIED_SYNC_CHANNEL = "yyc3-unified-sync";
+
+/** 同步消息的域标识 */
+export type SyncDomain =
+  | "global-store"
+  | "settings"
+  | "model-providers"
+  | "api-config"
+  | "indexeddb"
+  | "node-slice"
+  | "db-conn-slice"
+  | "follow-up-slice"
+  | "user-mgmt-slice"
+  | "network-slice";
+
+/** 统一同步消息格式 */
+export interface UnifiedSyncMessage {
+  domain: SyncDomain;
+  action: "update" | "create" | "delete" | "reset";
+  timestamp: number;
+  source?: string; // 来源 tab 标识
+}
 
 /**
  * 获取指定名称的单例 BroadcastChannel
@@ -29,6 +56,48 @@ export function getSharedChannel(name: string): BroadcastChannel | null {
     channelMap.set(name, ch);
   }
   return ch;
+}
+
+/**
+ * 通过统一频道广播存储变更
+ * - 所有监听统一频道的存储层都会收到通知
+ * - 各存储层根据 domain 字段决定是否 rehydrate
+ */
+export function broadcastSyncMessage(msg: Omit<UnifiedSyncMessage, "timestamp">): void {
+  const full: UnifiedSyncMessage = { ...msg, timestamp: Date.now() };
+  postToChannel(UNIFIED_SYNC_CHANNEL, full);
+  // 向后兼容: 同时发到旧通道
+  if (msg.domain === "global-store") {
+    postToChannel("yyc3-store-sync", { type: "store-update" });
+  }
+  if (msg.domain === "settings") {
+    postToChannel("yyc3_settings_sync", { type: "settings_update" });
+  }
+  if (msg.domain === "api-config") {
+    postToChannel("yyc3_api_config", { type: "api-config-update" });
+  }
+  if (msg.domain === "indexeddb") {
+    postToChannel("yyc3_storage_sync", { type: "idb-change" });
+  }
+}
+
+/**
+ * 监听统一频道的变更通知
+ * - 返回清理函数
+ */
+export function onUnifiedSync(
+  handler: (msg: UnifiedSyncMessage) => void
+): () => void {
+  const ch = getSharedChannel(UNIFIED_SYNC_CHANNEL);
+  if (!ch) { return () => {}; }
+
+  const listener = (e: MessageEvent) => {
+    if (e.data?.domain) {
+      handler(e.data as UnifiedSyncMessage);
+    }
+  };
+  ch.addEventListener("message", listener);
+  return () => ch.removeEventListener("message", listener);
 }
 
 /**

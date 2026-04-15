@@ -1,18 +1,12 @@
 /**
- * DEVELOPER-HANDOFF.ts
- * =====================
- * YYC³ Cloud Intelli-Matrix — 完整开发者衔接文档
- *
- * 最后更新: 2026-02-25
- * 适用版本: cpim-cli v3.2.0
- *
- * 用途:
- * - 新成员本地跑通项目的完整指南
- * - Phase 1 ~ Phase 3 已完成工作清单与技术决策
- * - 已知遗留项 & 后续优化建议
- * - 测试覆盖与 CI 流程说明
- *
- * ⚠ 本文件仅作为代码内文档存在，不会被运行时加载
+ * @file: DEVELOPER-HANDOFF.ts
+ * @description: DEVELOPER-HANDOFF.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,12 +1,12 @@
 /**
- * rf003-figma-error-dedup.test.ts
- * =================================
- * RF-003 Figma 错误处理去重 - 验证测试
- *
- * 确保:
- * 1. App.tsx 和 error-handler.ts 均使用 isFigmaPlatformError()
- * 2. 不再有内联的 Figma 判定逻辑
- * 3. figma-error-filter.ts 是唯一判定源
+ * @file: rf003-figma-error-dedup.test.ts
+ * @description: rf003-figma-error-dedup.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

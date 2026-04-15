@@ -1,18 +1,12 @@
 /**
- * InlineEditableTable.test.tsx
- * ==============================
- * InlineEditableTable 组件测试
- *
- * 覆盖范围:
- *  - 纯函数 (formatSQLValue / buildUpdateSQL / buildRollbackSQL / buildDeleteSQL / buildInsertSQL)
- *  - 基础渲染 & 主键标识
- *  - 双击编辑 & 确认/取消
- *  - 主键列保护
- *  - 行选择 & 批量 DELETE
- *  - 批量提交确认弹窗
- *  - 提交执行 & 结果处理
- *  - Undo 回滚 (含 IndexedDB 持久化)
- *  - 撤销未提交变更
+ * @file: InlineEditableTable.test.tsx
+ * @description: InlineEditableTable.test.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

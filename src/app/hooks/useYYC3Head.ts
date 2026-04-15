@@ -1,17 +1,12 @@
 /**
- * useYYC3Head.ts
- * ===============
- * 动态注入 YYC³ 品牌 <head> 标签
- *
- * 在无法直接编辑 index.html 的环境中，通过 React 运行时注入:
- * - favicon (PNG 16/32)
- * - apple-touch-icon (180×180)
- * - PWA manifest
- * - theme-color
- * - 页面标题
- *
- * 路径全部对齐 GitHub 仓库实际目录结构:
- *   public/yyc3-badge-icons/Web App/*.png
+ * @file: useYYC3Head.ts
+ * @description: useYYC3Head.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useEffect } from "react";

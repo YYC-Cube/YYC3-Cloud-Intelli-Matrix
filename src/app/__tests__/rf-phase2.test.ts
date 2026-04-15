@@ -1,13 +1,12 @@
 /**
- * rf-phase2.test.ts
- * ==================
- * Phase 2 重构验证测试 — 全覆盖
- *
- * RF-011 (报告 RF-006): 404 通配路由
- * RF-004: StoreName 数组去重 (ALL_STORES)
- * RF-005: Severity 类型统一 (BaseSeverity)
- * RF-006 (报告 RF-007): API_BASE 硬编码消除 → getAPIConfig()
- * RF-007 (报告 RF-008): useAlertRules 复用 usePersistedList
+ * @file: rf-phase2.test.ts
+ * @description: rf-phase2.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

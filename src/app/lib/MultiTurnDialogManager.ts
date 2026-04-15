@@ -1,15 +1,12 @@
 /**
- * MultiTurnDialogManager.ts
- * ==========================
- * 多轮对话管理器
- * 管理语音对话与音乐推荐的多轮交互
- *
- * @file MultiTurnDialogManager.ts
- * @description 多轮对话管理系统，支持音乐推荐的上下文理解和连续对话
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: MultiTurnDialogManager.ts
+ * @description: 多轮对话管理系统，支持音乐推荐的上下文理解和连续对话
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { FAMILY_MEMBERS, type FamilyMember } from "../components/ai-family/shared";

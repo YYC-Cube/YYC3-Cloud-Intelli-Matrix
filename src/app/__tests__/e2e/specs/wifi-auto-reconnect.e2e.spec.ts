@@ -1,17 +1,12 @@
 /**
- * wifi-auto-reconnect.e2e.spec.ts
- * =================================
- * WiFi 自动重连设置 E2E 测试 (GAP-002 验证)
- *
- * 覆盖场景:
- * - 自动重连开关 toggle + localStorage 持久化
- * - 重连间隔 +/- 调节 + 持久化
- * - 最大重试次数 +/- 调节 + 持久化
- * - 优先信号最强 toggle + 持久化
- * - 优先 SSID 输入 + 持久化
- * - 刷新页面后设置保留
- *
- * 运行: npx playwright test specs/wifi-auto-reconnect.e2e.spec.ts
+ * @file: wifi-auto-reconnect.e2e.spec.ts
+ * @description: wifi-auto-reconnect.e2e.spec.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 export const wifiAutoReconnectTests = {

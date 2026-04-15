@@ -1,9 +1,26 @@
 /**
- * useSecurityMonitor.ts
- * ======================
- * Hook for Security & Performance Monitor
- * Provides mock data for CSP, Cookie, Sensitive Data, Performance, Memory, Web Vitals,
- * Device Capabilities, Network Quality, Browser Compatibility, and Data Management.
+ * @file: useSecurityMonitor.ts
+ * @description: 安全与性能监控 Hook · CSP、Cookie、敏感数据、性能指标监控
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[security],[monitoring]
+ *
+ * @brief: 安全与性能监控
+ *
+ * @details:
+ * - CSP (Content Security Policy) 检测
+ * - Cookie 安全性检测
+ * - 敏感数据泄露检测
+ * - 性能指标监控（Web Vitals）
+ * - 设备能力和网络质量检测
+ * - 浏览器兼容性检测
+ *
+ * @dependencies: React
+ * @exports: useSecurityMonitor
+ * @notes: 提供模拟数据用于演示
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";

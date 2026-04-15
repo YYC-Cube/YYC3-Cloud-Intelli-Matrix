@@ -80,7 +80,7 @@ export function PanelContainer({ panel, isActive }: PanelContainerProps) {
 
   const handleResizeStart = useCallback((direction: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    startResize(panel.id, direction as any, e.nativeEvent);
+    startResize(panel.id, direction as "n" | "s" | "e" | "w", e.nativeEvent);
   }, [panel.id, startResize]);
 
   if (panel.isMinimized) {

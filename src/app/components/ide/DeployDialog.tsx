@@ -1,7 +1,12 @@
 /**
- * DeployDialog.tsx
- * ==================
- * IDE 部署对话框 — 环境选择 + 构建日志
+ * @file: DeployDialog.tsx
+ * @description: DeployDialog.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

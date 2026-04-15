@@ -1,10 +1,12 @@
 /**
- * docs-generator.ts
- * ============================
- * 文档生成器模块
- * 
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: docs-generator.ts
+ * @description: docs-generator.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type DocType = "api" | "user-guide" | "developer" | "architecture" | "deployment";

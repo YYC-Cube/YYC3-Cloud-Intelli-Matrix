@@ -1,7 +1,12 @@
 /**
- * color-utils.ts
- * ===============
- * HEX <-> RGB <-> OKLch 颜色空间转换工具
+ * @file: color-utils.ts
+ * @description: color-utils.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 // ── HEX ↔ RGB ──────────────────────────────────────

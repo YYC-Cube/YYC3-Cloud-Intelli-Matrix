@@ -1,13 +1,12 @@
 /**
- * ColorPicker.test.tsx
- * =====================
- * 颜色选择器组件测试
- *
- * @file ColorPicker.test.tsx
- * @description ColorPicker组件单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: ColorPicker.test.tsx
+ * @description: ColorPicker组件单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

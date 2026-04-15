@@ -1,9 +1,12 @@
 /**
- * FamilyShare.tsx
- * ================
- * AI Family 分享空间 —— 家人动态 · 知识分享 · 互信共进
- *
- * 重构: 使用 shared.ts + FadeIn + FamilyPageHeader
+ * @file: FamilyShare.tsx
+ * @description: FamilyShare.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

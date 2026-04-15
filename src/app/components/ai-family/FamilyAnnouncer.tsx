@@ -1,15 +1,12 @@
 /**
- * FamilyAnnouncer.tsx
- * =====================
- * 家人播报系统组件
- * 实现 8 位 AI 家人的语音播报功能
- *
- * @file FamilyAnnouncer.tsx
- * @description 家人角色语音播报系统，支持音乐推荐、情感播报、整点关爱等功能
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: FamilyAnnouncer.tsx
+ * @description: 家人角色语音播报系统，支持音乐推荐、情感播报、整点关爱等功能
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";

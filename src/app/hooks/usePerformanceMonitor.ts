@@ -1,19 +1,12 @@
 /**
- * usePerformanceMonitor.ts
- * =========================
- * 实时性能监控 Hook
- *
- * 采集:
- * - Web Vitals (FCP, LCP, CLS, FID/INP, TTFB)
- * - 内存使用 (JS Heap)
- * - 帧率 (FPS)
- * - 资源加载 (静态资源数、总传输大小)
- * - DOM 节点数
- * - 事件监听器数估算
- * - 长任务检测 (Long Tasks)
- * - 网络信息 (effectiveType, RTT)
- *
- * localStorage 持久化历史指标 (最近 100 条)
+ * @file: usePerformanceMonitor.ts
+ * @description: usePerformanceMonitor.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";

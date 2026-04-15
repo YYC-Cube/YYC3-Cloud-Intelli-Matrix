@@ -1,13 +1,12 @@
 /**
- * YYC3Logo.tsx
- * =============
- * YYC³ 统一品牌 Logo 组件
- *
- * 使用远程仓库真实 PNG 图标渲染，支持:
- * - 多尺寸 (xs / sm / md / lg / xl)
- * - 发光动画效果
- * - 在线状态指示点
- * - 圆角 overflow-hidden 保证视觉一致
+ * @file: YYC3Logo.tsx
+ * @description: YYC3Logo.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

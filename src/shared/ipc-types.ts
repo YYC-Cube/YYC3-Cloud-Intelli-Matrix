@@ -1,7 +1,12 @@
 /**
- * ipc-types.ts
- * =============
- * IPC 通信接口类型定义
+ * @file: ipc-types.ts
+ * @description: ipc-types.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 /**

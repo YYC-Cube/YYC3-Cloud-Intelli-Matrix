@@ -1,12 +1,12 @@
 /**
- * ProviderEditorModal.tsx
- * ========================
- * 服务商编辑器 — 新增 / 编辑 服务商
- *
- * 支持:
- * - 创建自定义服务商 (名称 / baseUrl / 认证方式 / 模型列表)
- * - 编辑已有服务商 (含内置服务商的 baseUrl / 模型列表)
- * - 动态增删模型名称
+ * @file: ProviderEditorModal.tsx
+ * @description: ProviderEditorModal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

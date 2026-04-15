@@ -1,13 +1,12 @@
 /**
- * VinylPhotoPlayer.test.tsx
- * ==========================
- * 黑胶唱片照片播放器测试
- *
- * @file VinylPhotoPlayer.test.tsx
- * @description 黑胶唱片照片轮播组件单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
+ * @file: VinylPhotoPlayer.test.tsx
+ * @description: 黑胶唱片照片轮播组件单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";

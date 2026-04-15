@@ -1,10 +1,12 @@
 /**
- * backgroundSync.ts
- * ==================
- * 后台同步工具函数
- * - Service Worker 后台同步注册
- * - 离线数据队列管理
- * - 恢复网络后自动同步
+ * @file: backgroundSync.ts
+ * @description: backgroundSync.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { SyncItem, SyncQueueStats, SyncProcessResult } from "../types";

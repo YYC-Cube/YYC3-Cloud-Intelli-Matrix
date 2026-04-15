@@ -1,8 +1,12 @@
 /**
- * IDEStatusBar.tsx
- * =================
- * IDE 底部状态栏
- * Git 分支 + 行/列 + 语言 + 编码 + 缩进 + 错误/警告计数
+ * @file: IDEStatusBar.tsx
+ * @description: IDEStatusBar.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

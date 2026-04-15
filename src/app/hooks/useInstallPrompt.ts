@@ -1,10 +1,12 @@
 /**
- * useInstallPrompt Hook
- * =====================
- * PWA 安装提示管理
- * - 监听 beforeinstallprompt 事件
- * - 检测 standalone 模式
- * - 提供安装触发函数
+ * @file: useInstallPrompt.ts
+ * @description: useInstallPrompt Hook
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback } from "react";

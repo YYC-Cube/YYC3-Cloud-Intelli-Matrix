@@ -1,8 +1,24 @@
 /**
- * useOperationCenter.ts
- * ======================
- * 操作中心 状态管理 Hook
- * 管理操作分类、快速操作、模板、日志流
+ * @file: useOperationCenter.ts
+ * @description: 操作中心状态管理 Hook · 管理操作分类、快速操作、模板、日志流
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[operation-center],[management]
+ *
+ * @brief: 操作中心状态管理
+ *
+ * @details:
+ * - 管理操作分类和快速操作
+ * - 操作模板配置
+ * - 操作日志流管理
+ * - 操作状态跟踪
+ *
+ * @dependencies: React, toast
+ * @exports: useOperationCenter
+ * @notes: 使用 usePersistedList 持久化操作日志
  */
 
 import { useState, useCallback } from "react";

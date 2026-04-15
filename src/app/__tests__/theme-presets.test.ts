@@ -1,13 +1,12 @@
 /**
- * theme-presets.test.ts
- * ======================
- * 主题预设配置测试
- *
- * @file theme-presets.test.ts
- * @description 主题预设配置单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: theme-presets.test.ts
+ * @description: 主题预设配置单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

@@ -1,15 +1,12 @@
 /**
- * FamilyPersonalizedRecommender.ts
- * ==================================
- * 家人个性化推荐引擎
- * 基于 8 位 AI 家人的性格、爱好、专业技能生成个性化音乐推荐
- *
- * @file FamilyPersonalizedRecommender.ts
- * @description 家人角色个性化音乐推荐系统
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: FamilyPersonalizedRecommender.ts
+ * @description: 家人角色个性化音乐推荐系统
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { FAMILY_MEMBERS, type FamilyMember } from "../components/ai-family/shared";

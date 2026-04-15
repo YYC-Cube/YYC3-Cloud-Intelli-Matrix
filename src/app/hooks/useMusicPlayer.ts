@@ -1,15 +1,12 @@
 /**
- * useMusicPlayer.ts
- * =================
- * 音乐播放器 Hook
- * 连接事件总线与音乐播放状态管理
- *
- * @file useMusicPlayer.ts
- * @description 音乐播放器 Hook，支持语音控制
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: useMusicPlayer.ts
+ * @description: 音乐播放器 Hook，支持语音控制
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -263,7 +260,7 @@ export function useMusicPlayer(options: UseMusicPlayerOptions = {}): UseMusicPla
     setState(prev => {
       const track = playlistRef.current[prev.currentTrackIndex];
       if (!track) {return prev;}
-      const total = parseDuration(track.duration);
+      const _total = parseDuration(track.duration);
       const newProgress = Math.max(0, Math.min(100, progress));
       const newState = { ...prev, progress: newProgress };
       musicEventBus.emitStateChange(prev, newState);
@@ -480,22 +477,22 @@ export function useVoiceMusicControl(
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [lastCommand, setLastCommand] = useState<ParsedCommand | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = ((window as unknown) as Record<string, unknown>).SpeechRecognition || ((window as unknown) as Record<string, unknown>).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("Speech recognition not supported");
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new (SpeechRecognition as new () => SpeechRecognition)();
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = "zh-CN";
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
       let final = "";
 
@@ -525,7 +522,7 @@ export function useVoiceMusicControl(
       setIsListening(false);
     };
 
-    recognition.onerror = (_event: any) => {
+    recognition.onerror = (_event: SpeechRecognitionErrorEvent) => {
       setIsListening(false);
     };
 

@@ -1,12 +1,12 @@
 /**
- * ServiceLoopPanel.tsx
- * =====================
- * 一站式服务闭环主面板 · 路由: /loop
- *
- * 8.1 监测 → 分析 → 决策 → 执行 → 验证 → 优化
- * 8.2 数据流向可视化
- *
- * 已迁移 i18n: 所有文本使用 t() 函数
+ * @file: ServiceLoopPanel.tsx
+ * @description: ServiceLoopPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useContext } from "react";

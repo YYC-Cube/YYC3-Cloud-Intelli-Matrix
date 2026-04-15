@@ -1,7 +1,12 @@
 /**
- * config/types.ts
- * ==============
- * 配置类型定义
+ * @file: types.ts
+ * @description: config/types.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 export interface AppConfig {

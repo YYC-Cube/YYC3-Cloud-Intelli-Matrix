@@ -1,30 +1,27 @@
 /**
- * useWebSocketData.ts
- * =====================
- * YYC3 Cloud Intelli-Matrix - WebSocket 实时数据推送
+ * @file: useWebSocketData.ts
+ * @description: WebSocket 实时数据推送 Hook · 管理连接、消息路由、断线降级
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-15
+ * @status: active
+ * @tags: [hook],[websocket],[realtime]
  *
- * 功能：
+ * @brief: WebSocket 实时数据推送管理（已接入 DataBus 统一数据层）
+ *
+ * @details:
  * - WebSocket 连接管理（生命周期、自动重连、心跳）
  * - 消息类型路由（qps_update / latency_update / node_status / alert）
+ * - ★ 节点数据通过 DataBus.mergeNodeData() 合并后写入 useNodeSlice
+ * - ★ 用户编辑的字段在 WS 推送时不会被覆盖（smartMerge 策略）
  * - 断线降级：自动切换本地模拟数据
- * - 节流控制：100ms UI 更新节流
  *
- * 架构：
- * WebSocket Server (URL 从 api-config 统一读取)
- *   ↓ 连接失败
- * Simulated Data Generator (本地模拟)
- *   ↓
- * Throttled State Updates (100ms 节流)
- *   ↓
- * React Components
+ * @dependencies: React, WebSocket API, DataBus, useNodeSlice
+ * @exports: useWebSocketData, WebSocketContext
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-
-// ============================================================
-// 类型定义 — 从全局类型中心导入
-// RF-011: Re-export 已移除 — 所有类型统一从 types/index.ts 导入
-// ============================================================
 
 import type {
   ConnectionState,
@@ -36,19 +33,19 @@ import type {
 } from "../types";
 
 import { getAPIConfig } from "../lib/api-config";
-import { nodeStore } from "../stores/dashboard-stores";
+import { useNodeSlice } from "../store/slices/node-slice";
+import { dataBus } from "../lib/data-bus";
 
 // ============================================================
-// Simulated Data Generator — 从 localStorage nodeStore 读取
+// Simulated Data Generator — 从 useNodeSlice 读取初始数据
 // ============================================================
 
 function jitter(base: number, range: number): number {
   return Math.max(0, base + (Math.random() - 0.5) * range * 2);
 }
 
-function generateSimulatedNodes(): NodeData[] {
-  const storedNodes = nodeStore.getAll();
-  return storedNodes.map((n) => ({
+function generateSimulatedNodes(baseNodes: NodeData[]): NodeData[] {
+  return baseNodes.map((n) => ({
     ...n,
     gpu: n.status === "inactive" ? 0 : Math.min(100, Math.round(jitter(n.gpu, 5))),
     mem: n.status === "inactive" ? n.mem : Math.min(100, Math.round(jitter(n.mem, 3))),
@@ -62,7 +59,6 @@ let throughputCounter = 0;
 function generateThroughputPoint(): ThroughputPoint {
   const now = new Date();
   const hms = now.toLocaleTimeString("zh-CN", { hour12: false });
-  // Append counter suffix to guarantee unique time keys for recharts
   throughputCounter += 1;
   return {
     time: `${hms}.${String(throughputCounter % 1000).padStart(3, "0")}`,
@@ -91,12 +87,14 @@ export function useWebSocketData(): WebSocketDataState {
   const [gpuUtil, setGpuUtil] = useState("82.4%");
   const [tokenThroughput, setTokenThroughput] = useState("138K/s");
   const [storageUsed] = useState("12.8TB");
-  const [nodes, setNodes] = useState<NodeData[]>(() => nodeStore.getAll());
   const [throughputHistory, setThroughputHistory] = useState<ThroughputPoint[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [lastSyncTime, setLastSyncTime] = useState(
     new Date().toLocaleString("zh-CN", { hour12: false })
   );
+
+  // ★ 核心：接入统一节点 Store — 节点数据从此处获取
+  const { nodes: sliceNodes, mergeFromWS } = useNodeSlice();
 
   const wsRef = useRef<WebSocket | null>(null);
   const simulateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -105,8 +103,11 @@ export function useWebSocketData(): WebSocketDataState {
 
   // ----- simulated data updater -----
   const runSimulation = useCallback(() => {
-    const newNodes = generateSimulatedNodes();
-    setNodes(newNodes);
+    const baseNodes = useNodeSlice.getState().nodes;
+    const newNodes = generateSimulatedNodes(baseNodes);
+
+    // ★ 关键改动：模拟数据也通过 DataBus 合并，保留用户编辑
+    mergeFromWS(newNodes);
 
     const active = newNodes.filter((n) => n.status !== "inactive");
     setActiveNodes(`${active.length}/${newNodes.length}`);
@@ -132,7 +133,7 @@ export function useWebSocketData(): WebSocketDataState {
     });
 
     setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
-  }, []);
+  }, [mergeFromWS]);
 
   // ----- WebSocket connection -----
   const connectWS = useCallback(() => {
@@ -146,7 +147,13 @@ export function useWebSocketData(): WebSocketDataState {
       ws.onopen = () => {
         setConnectionState("connected");
         setReconnectCount(0);
-        // stop simulation if WS connected
+        dataBus.registerWSSender((msg) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(msg));
+            return true;
+          }
+          return false;
+        });
         if (simulateTimerRef.current) {
           clearInterval(simulateTimerRef.current);
           simulateTimerRef.current = null;
@@ -156,6 +163,7 @@ export function useWebSocketData(): WebSocketDataState {
       ws.onmessage = (event) => {
         try {
           const msg: WSMessage = JSON.parse(event.data);
+          dataBus.ingestWSMessage(msg);
           switch (msg.type) {
             case "qps_update":
               setLiveQPS(msg.payload.qps);
@@ -165,9 +173,12 @@ export function useWebSocketData(): WebSocketDataState {
               setLiveLatency(msg.payload.latency);
               setLatencyTrend(msg.payload.trend);
               break;
+
+            // ★★★ 核心修复：节点数据走 DataBus 合并而非直接覆盖 ★★★
             case "node_status":
-              setNodes(msg.payload);
+              mergeFromWS(msg.payload as NodeData[]);
               break;
+
             case "alert":
               setAlerts((prev) => [msg.payload, ...prev].slice(0, 100));
               break;
@@ -184,18 +195,17 @@ export function useWebSocketData(): WebSocketDataState {
           }
           setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
         } catch {
-          // parse error — ignore
+          // silently ignore parse errors for non-critical messages
         }
       };
 
       ws.onclose = () => {
         wsRef.current = null;
+        dataBus.unregisterWSSender();
         setConnectionState("simulated");
-        // fallback to simulation
         if (!simulateTimerRef.current) {
           simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
         }
-        // schedule reconnect
         reconnectTimerRef.current = setTimeout(() => {
           setReconnectCount((c) => c + 1);
           connectWSRef.current?.();
@@ -206,27 +216,23 @@ export function useWebSocketData(): WebSocketDataState {
         ws.close();
       };
     } catch {
-      // WebSocket constructor error — fallback to simulation
       setConnectionState("simulated");
       if (!simulateTimerRef.current) {
         simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
       }
     }
-  }, [runSimulation]);
+  }, [runSimulation, mergeFromWS]);
 
-  // Keep connectWS ref updated
   useEffect(() => {
     connectWSRef.current = connectWS;
   }, [connectWS]);
 
   // ----- lifecycle -----
   useEffect(() => {
-    // Try WebSocket first, fallback to simulation
     const timer = setTimeout(() => {
       connectWS();
     }, 0);
 
-    // Start simulation immediately as fallback (will be stopped if WS connects)
     simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
 
     return () => {
@@ -275,7 +281,10 @@ export function useWebSocketData(): WebSocketDataState {
     gpuUtil,
     tokenThroughput,
     storageUsed,
-    nodes,
+
+    // ★ 节点数据从统一 Slice 返回 — 所有消费者拿到同一份
+    nodes: sliceNodes,
+
     throughputHistory,
     alerts,
     manualReconnect,

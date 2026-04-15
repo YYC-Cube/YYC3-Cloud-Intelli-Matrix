@@ -1,20 +1,12 @@
 /**
- * e2e-integration.test.ts
- * ========================
- * 端到端集成测试 (Node 环境)
- *
- * 在无 DOM 环境下验证整个应用的数据层完整性:
- * - 所有 store 的 CRUD 闭环
- * - 跨 store 数据一致性
- * - env-config / api-config 配置联动
- * - 类型系统导出完整性
- * - i18n 键值覆盖度
- * - 路由 ↔ 组件映射完整性
- * - 错误处理链路
- *
- * 测试策略:
- *   这些测试不依赖 React/DOM，纯验证数据层逻辑，
- *   作为 CI 管道中最基础的 "冒烟测试" 运行。
+ * @file: e2e-integration.test.ts
+ * @description: e2e-integration.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

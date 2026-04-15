@@ -1,7 +1,12 @@
 /**
- * security-audit.test.ts
- * =========================
- * 安全加固审计测试
+ * @file: security-audit.test.ts
+ * @description: security-audit.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

@@ -1,7 +1,12 @@
 /**
- * performance-monitor.test.ts
- * ==============================
- * 性能监控仪表板测试
+ * @file: performance-monitor.test.ts
+ * @description: performance-monitor.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

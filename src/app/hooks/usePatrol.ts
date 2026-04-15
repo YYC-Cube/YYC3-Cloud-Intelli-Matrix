@@ -1,8 +1,24 @@
 /**
- * usePatrol.ts
- * ==============
- * 巡查模式 状态管理 Hook
- * 管理巡查结果、巡查历史、巡查计划、手动/自动巡查
+ * @file: usePatrol.ts
+ * @description: 巡查模式状态管理 Hook · 管理巡查结果、历史、计划
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[patrol],[monitoring]
+ *
+ * @brief: 巡查模式状态管理
+ *
+ * @details:
+ * - 管理巡查结果和历史记录
+ * - 支持手动和自动巡查
+ * - 巡查计划配置
+ * - 巡查状态跟踪
+ *
+ * @dependencies: React, toast
+ * @exports: usePatrol
+ * @notes: 使用 usePersistedList 持久化巡查历史
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";

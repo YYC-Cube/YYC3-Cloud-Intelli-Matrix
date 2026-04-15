@@ -1,13 +1,12 @@
 /**
- * PWAStatusPanel.tsx
- * ===================
- * PWA & 离线管理面板 · 路由: /pwa (嵌入系统设置)
- *
- * 功能:
- * - Service Worker 状态显示
- * - 缓存管理（查看/清理/刷新）
- * - 离线就绪状态
- * - SW 更新
+ * @file: PWAStatusPanel.tsx
+ * @description: PWAStatusPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useContext } from "react";

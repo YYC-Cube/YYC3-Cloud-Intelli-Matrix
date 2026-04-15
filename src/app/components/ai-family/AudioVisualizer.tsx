@@ -1,12 +1,12 @@
 /**
- * @file AudioVisualizer.tsx
- * @description 音频可视化组件，支持圆形和条形两种模式
- * @module components/ai-family/AudioVisualizer
- * @author YYC³ Team
- * @version 1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
- * @source D-Music-B
+ * @file: AudioVisualizer.tsx
+ * @description: 音频可视化组件，支持圆形和条形两种模式
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useRef, useEffect } from "react";

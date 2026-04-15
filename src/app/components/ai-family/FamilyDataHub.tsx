@@ -1,13 +1,12 @@
 /**
- * FamilyDataHub.tsx
- * ==================
- * AI Family 统一数据中心 —— 一站式数据全景
- *
- * 功能：
- *  - 家庭数据总览（成员统计、活动记录、成长指标）
- *  - 成员个人数据面板
- *  - 活动时间线
- *  - 数据导出
+ * @file: FamilyDataHub.tsx
+ * @description: FamilyDataHub.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useMemo } from "react";

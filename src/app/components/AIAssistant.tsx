@@ -1,15 +1,12 @@
 /**
- * AIAssistant.tsx
- * =================================
- * YYC³ Cloud Intelli-Matrix · AI 集成控制中心
- *
- * 功能：
- * - AI 对话（模拟 OpenAI 接口）
- * - 系统全能命令预设（一键操作）
- * - 大模型参数微调（temperature / top_p / max_tokens）
- * - 提示词管理（系统预设 + 自定义）
- * - OpenAI API Key 认证配置
- * - 中文语义理解友好
+ * @file: AIAssistant.tsx
+ * @description: AIAssistant.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -17,11 +14,17 @@ import {
   X, Send, Sparkles, Settings,
   Zap, Server, Database, Shield, RotateCcw, Play, Copy, Check,
   Cpu, HardDrive, Activity, Network, Layers, Key, Sliders, MessageSquare,
-  BookOpen, Command, Minimize2, Maximize2, Trash2
+  BookOpen, Command, Minimize2, Maximize2, Trash2,
+  Gauge, Thermometer, MemoryStick, Wifi, Radio,
+  GripVertical, CheckCircle2, XCircle, Loader2, Eye,
+  ShieldCheck, AlertTriangle
 } from "lucide-react";
 import { YYC3LogoSvg } from "./YYC3LogoSvg";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useSettingsStore } from "../hooks/useSettingsStore";
+import { useNodeSlice } from "../store/slices/node-slice";
+import { useWebSocketData } from "../hooks/useWebSocketData";
+import { testAIConnection, runFullSystemDiagnostic, type SystemDiagnosticResult, type AIConnectionConfig } from "../lib/connection-test-engine";
 import type { ChatMessage, CommandCategory } from "../types";
 
 // ============================================================
@@ -119,7 +122,29 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   // Panel state
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "commands" | "prompts" | "settings">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "commands" | "prompts" | "settings" | "overview">("chat");
+
+  // Drag state (position persisted to localStorage)
+  const POSITION_STORAGE_KEY = "yyc3_ai_float_position";
+  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
+    try {
+      const saved = localStorage.getItem(POSITION_STORAGE_KEY);
+      if (saved) { return JSON.parse(saved); }
+    } catch { /* ignore */ }
+    return { x: -1, y: -1 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Connection test state
+  const [connTestStatus, setConnTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
+  const [connTestResult, setConnTestResult] = useState<string>("");
+  const [connTestTime, setConnTestTime] = useState<number>(0);
+
+  // Data hooks for overview tab
+  const { nodes } = useNodeSlice();
+  const wsData = useWebSocketData();
 
   // 从 useModelProvider 获取动态模型列表
   const { availableModels, ollamaLoading } = useModelProvider();
@@ -243,6 +268,117 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     }]);
   };
 
+  // ========== DRAG HANDLERS ==========
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (isMobile || isMaximized) { return; }
+    e.preventDefault();
+    setIsDragging(true);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: position.x,
+      startPosY: position.y,
+    };
+  }, [isMobile, isMaximized, position.x, position.y]);
+
+  useEffect(() => {
+    if (!isDragging || !dragRef.current) { return; }
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragRef.current) { return; }
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      let newX = dragRef.current.startPosX + dx;
+      let newY = dragRef.current.startPosY + dy;
+
+      const panelW = 480;
+      const panelH = 640;
+      const padding = 12;
+      newX = Math.max(padding, Math.min(newX, window.innerWidth - panelW - padding));
+      newY = Math.max(padding, Math.min(newY, window.innerHeight - panelH - padding));
+
+      setPosition({ x: newX, y: newY });
+    };
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      dragRef.current = null;
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (position.x >= 0 && position.y >= 0) {
+      try { localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position)); } catch { /* ignore */ }
+    }
+  }, [position]);
+
+  // ========== ONE-CLICK FULL SYSTEM DIAGNOSTIC ==========
+  const [diagRunning, setDiagRunning] = useState(false);
+  const [diagResult, setDiagResult] = useState<SystemDiagnosticResult | null>(null);
+
+  const runDiagnostic = useCallback(async () => {
+    setDiagRunning(true);
+    setDiagResult(null);
+    try {
+      const model = availableModels.find(m => m.id === selectedModel);
+      const aiConfigs: AIConnectionConfig[] = model ? [{
+        providerId: model.provider || "unknown",
+        providerLabel: model.provider || "Unknown",
+        baseUrl: model.isLocal
+          ? (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:11434` : "http://localhost:11434")
+          : "",
+        authType: "bearer",
+        apiKey: apiKey || "",
+        modelId: model.id,
+        modelName: model.name,
+        isLocal: model.isLocal,
+      }] : [];
+      const result = await runFullSystemDiagnostic({ aiConfigs, testWs: true });
+      setDiagResult(result);
+    } catch (err: unknown) {
+      console.error("[AIAssistant] Diagnostic error:", err);
+    } finally {
+      setDiagRunning(false);
+    }
+  }, [selectedModel, availableModels, apiKey]);
+
+  // Also upgrade single-model testConnection to use engine
+  const testConnection = useCallback(async () => {
+    const model = availableModels.find(m => m.id === selectedModel);
+    if (!model) { return; }
+    setConnTestStatus("testing");
+    setConnTestResult("");
+    setConnTestTime(0);
+    const t0 = Date.now();
+    try {
+      const config: AIConnectionConfig = {
+        providerId: model.provider || "unknown",
+        providerLabel: model.provider || "Unknown",
+        baseUrl: model.isLocal
+          ? (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:11434` : "http://localhost:11434")
+          : "",
+        authType: "bearer",
+        apiKey: apiKey || "",
+        modelId: model.id,
+        modelName: model.name,
+        isLocal: model.isLocal,
+      };
+      const result = await testAIConnection(config);
+      setConnTestStatus(result.overallStatus === "pass" ? "success" : "error");
+      setConnTestResult(result.steps.map(s => `[${s.status === "pass" ? "✅" : s.status === "warn" ? "⚠️" : "❌"}] ${s.label}: ${s.detail}`).join(" | "));
+      setConnTestTime(Date.now() - t0);
+    } catch (err: unknown) {
+      setConnTestStatus("error");
+      const msg = err instanceof Error ? err.message : String(err);
+      setConnTestResult(msg.includes("timeout") ? "连接超时，请检查网络或服务地址" : msg);
+      setConnTestTime(Date.now() - t0);
+    }
+  }, [selectedModel, availableModels, apiKey]);
+
   const cmdCategories = [
     { key: "all", label: "全部" },
     { key: "cluster", label: "集群" },
@@ -256,8 +392,11 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     ? SYSTEM_COMMANDS
     : SYSTEM_COMMANDS.filter(c => c.category === cmdFilter);
 
-  // Panel dimensions
-  const panelClass = isMaximized
+  // Panel positioning: drag position > default fixed
+  const panelStyle: React.CSSProperties | undefined = !isMobile && !isMaximized && position.x >= 0 && position.y >= 0
+    ? { left: position.x, top: position.y, right: "auto", bottom: "auto" }
+    : undefined;
+  const panelBaseClass = isMaximized
     ? "fixed inset-4 md:inset-8 z-[60]"
     : isMobile
       ? "fixed inset-0 z-[60]"
@@ -296,12 +435,18 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
   // ========== MAIN PANEL ==========
   return (
-    <div className={panelClass}>
+    <div className={panelBaseClass} style={panelStyle} ref={panelRef}>
       <div className="w-full h-full rounded-2xl bg-[rgba(8,25,55,0.95)] backdrop-blur-2xl border border-[rgba(0,180,255,0.2)] shadow-[0_0_60px_rgba(0,180,255,0.12)] flex flex-col overflow-hidden">
 
-        {/* ========= Header ========= */}
-        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-[rgba(0,180,255,0.12)] bg-[rgba(0,40,80,0.2)]">
+        {/* ========= Header (Drag Handle) ========= */}
+        <div
+          className={`shrink-0 flex items-center justify-between px-4 py-3 border-b border-[rgba(0,180,255,0.12)] bg-[rgba(0,40,80,0.2)] ${!isMobile && !isMaximized ? "cursor-grab active:cursor-grabbing select-none" : ""}`}
+          onMouseDown={handleDragStart}
+        >
           <div className="flex items-center gap-3">
+            {!isMobile && !isMaximized && (
+              <GripVertical className="w-3.5 h-3.5 text-[rgba(0,212,255,0.25)] shrink-0" />
+            )}
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00d4ff] to-[#7b2ff7] flex items-center justify-center shadow-[0_0_15px_rgba(0,180,255,0.3)] overflow-hidden">
               <YYC3LogoSvg size={20} showText={false} className="rounded" />
             </div>
@@ -349,6 +494,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
         <div className="shrink-0 flex items-center gap-0.5 px-3 py-2 border-b border-[rgba(0,180,255,0.08)] bg-[rgba(0,40,80,0.1)]">
           {([
             { key: "chat" as const, icon: MessageSquare, label: "对话" },
+            { key: "overview" as const, icon: Eye, label: "速览" },
             { key: "commands" as const, icon: Command, label: "命令" },
             { key: "prompts" as const, icon: BookOpen, label: "提示词" },
             { key: "settings" as const, icon: Sliders, label: "配置" },
@@ -555,6 +701,218 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
             </div>
           )}
 
+          {/* === Overview Tab (速览) === */}
+          {activeTab === "overview" && (
+            <div className="flex-1 overflow-auto p-3 space-y-4">
+              {/* System Real-time Metrics */}
+              <div>
+                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <Radio className="w-4 h-4 text-[#00d4ff]" />
+                  系统实时指标
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "QPS", value: wsData.liveQPS?.toLocaleString() ?? "--", icon: Radio, color: "#00d4ff", unit: "" },
+                    { label: "延迟", value: wsData.liveLatency?.toFixed(1) ?? "--", icon: Activity, color: "#aa55ff", unit: "ms" },
+                    { label: "活跃节点", value: String(nodes.filter(n => n.status === "active").length), icon: Server, color: "#00ff88", unit: `/${nodes.length}` },
+                    { label: "连接状态", value: wsData.connectionState, icon: Wifi, color: wsData.connectionState === "connected" ? "#00ff88" : "#ff6600", unit: "" },
+                  ].map((metric) => (
+                    <div key={metric.label} className="p-2.5 rounded-xl bg-[rgba(0,40,80,0.35)] border border-[rgba(0,180,255,0.08)]">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <metric.icon className="w-3 h-3" style={{ color: metric.color }} />
+                        <span className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.58rem" }}>{metric.label}</span>
+                      </div>
+                      <span className="font-medium" style={{ fontSize: "0.88rem", color: metric.color, fontFamily: "'Orbitron', sans-serif" }}>
+                        {metric.value}{metric.unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Node Quick Status */}
+              <div>
+                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <Server className="w-4 h-4 text-[#00ff88]" />
+                  节点速览
+                  <span className="text-[rgba(0,212,255,0.25)] text-[0.58rem]">({nodes.length} 节点)</span>
+                </h4>
+                {nodes.length > 0 ? (
+                  <div className="space-y-1.5 max-h-[200px] overflow-auto pr-1">
+                    {nodes.slice(0, 8).map((node) => {
+                      const statusColor = node.status === "active" ? "#00ff88" : node.status === "warning" ? "#ffdd00" : "rgba(0,212,255,0.3)";
+                      const gpuColor = node.gpu >= 90 ? "#ff3366" : node.gpu >= 70 ? "#ffdd00" : "#00d4ff";
+                      const tempColor = node.temp >= 75 ? "#ff3366" : node.temp >= 60 ? "#ffdd00" : "#00ff88";
+                      return (
+                        <div key={node.id} className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColor, boxShadow: `0 0 6px ${statusColor}40` }} />
+                          <span className="text-[#e0f0ff] truncate flex-1" style={{ fontSize: "0.68rem" }}>{node.id}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="flex items-center gap-0.5" title={`GPU ${node.gpu}%`} style={{ fontSize: "0.55rem", color: gpuColor }}>
+                              <Cpu className="w-3 h-3" />{node.gpu}%
+                            </span>
+                            <span className="flex items-center gap-0.5" title={`内存 ${node.mem}%`} style={{ fontSize: "0.55rem", color: node.mem > 80 ? "#ffdd00" : "rgba(0,212,255,0.5)" }}>
+                              <MemoryStick className="w-3 h-3" />{node.mem}%
+                            </span>
+                            <span className="flex items-center gap-0.5" title={`${node.temp}°C`} style={{ fontSize: "0.55rem", color: tempColor }}>
+                              <Thermometer className="w-3 h-3" />{node.temp}°
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {nodes.length > 8 && (
+                      <p className="text-center text-[rgba(0,212,255,0.25)] py-1" style={{ fontSize: "0.6rem" }}>
+                        还有 {nodes.length - 8} 个节点...
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center">
+                    <Gauge className="w-8 h-8 mx-auto mb-2 text-[rgba(0,212,255,0.15)]" />
+                    <p className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.72rem" }}>暂无节点数据</p>
+                    <p className="text-[rgba(0,212,255,0.18)]" style={{ fontSize: "0.58rem" }}>节点数据将通过 WebSocket 实时同步</p>
+                  </div>
+                )}
+              </div>
+
+              {/* One-Click Full System Diagnostic */}
+              <div>
+                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <ShieldCheck className="w-4 h-4 text-[#00d4ff]" />
+                  一键全系统检测
+                </h4>
+                <button
+                  onClick={runDiagnostic}
+                  disabled={diagRunning}
+                  className="w-full px-3 py-2.5 rounded-xl border transition-all flex items-center justify-center gap-2"
+                  style={{
+                    background: diagRunning ? "rgba(255,221,0,0.1)" : "rgba(0,212,255,0.08)",
+                    borderColor: diagRunning ? "rgba(255,221,0,0.3)" : "rgba(0,180,255,0.15)",
+                    color: diagRunning ? "#ffdd00" : "#00d4ff",
+                    fontSize: "0.75rem",
+                    cursor: diagRunning ? "wait" : "pointer",
+                  }}
+                >
+                  {diagRunning ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> 正在检测 AI / WebSocket / 网络...
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="w-3.5 h-3.5" /> 执行全系统连接诊断
+                    </>
+                  )}
+                </button>
+
+                {/* Diagnostic Results */}
+                {diagResult && (
+                  <div className="mt-2 space-y-2">
+                    {/* Health Score Bar */}
+                    <div className="px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.35)] border border-[rgba(0,180,255,0.08)]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[rgba(0,212,255,0.6)]" style={{ fontSize: "0.65rem" }}>系统健康评分</span>
+                        <span className="font-medium" style={{
+                          fontSize: "0.9rem",
+                          color: diagResult.healthScore >= 80 ? "#00ff88" : diagResult.healthScore >= 50 ? "#ffdd00" : "#ff3366",
+                          fontFamily: "'Orbitron', sans-serif",
+                        }}>
+                          {diagResult.healthScore}/100
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[rgba(0,40,80,0.6)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${diagResult.healthScore}%`,
+                            background: `linear-gradient(90deg, ${diagResult.healthScore >= 60 ? "#00ff88" : "#ff3366"}, ${diagResult.healthScore >= 80 ? "#00d4ff" : "#ffdd00"})`,
+                            boxShadow: `0 0 8px ${diagResult.healthScore >= 80 ? "#00ff8840" : "#ff336630"}`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex gap-3 mt-1.5">
+                        <span className="text-[#00ff88]" style={{ fontSize: "0.55rem" }}>✅ {diagResult.summary.passed} 通过</span>
+                        <span className="text-[#ffdd00]" style={{ fontSize: "0.55rem" }}>⚠️ {diagResult.summary.warned} 警告</span>
+                        <span className="text-[#ff3366]" style={{ fontSize: "0.55rem" }}>❌ {diagResult.summary.failed} 失败</span>
+                      </div>
+                    </div>
+
+                    {/* Test Details */}
+                    {diagResult.tests.map((test) => (
+                      <div key={test.id} className="px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.06)]">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[#e0f0ff] flex items-center gap-1.5" style={{ fontSize: "0.68rem" }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: test.color }} />
+                            {test.name}
+                          </span>
+                          <span className="font-mono text-xs px-1.5 py-0.5 rounded" style={{
+                            color: test.overallStatus === "pass" ? "#00ff88" : test.overallStatus === "warn" ? "#ffdd00" : "#ff3366",
+                            background: `${test.overallStatus === "pass" ? "rgba(0,255,136,0.1)" : test.overallStatus === "warn" ? "rgba(255,221,0,0.1)" : "rgba(255,51,102,0.1)"}`,
+                          }}>
+                            {test.totalLatencyMs}ms · {test.overallStatus === "pass" ? "通过" : test.overallStatus === "warn" ? "警告" : "失败"}
+                          </span>
+                        </div>
+                        <div className="space-y-0.5">
+                          {test.steps.map((step, i) => (
+                            <div key={i} className="flex items-start gap-1.5">
+                              <span style={{ fontSize: "0.55rem", color: step.status === "pass" ? "#00ff88" : step.status === "warn" ? "#ffdd00" : step.status === "fail" ? "#ff3366" : "rgba(0,212,255,0.3)" }}>
+                                {step.status === "pass" ? "✓" : step.status === "warn" ? "!" : step.status === "fail" ? "×" : "·"}
+                              </span>
+                              <span className="text-[rgba(0,212,255,0.45)]" style={{ fontSize: "0.58rem", flex: 1 }}>{step.label}</span>
+                              {step.latencyMs !== null && (
+                                <span className="shrink-0 font-mono" style={{ fontSize: "0.52rem", color: "rgba(0,212,255,0.25)" }}>{step.latencyMs}ms</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {test.suggestion && (
+                          <p className="mt-1 pt-1 border-t border-[rgba(0,180,255,0.06)] text-[#ffdd00]" style={{ fontSize: "0.58rem", lineHeight: 1.4 }}>
+                            💡 {test.suggestion}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Top Issues Summary */}
+                    {diagResult.topIssues.length > 0 && (
+                      <div className="px-3 py-2 rounded-lg bg-[rgba(255,51,102,0.06)] border border-[rgba(255,51,102,0.12)]">
+                        <p className="text-[#ffaa00] mb-1 flex items-center gap-1" style={{ fontSize: "0.65rem" }}>
+                          <AlertTriangle className="w-3 h-3" /> 待处理问题
+                        </p>
+                        <ul className="space-y-0.5">
+                          {diagResult.topIssues.map((issue, i) => (
+                            <li key={i} className="text-[rgba(255,170,0,0.7)]" style={{ fontSize: "0.58rem", lineHeight: 1.3 }}>• {issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div>
+                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                  <Zap className="w-4 h-4 text-[#ffdd00]" />
+                  快捷操作
+                </h4>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {SYSTEM_COMMANDS.slice(0, 4).map(cmd => (
+                    <button
+                      key={cmd.id}
+                      onClick={() => executeCommand(cmd)}
+                      className="px-2.5 py-2 rounded-lg text-left border border-[rgba(0,180,255,0.08)] bg-[rgba(0,40,80,0.2)] hover:bg-[rgba(0,40,80,0.4)] hover:border-[rgba(0,180,255,0.2)] transition-all group"
+                    >
+                      <cmd.icon className="w-3.5 h-3.5 mb-1" style={{ color: cmd.color }} />
+                      <p className="text-[#e0f0ff] truncate" style={{ fontSize: "0.65rem" }}>{cmd.label}</p>
+                      <p className="text-[rgba(0,212,255,0.25)] truncate leading-tight" style={{ fontSize: "0.52rem" }}>{cmd.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* === Settings Tab === */}
           {activeTab === "settings" && (
             <div className="flex-1 overflow-auto p-3 space-y-4">
@@ -629,6 +987,55 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   </p>
                 )}
               </div>
+
+              {/* Connection Test */}
+              {selectedModel && (
+                <div>
+                  <button
+                    onClick={testConnection}
+                    disabled={connTestStatus === "testing"}
+                    className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+                    style={{
+                      fontSize: "0.78rem",
+                      background: connTestStatus === "success"
+                        ? "rgba(0,255,136,0.08)"
+                        : connTestStatus === "error"
+                          ? "rgba(255,51,102,0.08)"
+                          : "rgba(0,40,80,0.2)",
+                      border: connTestStatus === "success"
+                        ? "1px solid rgba(0,255,136,0.25)"
+                        : connTestStatus === "error"
+                          ? "1px solid rgba(255,51,102,0.25)"
+                          : "1px solid rgba(0,180,255,0.15)",
+                      color: connTestStatus === "success"
+                        ? "#00ff88"
+                        : connTestStatus === "error"
+                          ? "#ff3366"
+                          : "rgba(0,212,255,0.6)",
+                    }}
+                  >
+                    {connTestStatus === "testing" ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> 测试连接中...</>
+                    ) : connTestStatus === "success" ? (
+                      <><CheckCircle2 className="w-4 h-4" /> 连接成功 ({connTestTime}ms)</>
+                    ) : connTestStatus === "error" ? (
+                      <><XCircle className="w-4 h-4" /> 连接失败</>
+                    ) : (
+                      <><Play className="w-4 h-4" /> 测试模型连接</>
+                    )}
+                  </button>
+                  {(connTestStatus === "success" || connTestStatus === "error") && connTestResult && (
+                    <p className="mt-1.5 px-2.5 py-1.5 rounded-lg text-[0.65rem] leading-relaxed"
+                      style={{
+                        color: connTestStatus === "success" ? "rgba(0,255,136,0.6)" : "rgba(255,51,102,0.6)",
+                        background: connTestStatus === "success" ? "rgba(0,255,136,0.04)" : "rgba(255,51,102,0.04)",
+                      }}
+                    >
+                      {connTestResult}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Temperature */}
               <div>

@@ -1,16 +1,12 @@
 /**
- * @file useAudioEngine.ts
- * @description AI Family 音频引擎 Hook，支持三种播放模式
- * @module hooks/useAudioEngine
- * @author YYC³ Team
- * @version 2.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
- *
- * 支持模式：
- * - demo: Web Audio API 振荡器生成环境音乐
- * - file: 本地音频文件播放
- * - stream: 在线音频流播放
+ * @file: useAudioEngine.ts
+ * @description: AI Family 音频引擎 Hook，支持三种播放模式
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
@@ -128,6 +124,30 @@ export function useAudioEngine(config: AudioEngineConfig = {}): AudioEngineRetur
     if (track) {
       chordSetRef.current = track.chordSet ?? 0;
       demoDurationRef.current = track.duration;
+
+      if (track.audioUrl && audioModeRef.current !== "file") {
+        audioModeRef.current = "file";
+        setAudioMode("file");
+        const audio = audioElRef.current;
+        if (audio) {
+          audio.src = track.audioUrl;
+          audio.load();
+        }
+        setDuration(track.duration);
+        setCurrentTime(0);
+        accumulatedTimeRef.current = 0;
+        oscillatorsRef.current.forEach((osc) => { try { osc.stop(); } catch { /* ignore */ } });
+        oscillatorsRef.current = [];
+        oscGainsRef.current = [];
+        if (lfoRef.current) { try { lfoRef.current.stop(); } catch { /* ignore */ } lfoRef.current = null; }
+        if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      } else if (!track.audioUrl && audioModeRef.current !== "demo") {
+        audioModeRef.current = "demo";
+        setAudioMode("demo");
+        setDuration(track.duration);
+        setCurrentTime(0);
+        accumulatedTimeRef.current = 0;
+      }
     }
   }, [track]);
 

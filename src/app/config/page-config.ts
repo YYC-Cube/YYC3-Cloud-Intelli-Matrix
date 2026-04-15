@@ -1,15 +1,12 @@
 /**
- * page-config.ts
- * ===============
- * YYC³ 页面配置中心 - 统一管理所有页面的配置项
- *
- * 设计原则：
- * - 所有页面配置从此处导入，确保一致性
- * - 支持页面级自编辑，配置持久化到 localStorage
- * - 新增页面必须在此注册，确保规范统一
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: page-config.ts
+ * @description: page-config.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { ElementType } from "react";

@@ -1,7 +1,12 @@
 /**
- * OperationLogStream.tsx
- * =======================
- * 实时操作日志流组件
+ * @file: OperationLogStream.tsx
+ * @description: OperationLogStream.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

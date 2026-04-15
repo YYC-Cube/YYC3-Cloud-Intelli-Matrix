@@ -1,8 +1,12 @@
 /**
- * performance-optimizer.ts
- * ==========================
- * 性能优化工具
- * 提供数据库查询优化、存储同步优化、IPC 通信优化
+ * @file: performance-optimizer.ts
+ * @description: performance-optimizer.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export interface PerformanceMetrics {
@@ -256,8 +260,8 @@ export class PerformanceOptimizer {
   public getMetrics(): PerformanceMetrics {
     if (typeof process !== "undefined" && process.memoryUsage) {
       this.metrics.memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024;
-    } else if (typeof performance !== "undefined" && (performance as any).memory) {
-      this.metrics.memoryUsage = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+    } else if (typeof performance !== "undefined" && (performance as unknown as Record<string, unknown>).memory) {
+      this.metrics.memoryUsage = ((performance as unknown as Record<string, unknown>).memory as Record<string, number>).usedJSHeapSize / 1024 / 1024;
     }
 
     return { ...this.metrics };

@@ -1,7 +1,12 @@
 /**
- * PatternAnalyzer.tsx
- * ====================
- * 模式分析器 · 展示检测到的异常模式卡片
+ * @file: PatternAnalyzer.tsx
+ * @description: PatternAnalyzer.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

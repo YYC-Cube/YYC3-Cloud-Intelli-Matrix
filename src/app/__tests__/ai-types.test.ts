@@ -1,12 +1,12 @@
 /**
- * ai-types.test.ts
- * =========
- * AI 辅助决策 + 命令面板 类型定义验证
- *
- * 覆盖范围:
- * - AnomalyPatternType / PatternSeverity
- * - DetectedPattern / AIRecommendation / AIAnalysisResult
- * - CommandPaletteItem
+ * @file: ai-types.test.ts
+ * @description: ai-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

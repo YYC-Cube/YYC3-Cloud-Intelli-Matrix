@@ -1,16 +1,12 @@
 /**
- * test-utils.ts
- * =================
- * 测试工具集 - 提供常用测试辅助函数和 Mock 工具
- *
- * 功能:
- * - Mock 工厂函数
- * - 测试数据生成器
- * - 断言辅助函数
- * - 测试环境设置
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: test-utils.ts
+ * @description: test-utils.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { vi } from "vitest";

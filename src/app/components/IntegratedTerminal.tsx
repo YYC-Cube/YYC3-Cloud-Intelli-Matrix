@@ -1,17 +1,12 @@
 /**
- * IntegratedTerminal.tsx
- * ======================
- * VS Code 风格集成终端面板
- * 底部滑出 · 可拖拽调节高度 · 多 Tab 终端实例
- * 快捷键 Ctrl+` 全局切换
- *
- * 功能:
- * - 多 Tab 独立终端实例（每个 Tab 独立 history / state）
- * - goto / open 路由跳转
- * - ai <prompt> Text-to-CLI 联动
- * - 拖拽调节高度 + localStorage 持久化
- *
- * 赛博朋克风格，深蓝底 + 青色强调
+ * @file: IntegratedTerminal.tsx
+ * @description: IntegratedTerminal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, {

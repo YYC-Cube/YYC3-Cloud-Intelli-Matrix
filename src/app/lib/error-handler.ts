@@ -1,9 +1,16 @@
 /**
- * error-handler.ts
- * =================
- * YYC³ 全局错误处理工具 (增强版)
+ * @file: error-handler.ts
+ * @description: 全局错误处理工具 · 统一错误分类、日志记录、异常监听
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [lib],[error-handling],[logging]
  *
- * 功能：
+ * @brief: 全局错误处理系统
+ *
+ * @details:
  * - 统一错误分类（网络/解析/认证/运行时/验证/存储/未知）
  * - 错误日志记录（localStorage 快速读 + IndexedDB 持久化双写）
  * - 全局未捕获异常监听
@@ -11,8 +18,9 @@
  * - 错误恢复建议机制
  * - 用户友好错误展示
  *
- * 设计理念：
- * "可观、可看、可查、可操作、可跳转、可追溯、可预测"
+ * @dependencies: yyc3-storage, figma-error-filter
+ * @exports: installGlobalErrorListeners, reportError, getErrorStats
+ * @notes: 在 App.tsx 中调用 installGlobalErrorListeners() 初始化
  */
 
 import type { ErrorCategory, ErrorSeverity, AppError, ErrorStats } from "../types";

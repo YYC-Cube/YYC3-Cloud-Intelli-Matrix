@@ -1,13 +1,12 @@
 /**
- * i18n-loop-devguide.test.ts
- * ===============
- * 语言包新增 key 验证: loop + devGuide
- *
- * 覆盖范围:
- * - zh-CN 和 en-US 新增 key 一致性
- * - loop.* 完整性 (35+ key)
- * - devGuide.* 完整性 (22+ key)
- * - nav 新增 key
+ * @file: i18n-loop-devguide.test.ts
+ * @description: i18n-loop-devguide.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

@@ -1,13 +1,12 @@
 /**
- * figma-error-filter.test.ts
- * ============================
- * Figma iframe平台错误过滤器测试
- *
- * @file figma-error-filter.test.ts
- * @description figma-error-filter模块单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: figma-error-filter.test.ts
+ * @description: figma-error-filter模块单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

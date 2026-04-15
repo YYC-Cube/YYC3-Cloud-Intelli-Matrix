@@ -1,10 +1,12 @@
 /**
- * alerting-manager.ts
- * ======================
- * 告警管理器
- * 
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: alerting-manager.ts
+ * @description: alerting-manager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type AlertSeverity = "info" | "warning" | "error" | "critical";

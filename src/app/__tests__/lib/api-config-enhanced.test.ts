@@ -1,10 +1,12 @@
 /**
- * api-config-enhanced.test.ts
- * ============================
- * API 配置模块增强测试
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: api-config-enhanced.test.ts
+ * @description: api-config-enhanced.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

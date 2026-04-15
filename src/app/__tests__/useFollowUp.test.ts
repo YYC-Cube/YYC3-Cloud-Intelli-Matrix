@@ -1,13 +1,12 @@
 /**
- * useFollowUp.test.ts
- * =====================
- * 一键跟进系统 Hook 测试
- *
- * @file useFollowUp.test.ts
- * @description useFollowUp Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useFollowUp.test.ts
+ * @description: useFollowUp Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

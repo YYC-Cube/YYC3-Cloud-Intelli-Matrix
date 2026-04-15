@@ -1,8 +1,12 @@
 /**
- * useAlertRules.ts
- * =================
- * Hook for Smart Alert Rules Configuration
- * RF-007: 重构为复用 usePersistedList，获得 BroadcastChannel 跨标签页同步能力
+ * @file: useAlertRules.ts
+ * @description: useAlertRules.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";

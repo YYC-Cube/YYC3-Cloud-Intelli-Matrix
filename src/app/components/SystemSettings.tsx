@@ -19,6 +19,7 @@ import {
   Download, Upload, Trash2, Plus, Edit2, Eye, EyeOff,
   RefreshCw, Clock, AlertTriangle, Sliders,
   Plug, Repeat, Timer, X,
+  CheckCircle2, XCircle,
 } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { NetworkConfig } from "./NetworkConfig";
@@ -32,7 +33,10 @@ import {
 } from "../lib/api-config";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useSettingsStore } from "../hooks/useSettingsStore";
-import { deployedModelStore, type DeployedModel } from "../stores/dashboard-stores";
+import type { DeployedModel } from "../stores/dashboard-stores";
+import type { SettingsToggles, SettingsValues } from "../hooks/useSettingsStore";
+import { useModelSlice } from "../store/slices/model-slice";
+import { testAIConnection, type AIConnectionConfig, type ConnectionTestResult } from "../lib/connection-test-engine";
 
 // ============================================================
 // Settings sections config
@@ -363,8 +367,8 @@ const MODEL_STATUS_LABELS: Record<DeployedModel["status"], string> = {
   deployed: "已部署", deploying: "部署中", standby: "待命", error: "异常",
 };
 
-function ModelManagementSection({ settings, toggleSetting }: { settings: any; toggleSetting: (key: string) => void }) {
-  const [models, setModels] = useState<DeployedModel[]>(deployedModelStore.getAll());
+function ModelManagementSection({ settings, toggleSetting }: { settings: SettingsToggles; toggleSetting: (key: keyof SettingsToggles) => void }) {
+  const { models, addModel, updateModel, removeModel, getModelById } = useModelSlice();
   const [editModel, setEditModel] = useState<DeployedModel | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -376,8 +380,6 @@ function ModelManagementSection({ settings, toggleSetting }: { settings: any; to
   const [fSize, setFSize] = useState("");
   const [fStatus, setFStatus] = useState<DeployedModel["status"]>("standby");
   const [fGpu, setFGpu] = useState("");
-
-  const refresh = () => setModels(deployedModelStore.getAll());
 
   const openAdd = () => {
     setEditModel(null);
@@ -396,27 +398,23 @@ function ModelManagementSection({ settings, toggleSetting }: { settings: any; to
   const handleSave = () => {
     if (!fName.trim()) { toast.error("模型名称不能为空"); return; }
     if (isAdding) {
-      deployedModelStore.add({ name: fName.trim(), version: fVersion.trim(), size: fSize.trim(), status: fStatus, gpu: fGpu.trim() || "-" });
+      addModel({ name: fName.trim(), version: fVersion.trim(), size: fSize.trim(), status: fStatus, gpu: fGpu.trim() || "-" });
       toast.success(`模型 ${fName} 已添加`, { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
     } else if (editModel) {
-      deployedModelStore.update(editModel.id, { name: fName.trim(), version: fVersion.trim(), size: fSize.trim(), status: fStatus, gpu: fGpu.trim() || "-" });
+      updateModel(editModel.id, { name: fName.trim(), version: fVersion.trim(), size: fSize.trim(), status: fStatus, gpu: fGpu.trim() || "-" });
       toast.success(`模型 ${fName} 已更新`, { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
     }
     closeForm();
-    refresh();
   };
 
   const handleDelete = (id: string) => {
-    const m = deployedModelStore.getById(id);
-    deployedModelStore.remove(id);
+    const m = getModelById(id);
+    removeModel(id);
     toast.success(`模型 ${m?.name || ""} 已删除`, { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
     setDeleteConfirm(null);
-    refresh();
   };
 
   const handleReset = () => {
-    deployedModelStore.reset();
-    refresh();
     toast.info("模型列表已重置为默认值");
   };
 
@@ -562,7 +560,7 @@ function ModelManagementSection({ settings, toggleSetting }: { settings: any; to
           <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>推理缓存 (KV-Cache)</p>
           <p className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.68rem" }}>启用 KV-Cache 加速推理</p>
         </div>
-        <Toggle enabled={(settings as any).cacheEnabled} onChange={() => toggleSetting("cacheEnabled" as any)} />
+        <Toggle enabled={settings.cacheEnabled} onChange={() => toggleSetting("cacheEnabled")} />
       </div>
     </div>
   );
@@ -580,17 +578,22 @@ export function SystemSettings() {
   const [saving, setSaving] = useState(false);
   const [networkConfigOpen, setNetworkConfigOpen] = useState(false);
 
+  // AI Connection Test State
+  const [aiConnTestStatus, setAiConnTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
+  const [aiConnTestResult, setAiConnTestResult] = useState<ConnectionTestResult | null>(null);
+  const [aiConnTestTime, setAiConnTestTime] = useState(0);
+
   // 统一持久化设置 (localStorage + BroadcastChannel)
   const settingsStore = useSettingsStore();
-  const { settings, values, toggleSetting: storeToggle, updateValue: storeUpdate, resetSettings, exportSettings } = settingsStore;
+  const { settings, values, toggleSetting: storeToggle, updateValue: storeUpdate, resetSettings, exportSettings, importSettings } = settingsStore;
 
-  const updateValue = (key: string, val: string) => {
-    storeUpdate(key as any, val);
+  const updateValue = (key: keyof SettingsValues, val: string) => {
+    storeUpdate(key, val);
     setHasChanges(true);
   };
 
-  const toggleSetting = (key: string) => {
-    storeToggle(key as any);
+  const toggleSetting = (key: keyof SettingsToggles) => {
+    storeToggle(key);
     setHasChanges(true);
   };
 
@@ -633,6 +636,80 @@ export function SystemSettings() {
     URL.revokeObjectURL(url);
     toast.success(t("settings.exported"));
   };
+
+  const settingsImportRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImport = useCallback(() => {
+    settingsImportRef.current?.click();
+  }, []);
+
+  const handleImportFile = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) { return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const success = importSettings(content);
+        if (success) {
+          toast.success(t("settings.imported") || "配置导入成功");
+          setHasChanges(false);
+        } else {
+          toast.error(t("settings.importFailed") || "配置导入失败");
+        }
+      } catch {
+        toast.error(t("settings.importInvalid") || "无效的配置文件");
+      }
+    };
+    reader.readAsText(file);
+    if (settingsImportRef.current) {
+      settingsImportRef.current.value = "";
+    }
+  }, [importSettings, t]);
+
+  // ========== AI Connection Test ==========
+  const testAIConnectionNow = useCallback(async () => {
+    const model = availableModels.find((m) => m.id === values.aiModel);
+    if (!model) { return; }
+    setAiConnTestStatus("testing");
+    setAiConnTestResult(null);
+    setAiConnTestTime(0);
+    const t0 = Date.now();
+    try {
+      const config: AIConnectionConfig = {
+        providerId: model.provider || "unknown",
+        providerLabel: model.provider || "Unknown",
+        baseUrl: values.aiBaseUrl || (model.isLocal
+          ? (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:11434` : "http://localhost:11434")
+          : ""),
+        authType: "bearer",
+        apiKey: values.aiApiKey || "",
+        modelId: model.id,
+        modelName: model.name,
+        isLocal: model.isLocal,
+      };
+      const result = await testAIConnection(config);
+      setAiConnTestResult(result);
+      setAiConnTestStatus(result.overallStatus === "pass" ? "success" : "error");
+      setAiConnTestTime(Date.now() - t0);
+    } catch (err: unknown) {
+      setAiConnTestStatus("error");
+      const msg = err instanceof Error ? err.message : String(err);
+      setAiConnTestResult({
+        id: "ai-error",
+        category: "ai",
+        name: "连接测试异常",
+        color: "#ff3366",
+        steps: [{ label: "异常", status: "fail", detail: msg }],
+        overallStatus: "fail",
+        totalLatencyMs: Date.now() - t0,
+        startedAt: t0,
+        completedAt: Date.now(),
+        suggestion: msg.includes("timeout") ? "连接超时，请检查网络或服务地址" : msg,
+      });
+      setAiConnTestTime(Date.now() - t0);
+    }
+  }, [values.aiModel, values.aiApiKey, values.aiBaseUrl, availableModels]);
 
   // ============================================================
   // Render sections
@@ -724,6 +801,13 @@ export function SystemSettings() {
             <div>
               <h3 className="text-[#e0f0ff] mb-4" style={{ fontSize: "0.95rem" }}>配置导入 / 导出</h3>
               <div className="flex gap-3">
+                <input
+                  ref={settingsImportRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportFile}
+                  className="hidden"
+                />
                 <button
                   onClick={handleExport}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.15)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] transition-all"
@@ -733,6 +817,7 @@ export function SystemSettings() {
                   导出配置
                 </button>
                 <button
+                  onClick={handleImport}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-all"
                   style={{ fontSize: "0.8rem" }}
                 >
@@ -789,9 +874,9 @@ export function SystemSettings() {
               <h4 className="text-[rgba(0,212,255,0.6)] mb-3" style={{ fontSize: "0.8rem" }}>节点拓扑</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {[
-                  { name: "M4 Max 主节点", ip: "192.168.3.45", role: "主节点", status: "active", color: "#00d4ff" },
-                  { name: "iMac 辅助节点", ip: "192.168.3.46", role: "辅助", status: "active", color: "#00ff88" },
-                  { name: "NAS 数据中心", ip: "192.168.3.45:9898", role: "存储", status: "active", color: "#aa55ff" },
+                  { name: "主节点 (Node-01)", ip: "localhost", role: "主节点", status: "active", color: "#00d4ff" },
+                  { name: "辅助节点 (Node-02)", ip: "localhost", role: "辅助", status: "active", color: "#00ff88" },
+                  { name: "NAS 数据中心", ip: "localhost:9898", role: "存储", status: "active", color: "#aa55ff" },
                 ].map((node) => (
                   <div key={node.name} className="p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                     <div className="flex items-center gap-2 mb-2">
@@ -848,6 +933,75 @@ export function SystemSettings() {
                   <option>加权轮询 (Weighted RR)</option>
                   <option>一致性哈希 (Consistent Hash)</option>
                 </select>
+              </div>
+
+              {/* AI Connection Test Button + Results */}
+              <div className="space-y-2">
+                <button
+                  onClick={testAIConnectionNow}
+                  disabled={aiConnTestStatus === "testing" || !values.aiModel}
+                  className="w-full px-4 py-2.5 rounded-xl border transition-all flex items-center justify-center gap-2"
+                  style={{
+                    background: aiConnTestStatus === "testing" ? "rgba(255,221,0,0.08)" :
+                               aiConnTestStatus === "success" ? "rgba(0,255,136,0.06)" :
+                               aiConnTestStatus === "error" ? "rgba(255,51,102,0.06)" : "rgba(0,212,255,0.06)",
+                    borderColor: aiConnTestStatus === "testing" ? "rgba(255,221,0,0.25)" :
+                                aiConnTestStatus === "success" ? "rgba(0,255,136,0.2)" :
+                                aiConnTestStatus === "error" ? "rgba(255,51,102,0.2)" : "rgba(0,180,255,0.12)",
+                    color: aiConnTestStatus === "testing" ? "#ffdd00" :
+                           aiConnTestStatus === "success" ? "#00ff88" :
+                           aiConnTestStatus === "error" ? "#ff3366" : "#00d4ff",
+                    fontSize: "0.78rem",
+                    cursor: aiConnTestStatus === "testing" ? "wait" : (!values.aiModel ? "not-allowed" : "pointer"),
+                    opacity: !values.aiModel ? 0.5 : 1,
+                  }}
+                >
+                  {aiConnTestStatus === "testing" ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" /> 正在测试连接...</>
+                  ) : aiConnTestStatus === "success" ? (
+                    <><CheckCircle2 className="w-4 h-4" /> 连接测试通过 ({aiConnTestTime}ms)</>
+                  ) : aiConnTestStatus === "error" ? (
+                    <><XCircle className="w-4 h-4" /> 连接失败 ({aiConnTestTime}ms) — 点击重试</>
+                  ) : (
+                    <><Plug className="w-4 h-4" /> 测试当前模型连接</>
+                  )}
+                </button>
+
+                {/* Test Result Details */}
+                {aiConnTestResult && (
+                  <div className="px-3 py-2.5 rounded-lg bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.06)] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>{aiConnTestResult.name}</span>
+                      <span className="font-mono text-xs px-1.5 py-0.5 rounded" style={{
+                        color: aiConnTestResult.overallStatus === "pass" ? "#00ff88" : "#ff3366",
+                        background: aiConnTestResult.overallStatus === "pass" ? "rgba(0,255,136,0.1)" : "rgba(255,51,102,0.1)",
+                      }}>
+                        {aiConnTestResult.totalLatencyMs}ms · {aiConnTestResult.overallStatus === "pass" ? "通过" : "失败"}
+                      </span>
+                    </div>
+                    <div className="space-y-0.5">
+                      {aiConnTestResult.steps.map((step, i) => (
+                        <div key={i} className="flex items-start gap-1.5">
+                          <span style={{
+                            fontSize: "0.6rem",
+                            color: step.status === "pass" ? "#00ff88" : step.status === "warn" ? "#ffdd00" : "#ff3366",
+                          }}>
+                            {step.status === "pass" ? "✓" : step.status === "warn" ? "!" : "×"}
+                          </span>
+                          <span className="text-[rgba(0,212,255,0.45)]" style={{ fontSize: "0.62rem", flex: 1 }}>{step.label}</span>
+                          {step.latencyMs !== null && (
+                            <span className="shrink-0 font-mono" style={{ fontSize: "0.55rem", color: "rgba(0,212,255,0.25)" }}>{step.latencyMs}ms</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {aiConnTestResult.suggestion && (
+                      <p className="pt-1.5 border-t border-[rgba(0,180,255,0.06)] text-[#ffdd00]" style={{ fontSize: "0.62rem", lineHeight: 1.4 }}>
+                        💡 {aiConnTestResult.suggestion}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <EditableField label="扩容阈值 (%)" value={values.scaleUpThreshold} onChange={v => updateValue("scaleUpThreshold", v)} type="number" description="GPU 利用率超过此值时触发扩容" />
               <EditableField label="缩容阈值 (%)" value={values.scaleDownThreshold} onChange={v => updateValue("scaleDownThreshold", v)} type="number" description="GPU 利用率低于此值时触发缩容" />

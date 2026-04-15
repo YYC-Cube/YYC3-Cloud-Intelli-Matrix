@@ -1,9 +1,12 @@
 /**
- * AIDiagnostics.tsx
- * ===================
- * AI 辅助诊断模块
- * 模式识别 · 异常分析 · 自动解决方案 · 预测性维护
- * 赛博朋克风格 #060e1f + #00d4ff
+ * @file: AIDiagnostics.tsx
+ * @description: AIDiagnostics.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

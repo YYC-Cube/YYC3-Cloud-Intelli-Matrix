@@ -1,15 +1,12 @@
 /**
- * MusicEventBus.ts
- * ================
- * AI Family 音乐事件总线
- * 统一管理语音系统与音乐播放器之间的通信
- *
- * @file MusicEventBus.ts
- * @description 音乐事件总线，实现语音系统与音乐播放器的解耦通信
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: MusicEventBus.ts
+ * @description: 音乐事件总线，实现语音系统与音乐播放器的解耦通信
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type MusicCommand =
@@ -157,13 +154,13 @@ class MusicEventBusClass {
     this.listeners.get(eventType)!.add(listener);
 
     if (this.debugMode) {
-      console.log(`[MusicEventBus] Subscribed to ${eventType}`);
+      console.info(`[MusicEventBus] Subscribed to ${eventType}`);
     }
 
     return () => {
       this.listeners.get(eventType)?.delete(listener);
       if (this.debugMode) {
-        console.log(`[MusicEventBus] Unsubscribed from ${eventType}`);
+        console.info(`[MusicEventBus] Unsubscribed from ${eventType}`);
       }
     };
   }
@@ -195,7 +192,7 @@ class MusicEventBusClass {
 
   emit(event: MusicEvent): void {
     if (this.debugMode) {
-      console.log(`[MusicEventBus] Emitting:`, event);
+      console.info(`[MusicEventBus] Emitting:`, event);
     }
 
     this.eventHistory.push(event);

@@ -1,12 +1,12 @@
 /**
- * service-loop-types.test.ts
- * ===============
- * 一站式服务闭环 类型定义验证
- *
- * 覆盖范围:
- * - LoopStage / StageStatus
- * - StageResult / LoopRun
- * - DataFlowNodeType / DataFlowEdge
+ * @file: service-loop-types.test.ts
+ * @description: service-loop-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

@@ -1,16 +1,12 @@
 /**
- * test-infrastructure.test.ts
- * ============================
- * 测试基础设施自检
- *
- * 验证 Vitest 测试环境本身的正确性:
- * - localStorage mock 正常工作
- * - 模块热重载 (vi.resetModules) 正常
- * - 异步 import 正常
-import React from "react";
- * - 类型导入正常
- * - JSON 序列化/反序列化正常
- * - 时间 mock 正常
+ * @file: test-infrastructure.test.ts
+ * @description: test-infrastructure.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

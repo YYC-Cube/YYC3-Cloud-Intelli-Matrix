@@ -1,10 +1,12 @@
 /**
- * deployment-manager.ts
- * ======================
- * 部署管理器
- * 
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: deployment-manager.ts
+ * @description: deployment-manager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type DeploymentEnvironment = "development" | "staging" | "production";

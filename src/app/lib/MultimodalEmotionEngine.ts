@@ -1,15 +1,12 @@
 /**
- * MultimodalEmotionEngine.ts
- * ============================
- * 多模态情感融合引擎
- * 结合语音、文本、行为数据综合判断情感
- *
- * @file MultimodalEmotionEngine.ts
- * @description 多模态情感融合引擎
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: MultimodalEmotionEngine.ts
+ * @description: 多模态情感融合引擎
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import emotionMusicBridge, {

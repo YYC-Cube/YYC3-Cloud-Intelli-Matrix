@@ -1,12 +1,12 @@
 /**
- * @file canvasPerfRegistry.ts
- * @description Canvas 性能监控注册表，用于共享性能数据
- * @module lib/canvasPerfRegistry
- * @author YYC³ Team
- * @version 1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
- * @source D-Music-B
+ * @file: canvasPerfRegistry.ts
+ * @description: Canvas 性能监控注册表，用于共享性能数据
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export interface CanvasPerfData {

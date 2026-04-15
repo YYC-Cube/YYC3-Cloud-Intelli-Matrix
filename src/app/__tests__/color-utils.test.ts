@@ -1,13 +1,12 @@
 /**
- * color-utils.test.ts
- * ====================
- * 颜色工具函数单元测试
- *
- * @file color-utils.test.ts
- * @description 颜色转换工具测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: color-utils.test.ts
+ * @description: 颜色转换工具测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

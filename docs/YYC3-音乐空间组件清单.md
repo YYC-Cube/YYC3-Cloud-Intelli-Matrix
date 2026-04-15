@@ -1,16 +1,16 @@
 ---
-@file: YYC3-音乐空间组件清单.md
-@description: YYC³音乐空间完整组件清单，包含D-Music-B核心组件、技术方案、设计方案、数据库架构等全量组件索引
-@author: YanYuCloudCube Team <admin@0379.email>
-@version: v1.0.0
-@created: 2026-04-04
-@updated: 2026-04-04
-@status: stable
-@tags: music,components,inventory,d-music,audio,emotion,zh-CN
-@category: documentation
-@language: zh-CN
-@audience: developers,architects,product-managers
-@complexity: intermediate
+file: YYC3-音乐空间组件清单.md
+description: YYC³音乐空间完整组件清单，包含D-Music-B核心组件、技术方案、设计方案、数据库架构等全量组件索引
+author: YanYuCloudCube Team <admin0379.email>
+version: v1.0.0
+created: 2026-04-04
+updated: 2026-04-04
+status: stable
+tags: music,components,inventory,d-music,audio,emotion,zh-CN
+category: documentation
+language: zh-CN
+audience: developers,architects,product-managers
+complexity: intermediate
 ---
 
 > ***YanYuCloudCube***

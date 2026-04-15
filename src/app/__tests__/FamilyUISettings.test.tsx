@@ -1,13 +1,12 @@
 /**
- * FamilyUISettings.test.tsx
- * ===========================
- * AI Family UI设置自编辑功能测试
- *
- * @file FamilyUISettings.test.tsx
- * @description FamilyUISettings组件自编辑功能单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: FamilyUISettings.test.tsx
+ * @description: FamilyUISettings组件自编辑功能单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

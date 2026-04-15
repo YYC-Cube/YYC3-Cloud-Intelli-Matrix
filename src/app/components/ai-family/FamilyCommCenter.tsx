@@ -1,16 +1,12 @@
 /**
- * FamilyCommCenter.tsx
- * =====================
- * AI Family 内部通信中心
- *
- * 功能：
- *  - 全家广播 / 点对点消息
- *  - 消息类型：公告、警报、心跳、普通文本
- *  - 家人在线状态面板
- *  - 快捷发送预设消息
- *  - localStorage 消息持久化 + 历史翻阅
- *  - 消息搜索 & 按日期分组
- *  - 聊天记录导出
+ * @file: FamilyCommCenter.tsx
+ * @description: FamilyCommCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
@@ -475,7 +471,7 @@ export function FamilyCommCenter() {
         </div>
 
         {/* Messages area */}
-        <GlassCard className="flex-1 p-4 overflow-y-auto mb-4" ref={scrollContainerRef as any}>
+        <GlassCard className="flex-1 p-4 overflow-y-auto mb-4" ref={scrollContainerRef as React.RefObject<HTMLDivElement>}>
           <div className="space-y-4">
             {/* Load more button */}
             {hasMoreHistory && (

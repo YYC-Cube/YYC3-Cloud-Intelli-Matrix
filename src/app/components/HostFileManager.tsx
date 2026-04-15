@@ -1,10 +1,12 @@
 /**
- * HostFileManager.tsx
- * ====================
- * 宿主机文件系统管理器 · 路由: /host-files
- *
- * 真实可编辑文件系统 (File System Access API)
- * 支持: 打开目录 / 浏览 / 编辑 / 创建 / 删除 / 重命名 / 搜索 / 上传 / 下载 / 版本控制
+ * @file: HostFileManager.tsx
+ * @description: HostFileManager.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

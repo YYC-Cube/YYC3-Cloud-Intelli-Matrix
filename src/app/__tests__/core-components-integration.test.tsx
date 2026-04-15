@@ -1,18 +1,12 @@
 /**
- * core-components-integration.test.tsx
- * ======================================
- * YYC3 核心组件集成测试
- *
- * 覆盖范围:
- * - SystemSettings: 模型管理 CRUD、API 端点配置、分类切换
- * - UserManagement: 用户 CRUD、重置为默认、搜索过滤、锁定/解锁
- * - NetworkConfig: WiFi 扫描/连接/断开、连接历史、Tab 切换
- * - Dashboard stores: createLocalStore 工厂 CRUD 集成
- * - api-config: APIEndpoints 类型导出、配置读写
- *
- * 数据流验证:
- * - 组件 → store (localStorage) → 组件刷新
- * - store.reset() 恢复默认数据
+ * @file: core-components-integration.test.tsx
+ * @description: core-components-integration.test.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // Mock localStorage

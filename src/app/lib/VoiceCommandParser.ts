@@ -1,15 +1,12 @@
 /**
- * VoiceCommandParser.ts
- * =====================
- * 语音命令解析器
- * 将语音识别文本转换为音乐控制命令
- *
- * @file VoiceCommandParser.ts
- * @description 语音命令解析器，支持中英文语音命令识别
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: VoiceCommandParser.ts
+ * @description: 语音命令解析器，支持中英文语音命令识别
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import type { MusicCommand } from "./MusicEventBus";

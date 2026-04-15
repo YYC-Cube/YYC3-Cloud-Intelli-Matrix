@@ -1,10 +1,12 @@
 /**
- * penetration-tester.test.ts
- * ============================
- * 安全渗透测试模块测试
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: penetration-tester.test.ts
+ * @description: penetration-tester.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { describe, it, expect, beforeEach } from "vitest";

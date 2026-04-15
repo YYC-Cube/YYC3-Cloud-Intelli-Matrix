@@ -1,14 +1,12 @@
 /**
- * operation-types.test.ts
- * ==============
- * 操作中心 + IDE 终端 类型定义验证
- *
- * 覆盖范围:
- * - OperationCategoryType / OperationStatus 枚举
- * - OperationItem / OperationTemplateItem 结构
- * - OperationLogEntry 结构
- * - TerminalHistoryEntry 结构
- * - IDEPanelTab 枚举
+ * @file: operation-types.test.ts
+ * @description: operation-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

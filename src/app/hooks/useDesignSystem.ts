@@ -1,10 +1,12 @@
 /**
- * useDesignSystem.ts
- * ===================
- * 设计系统钩子 - 获取和修改设计系统变量
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: useDesignSystem.ts
+ * @description: useDesignSystem.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback } from "react";

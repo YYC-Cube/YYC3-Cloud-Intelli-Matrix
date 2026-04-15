@@ -1,12 +1,12 @@
 /**
- * rf001-ws-url-unification.test.ts
- * ==================================
- * RF-001 WebSocket URL 统一 - 验证测试
- *
- * 确保:
- * 1. useWebSocketData 从 api-config 读取 WS URL（不再硬编码）
- * 2. network-utils DEFAULT_NETWORK_CONFIG.wsUrl 由 serverAddress+port 推导
- * 3. api-config 是唯一权威 WS 端点配置源
+ * @file: rf001-ws-url-unification.test.ts
+ * @description: rf001-ws-url-unification.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // Mock localStorage

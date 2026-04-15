@@ -1,12 +1,12 @@
 /**
- * i18n-packs.test.ts
- * ============
- * 语言包完整性测试
- *
- * 覆盖范围:
- * - zh-CN 和 en-US key 结构一致性
- * - 所有翻译值非空
- * - 模板变量格式正确
+ * @file: i18n-packs.test.ts
+ * @description: i18n-packs.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

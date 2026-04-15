@@ -1,10 +1,12 @@
 /**
- * test-utils.test.ts
- * ==================
- * 测试工具集的单元测试
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: test-utils.test.ts
+ * @description: test-utils.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

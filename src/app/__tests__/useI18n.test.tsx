@@ -1,12 +1,25 @@
 /**
  * @file: useI18n.test.tsx
- * @description: useI18n.test.tsx description
+ * @description: useI18n Hook 单元测试 · 测试国际化功能
  * @author: YanYuCloudCube Team
  * @version: v1.0.0
  * @created: 2026-03-31
- * @updated: 2026-03-31
+ * @updated: 2026-04-09
  * @status: active
- * @tags: [component]
+ * @tags: [test],[unit],[hook],[i18n]
+ *
+ * @brief: 测试 useI18n Hook 的功能
+ *
+ * @details:
+ * - 测试语言切换功能
+ * - 测试翻译函数 t()
+ * - 测试嵌套 key 支持
+ * - 测试模板变量支持
+ * - 测试 localStorage 持久化
+ *
+ * @test-target: src/app/hooks/useI18n.ts
+ * @coverage: 90%+
+ * @notes: 使用 Vitest + React Testing Library
  */
 
 // @vitest-environment jsdom

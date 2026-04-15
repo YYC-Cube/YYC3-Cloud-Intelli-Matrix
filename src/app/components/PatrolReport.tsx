@@ -1,8 +1,12 @@
 /**
- * PatrolReport.tsx
- * ==================
- * 巡查报告详情
- * 按类别分组展示检查结果
+ * @file: PatrolReport.tsx
+ * @description: PatrolReport.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

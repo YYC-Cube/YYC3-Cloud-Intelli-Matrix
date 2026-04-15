@@ -1,10 +1,12 @@
 /**
- * FamilyPhone.tsx
- * ================
- * AI Family 语音通话系统
- * 每位家人都有专属号码 · 网内呼叫 · 拟人化交互
- * 
- * "拟人为本，不应该有个如人一样的电话号码吗？"
+ * @file: FamilyPhone.tsx
+ * @description: FamilyPhone.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";

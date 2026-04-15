@@ -1,17 +1,12 @@
 /**
- * FamilyMusic.tsx
- * ================
- * AI Family 音乐 & 新闻空间
- * 音乐播放器 · 行业资讯 · AI 智能推荐
- *
- * v4.0.0 - 真实音频播放集成
- * - Web Audio API 音频引擎
- * - 频率数据驱动可视化
- * - 支持演示模式/文件模式
- * - 语音命令控制播放
- * - 情感感知与可视化
- *
- * 重构: 使用 useAudioEngine 实现真实音频播放
+ * @file: FamilyMusic.tsx
+ * @description: FamilyMusic.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -19,6 +14,7 @@ import {
   Music, Newspaper, Play, Pause, SkipForward, SkipBack,
   Volume2, VolumeX, Heart, Shuffle, Repeat, List, Rss,
   ExternalLink, Sparkles, Mic, Brain, Wand2, LayoutGrid, ListMusic, Plus,
+  Upload, Music2, MessageCircleHeart
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
@@ -29,6 +25,12 @@ import { CoverFlow, type MusicTrack as CoverFlowTrack } from "./CoverFlow";
 import { type EmotionType } from "./EmotionRipple";
 import { VinylPhotoPlayer, MVPlayerOverlay } from "./VinylPhotoPlayer";
 import { CreationStudio } from "./CreationStudio";
+import {
+  FamilyAnthemPlayer,
+  SongUploadZone,
+  createCareLanguageEngine,
+  type CareResponse
+} from "./ai-family-local";
 import musicEventBus, { type MusicCommand } from "../../lib/MusicEventBus";
 import { type ParsedCommand } from "../../lib/VoiceCommandParser";
 import { useEmotionMusic } from "../../hooks/useEmotionMusic";
@@ -80,6 +82,28 @@ export function FamilyMusic() {
   const [showCreationStudio, setShowCreationStudio] = useState(false);
   const [showMVPlayer, setShowMVPlayer] = useState(false);
   const [playlist, setPlaylist] = useState<MusicTrack[]>(MUSIC_LIBRARY);
+
+  const [showAnthemPlayer, setShowAnthemPlayer] = useState(false);
+  const [showUploadZone, setShowUploadZone] = useState(false);
+  const [careResponse, setCareResponse] = useState<CareResponse | null>(null);
+
+  interface UploadedSong {
+    id?: string;
+    title: string;
+    url?: string;
+    artist?: string;
+    duration?: number;
+  }
+  const [uploadedSongs, setUploadedSongs] = useState<UploadedSong[]>([]);
+
+  const careEngine = useMemo(() => createCareLanguageEngine({
+    founderExperienceYears: 18,
+    wisdomCorpusSize: 300000,
+    personality: ['温暖', '专业', '洞察', '真诚'],
+    defaultStyle: 'gentle',
+    enableMusicIntegration: true,
+    enableWisdomQuotes: true,
+  }), []);
 
   const currentTrackData = playlist[currentTrackIndex];
 
@@ -498,6 +522,32 @@ export function FamilyMusic() {
                     <Plus className="w-3.5 h-3.5" />
                     AI 创作
                   </button>
+                  <button
+                    onClick={() => setShowAnthemPlayer(!showAnthemPlayer)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                      showAnthemPlayer
+                        ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300"
+                        : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
+                    }`}
+                    style={{ fontSize: "0.7rem" }}
+                    title="Family AI · 智慧工坊之歌"
+                  >
+                    <Music2 className="w-3.5 h-3.5" />
+                    家族之歌
+                  </button>
+                  <button
+                    onClick={() => setShowUploadZone(!showUploadZone)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                      showUploadZone
+                        ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-300"
+                        : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
+                    }`}
+                    style={{ fontSize: "0.7rem" }}
+                    title="上传原创歌曲到AI Family音乐库"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    上传歌曲
+                  </button>
                 </div>
               </div>
 
@@ -629,6 +679,146 @@ export function FamilyMusic() {
           setPlaylist((prev) => [...prev, track]);
         }}
       />
+
+      {showAnthemPlayer && (
+        <FadeIn>
+          <div className="max-w-5xl mx-auto px-4 md:px-8 mt-6">
+            <GlassCard className="p-6" glowColor="rgba(255, 215, 0, 0.08)">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFD70020, #FFA50020)', border: '2px solid #FFD70040' }}>
+                    <Music2 className="w-5 h-5 text-[#FFD700]" />
+                  </div>
+                  <div>
+                    <h3 className="text-[#FFD300]" style={{ fontSize: "1rem" }}>Family AI · 智慧工坊之歌</h3>
+                    <p className="text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.65rem" }}>
+                      原创歌曲 · AI Family 独家关爱之语 · 十八年管理智慧凝聚
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAnthemPlayer(false)}
+                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <FamilyAnthemPlayer
+                showLyrics={true}
+                autoScroll={true}
+                onPlay={() => {
+                  console.info('[FamilyMusic] 家族之歌开始播放');
+                }}
+                onPause={() => {
+                  console.info('[FamilyMusic] 家族之歌暂停');
+                }}
+                onLyricHighlight={(lyric: { emotion: string; text: string }) => {
+                  careEngine.respondToEmotion(lyric.emotion as string, {
+                    context: `正在聆听《${lyric.text}》`,
+                    userName: '创始人',
+                  }).then((response: CareResponse) => {
+                    setCareResponse(response);
+                    setTimeout(() => setCareResponse(null), 8000);
+                  });
+                }}
+              />
+
+              {careResponse && (
+                <div className="mt-4 p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,165,0,0.08))', border: '1px solid rgba(255,215,0,0.2)' }}>
+                  <div className="flex items-start gap-3">
+                    <MessageCircleHeart className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-[#e0f0ff]" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
+                        {careResponse.message}
+                      </p>
+                      {careResponse.wisdomQuote && (
+                        <p className="text-[rgba(255,215,0,0.6)] mt-2 italic" style={{ fontSize: "0.72rem" }}>
+                          💡 {careResponse.wisdomQuote}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}>
+                          {careResponse.emotion === 'peaceful' ? '🕊️ 平和' :
+                           careResponse.emotion === 'encouraging' ? '💪 鼓励' :
+                           careResponse.emotion === 'warm' ? '❤️ 温暖' : '✨ 关爱'}
+                        </span>
+                        <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+                          AI Family 关爱引擎响应
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </GlassCard>
+          </div>
+        </FadeIn>
+      )}
+
+      {showUploadZone && (
+        <FadeIn>
+          <div className="max-w-5xl mx-auto px-4 md:px-8 mt-6">
+            <GlassCard className="p-6" glowColor="rgba(16, 185, 129, 0.08)">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #10B98120, #14B8A620)', border: '2px solid #10B98140' }}>
+                    <Upload className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-emerald-300" style={{ fontSize: "1rem" }}>上传原创歌曲</h3>
+                    <p className="text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.65rem" }}>
+                      将您的原创音乐作品加入AI Family音乐库，让家族成员共同聆听
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowUploadZone(false)}
+                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <SongUploadZone
+                onUploadSuccess={(song: { title: string; url: string }) => {
+                  setUploadedSongs(prev => [...prev, song]);
+                  careEngine.encourage({
+                    achievement: `上传了原创歌曲《${song.title}》`,
+                    context: '音乐创作',
+                  }).then((response: CareResponse) => {
+                    setCareResponse(response);
+                    setTimeout(() => setCareResponse(null), 8000);
+                  });
+                }}
+                onError={(error: Error) => {
+                  console.error('[FamilyMusic] 上传失败:', error);
+                }}
+                maxFiles={10}
+              />
+
+              {uploadedSongs.length > 0 && (
+                <div className="mt-4 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Music2 className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300 text-sm font-medium">已上传 {uploadedSongs.length} 首原创歌曲</span>
+                  </div>
+                  <div className="space-y-1">
+                    {uploadedSongs.map((song, index) => (
+                      <div key={song.id || index} className="flex items-center gap-2 text-xs text-[rgba(224,240,255,0.6)]">
+                        <span className="text-emerald-400">✓</span>
+                        <span>{song.title}</span>
+                        <span className="text-[rgba(224,240,255,0.3)]">· {song.artist}</span>
+                        <span className="text-[rgba(224,240,255,0.3)]">· {song.duration?.toFixed(1)}s</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </GlassCard>
+          </div>
+        </FadeIn>
+      )}
 
       <MVPlayerOverlay
         isOpen={showMVPlayer}

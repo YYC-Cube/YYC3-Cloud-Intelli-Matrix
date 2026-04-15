@@ -1,21 +1,12 @@
 /**
- * AIFamilyDesignDoc.tsx
- * =====================
- * YYC³ AI Family 设计规划文档 · 交互式原型
- *
- * 五大模块:
- *   1. Family AI — 智能协同核心
- *   2. 家的感觉 AIFamily — 温馨家园
- *   3. 休闲娱乐 & 学习 — 成长空间
- *   4. 音乐 & 新闻 — 信息脉搏
- *   5. 共同成长 — 进化之路
- *
- * 风格: 赛博朋克 · 深空黑 · 霓虹蓝 #00d4ff
- *
- * 沙箱兼容:
- *   - 不使用 motion 的 whileInView / viewport（依赖 IntersectionObserver，
- *     在 Figma iframe 中可能不可用导致崩溃）
- *   - 改用纯 CSS transition + setTimeout 延迟入场动画
+ * @file: AIFamilyDesignDoc.tsx
+ * @description: AIFamilyDesignDoc.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";

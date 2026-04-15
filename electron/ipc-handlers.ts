@@ -391,7 +391,7 @@ export function registerAllIPCHandlers(): void {
   registerDialogHandlers();
   registerShellHandlers();
 
-  console.log("[IPC] All handlers registered");
+  console.info("[IPC] All handlers registered");
 }
 
 // 导出数据库处理器

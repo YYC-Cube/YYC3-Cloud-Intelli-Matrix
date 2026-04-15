@@ -1,10 +1,12 @@
 /**
- * FamilyModelSettings.tsx
- * ========================
- * AI Family 专属大模型集成控制中心
- *
- * 每位家人独立绑定 AI 模型，赋予真正的"生命力"
- * 支持：多提供商 API Key 管理、模型分配、连接诊断、语音预览
+ * @file: FamilyModelSettings.tsx
+ * @description: FamilyModelSettings.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";

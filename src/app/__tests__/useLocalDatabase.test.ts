@@ -1,16 +1,12 @@
 /**
- * useLocalDatabase.test.ts
- * =========================
- * useLocalDatabase Hook 测试
- *
- * 覆盖范围:
- *  - 初始状态
- *  - 连接 CRUD
- *  - SQL 模板
- *  - 查询执行 (Mock 模式)
- *  - enableBackend 开关对 dbAPI 的影响
- *  - 统计计算
- *  - 备份管理
+ * @file: useLocalDatabase.test.ts
+ * @description: useLocalDatabase.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

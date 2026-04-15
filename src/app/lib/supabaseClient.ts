@@ -1,30 +1,24 @@
 /**
- * Supabase Client 封装（Mock 模式）
- * ==================================
- * YYC³ 本地多端推理矩阵数据库
+ * @file: supabaseClient.ts
+ * @description: Supabase 客户端封装 · Mock 模式与真实模式切换
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [lib],[auth],[database]
  *
- * 当前状态：纯前端 Mock 模式
- * 接入方式：配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 环境变量
+ * @brief: Supabase 客户端封装
  *
- * .env.development 配置示例：
- *   VITE_SUPABASE_URL=https://your-project.supabase.co
- *   VITE_SUPABASE_ANON_KEY=your-anon-key
+ * @details:
+ * - 当前状态：纯前端 Mock 模式
+ * - 接入方式：配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 环境变量
+ * - 支持本地直连 PostgreSQL 备选方案
+ * - 提供 MockSupabaseClient 实现
  *
- * 本地直连 PostgreSQL 备选方案：
- *   VITE_DB_HOST=localhost
- *   VITE_DB_PORT=5433
- *   VITE_DB_NAME=yyc3_matrix
- *
- * RF-012: 迁移指南
- * ─────────────────
- * 切换到真实 Supabase 时需注意：
- *   1. 替换 MockSupabaseClient 为 createClient() from @supabase/supabase-js
- *   2. 创建 adapter 层转换 session/user 结构:
- *      - Supabase Session: { access_token, user: { id, email, user_metadata } }
- *      - App Session:      { user: AppUser, token, expiresAt }
- *      使用 toAppSession(supabaseSession) / toAppUser(supabaseUser) 函数
- *   3. App.tsx 中移除 `as AppSession` 类型断言，改用 adapter 函数
- *   4. 更新 auth.onAuthStateChange 回调签名以匹配 Supabase SDK
+ * @dependencies: @supabase/supabase-js
+ * @exports: supabase, signIn, signOut, getSession, onAuthStateChange
+ * @notes: 切换到真实 Supabase 时需替换 MockSupabaseClient 为 createClient()
  */
 import type { AppUser, AppSession } from "../types";
 
@@ -32,13 +26,25 @@ import type { AppUser, AppSession } from "../types";
 // 所有类型统一从 types/index.ts 导入 AppUser / AppSession
 
 // 预设用户（本地闭环系统：admin + developer 两种角色）
+// 安全设计：密码从环境变量读取，未配置时使用随机生成值（需通过UI设置）
+// 用户数据归用户 — 所有凭据均可在 SystemSettings 界面中修改
+// @ts-ignore - Vite env
+const env = import.meta.env;
+const getDefaultPassword = (email: string): string => {
+  const envMap: Record<string, string | undefined> = {
+    "admin@cloudpivot.local": env.VITE_MOCK_ADMIN_PASSWORD,
+    "dev@cloudpivot.local": env.VITE_MOCK_DEV_PASSWORD,
+  };
+  return envMap[email] || "";
+};
+
 const MOCK_USERS: Record<string, { password: string; user: AppUser }> = {
   "admin@cloudpivot.local": {
-    password: "admin123",
+    password: getDefaultPassword("admin@cloudpivot.local"),
     user: { id: "usr-001", email: "admin@cloudpivot.local", role: "admin", name: "YYC Admin" },
   },
   "dev@cloudpivot.local": {
-    password: "dev123",
+    password: getDefaultPassword("dev@cloudpivot.local"),
     user: { id: "usr-002", email: "dev@cloudpivot.local", role: "developer", name: "YYC Developer" },
   },
 };

@@ -1,12 +1,15 @@
 /**
- * LocalFileManager.tsx
- * =====================
- * 本地文件管理器主界面 · 路由: /files
- *
- * i18n 已迁移
+ * @file: LocalFileManager.tsx
+ * @description: LocalFileManager.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
-import React, { useState, useContext, useCallback } from "react";
+import React, { useState, useContext, useCallback, useMemo } from "react";
 import {
   FolderOpen, Download, HardDrive, Trash2, Keyboard,
   Save, X, FileEdit,
@@ -18,6 +21,7 @@ import { ReportGenerator } from "./ReportGenerator";
 import { CodeEditor, getLanguageLabel } from "./CodeEditor";
 import { useLocalFileSystem } from "../hooks/useLocalFileSystem";
 import { useI18n } from "../hooks/useI18n";
+import { useLogSlice } from "../store/slices/log-slice";
 import { ViewContext } from "../lib/view-context";
 
 type ActiveTab = "files" | "logs" | "reports";
@@ -29,6 +33,8 @@ export function LocalFileManager() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("files");
 
   const fs = useLocalFileSystem();
+  const { logs: unifiedLogs } = useLogSlice();
+  const logSources = useMemo(() => Array.from(new Set(unifiedLogs.map((l) => l.source))), [unifiedLogs]);
 
   const tabs: Array<{ key: ActiveTab; label: string }> = [
     { key: "files",   label: t("fileManager.fileBrowse") },
@@ -131,11 +137,11 @@ export function LocalFileManager() {
 
       {activeTab === "logs" && (
         <LogViewer
-          logs={fs.logs}
+          logs={unifiedLogs}
           levelFilter={fs.logLevelFilter}
           sourceFilter={fs.logSourceFilter}
           searchQuery={fs.logSearchQuery}
-          sources={fs.logSources}
+          sources={logSources}
           onLevelChange={fs.setLogLevelFilter}
           onSourceChange={fs.setLogSourceFilter}
           onSearchChange={fs.setLogSearchQuery}

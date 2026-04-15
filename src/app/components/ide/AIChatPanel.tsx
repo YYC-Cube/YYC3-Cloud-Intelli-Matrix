@@ -1,8 +1,12 @@
 /**
- * AIChatPanel.tsx
- * ================
- * IDE 左栏 — AI 智能编程交互面板
- * 快捷操作 + 聊天历史 + 输入框（模型选择已移至顶部导航栏）
+ * @file: AIChatPanel.tsx
+ * @description: AIChatPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

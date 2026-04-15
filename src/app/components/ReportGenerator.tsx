@@ -1,8 +1,12 @@
 /**
- * ReportGenerator.tsx
- * ====================
- * 报告生成器组件
- * 支持性能/健康/安全报告 · JSON/Markdown/CSV 格式
+ * @file: ReportGenerator.tsx
+ * @description: ReportGenerator.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

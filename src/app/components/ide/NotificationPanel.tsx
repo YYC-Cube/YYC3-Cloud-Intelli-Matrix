@@ -1,7 +1,12 @@
 /**
- * NotificationPanel.tsx
- * ======================
- * IDE 通知面板 — 通知列表 + 已读/未读标记
+ * @file: NotificationPanel.tsx
+ * @description: NotificationPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

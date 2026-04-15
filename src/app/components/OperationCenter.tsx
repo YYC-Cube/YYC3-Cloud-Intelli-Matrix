@@ -1,10 +1,12 @@
 /**
- * OperationCenter.tsx
- * ====================
- * 操作中心主界面
- * 路由: /operations
- *
- * i18n 已迁移
+ * @file: OperationCenter.tsx
+ * @description: OperationCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useContext } from "react";

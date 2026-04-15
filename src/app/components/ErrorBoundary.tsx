@@ -1,14 +1,12 @@
 /**
- * ErrorBoundary.tsx
- * ==================
- * CP-IM React 错误边界组件
- *
- * 功能：
- * - 捕获子组件树中的 JavaScript 错误
- * - 显示赛博朋克风格的降级 UI
- * - 错误日志自动记录到 error-handler
- * - 支持重试、回到首页、查看错误详情
- * - 分级错误展示（页面级 / 模块级 / 组件级）
+ * @file: ErrorBoundary.tsx
+ * @description: ErrorBoundary.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";

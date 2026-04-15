@@ -1,19 +1,12 @@
 /**
- * figma-error-filter.ts
- * ======================
- * Figma iframe 平台错误统一判定函数
- *
- * 独立模块，无外部依赖，可安全在任意层级导入：
- * - App.tsx capture-phase 拦截器（Layer 1）
- * - error-handler.ts 全局监听器（Layer 2）
- * - ErrorBoundary React 错误边界（Layer 3）
- *
- * 判定维度：
- * 1. 错误名 / 构造函数名（IframeMessageAbortError 等）
- * 2. 错误消息内容（message aborted / message port was destroyed）
- * 3. 来源文件路径（figma.com / webpack-artifacts / figma_app）
- * 4. 错误堆栈字符串（cross-origin 场景下 name/source 可能为空，但 stack 包含 Figma URL）
- * 5. 错误对象引用判定（AbortError 基类 / DOMException 子类）
+ * @file: figma-error-filter.ts
+ * @description: figma-error-filter.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 /**

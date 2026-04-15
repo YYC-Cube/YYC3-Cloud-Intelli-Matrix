@@ -1,8 +1,12 @@
 /**
- * IndexManager.ts
- * ==============
- * 数据库索引管理器
- * 提供索引创建、删除、分析、推荐功能
+ * @file: IndexManager.ts
+ * @description: IndexManager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type {
@@ -280,14 +284,17 @@ export class IndexManager {
 
     const result = await this.executeQuery(sql, [tableName]);
 
-    return result.rows.map((row: any) => ({
-      name: row.name,
-      tableName: row.table_name,
-      columns: row.columns,
-      unique: row.unique,
-      size: row.size,
-      usage: row.usage,
-    }));
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        name: r.name as string,
+        tableName: r.table_name as string,
+        columns: r.columns as string[],
+        unique: Boolean(r.unique),
+        size: (r.size as number) || 0,
+        usage: (r.usage as number) || 0,
+      };
+    });
   }
 
   /**
@@ -313,14 +320,17 @@ export class IndexManager {
 
     const result = await this.executeQuery(sql);
 
-    return result.rows.map((row: any) => ({
-      name: row.name,
-      tableName: row.table_name,
-      columns: row.columns,
-      unique: row.unique,
-      size: row.size,
-      usage: row.usage,
-    }));
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        name: r.name as string,
+        tableName: r.table_name as string,
+        columns: r.columns as string[],
+        unique: Boolean(r.unique),
+        size: (r.size as number) || 0,
+        usage: (r.usage as number) || 0,
+      };
+    });
   }
 
   /**
@@ -342,15 +352,18 @@ export class IndexManager {
 
     const result = await this.executeQuery(sql);
 
-    return result.rows.map((row: any) => ({
-      indexName: row.index_name,
-      tableName: row.table_name,
-      scans: row.scans,
-      tuplesRead: row.tuples_read,
-      tuplesFetched: row.tuples_fetched,
-      lastUsed: row.last_used,
-      size: row.size,
-    }));
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        indexName: r.index_name as string,
+        tableName: r.table_name as string,
+        scans: (r.scans as number) || 0,
+        tuplesRead: (r.tuples_read as number) || 0,
+        tuplesFetched: (r.tuples_fetched as number) || 0,
+        lastUsed: r.last_used as unknown as number,
+        size: (r.size as number) || 0,
+      };
+    });
   }
 
   /**
@@ -419,15 +432,18 @@ export class IndexManager {
 
     const result = await this.executeQuery(sql);
 
-    return result.rows.map((row: any) => ({
-      indexName: row.index_name,
-      tableName: row.table_name,
-      scans: row.scans,
-      tuplesRead: row.tuples_read,
-      tuplesFetched: row.tuples_fetched,
-      lastUsed: row.last_used,
-      size: row.size,
-    }));
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        indexName: r.index_name as string,
+        tableName: r.table_name as string,
+        scans: (r.scans as number) || 0,
+        tuplesRead: (r.tuples_read as number) || 0,
+        tuplesFetched: (r.tuples_fetched as number) || 0,
+        lastUsed: r.last_used as unknown as number,
+        size: (r.size as number) || 0,
+      };
+    });
   }
 
   /**

@@ -1,10 +1,24 @@
 /**
- * useAISuggestion.ts
- * ===================
- * AI 辅助决策 Hook
+ * @file: useAISuggestion.ts
+ * @description: AI 辅助决策 Hook · 异常模式检测与智能推荐
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-02-26
+ * @updated: 2026-04-09
+ * @status: active
+ * @tags: [hook],[ai],[suggestion]
  *
- * 模拟异常模式检测 → AI 推荐操作 → 应用/忽略
- * 基于历史数据和当前状态生成建议
+ * @brief: AI 辅助决策系统
+ *
+ * @details:
+ * - 模拟异常模式检测
+ * - AI 推荐操作生成
+ * - 支持应用/忽略建议
+ * - 基于历史数据和当前状态生成建议
+ *
+ * @dependencies: React, toast
+ * @exports: useAISuggestion
+ * @notes: 使用 createLocalStore 持久化建议历史
  */
 
 import { useState, useCallback, useMemo } from "react";

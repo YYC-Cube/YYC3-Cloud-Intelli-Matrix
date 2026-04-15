@@ -1,9 +1,12 @@
 /**
- * setup.ts
- * =======
- * Vitest 全局 setup
- * - jsdom 环境: 注入 jest-dom matchers + polyfills
- * - node 环境: 安全跳过 DOM 相关 mock
+ * @file: setup.ts
+ * @description: setup.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // 检测环境类型

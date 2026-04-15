@@ -1,12 +1,12 @@
 /**
- * index.ts
- * =========
- * YYC³ 配置中心入口文件
- *
- * 统一导出所有配置模块，确保全局一致性
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: index.ts
+ * @description: index.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // 页面配置

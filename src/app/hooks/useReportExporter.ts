@@ -1,8 +1,12 @@
 /**
- * useReportExporter.ts
- * =====================
- * Hook for Performance Report Generation & Export
- * Supports JSON, CSV (Excel), and printable HTML (PDF via print dialog)
+ * @file: useReportExporter.ts
+ * @description: useReportExporter.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback } from "react";

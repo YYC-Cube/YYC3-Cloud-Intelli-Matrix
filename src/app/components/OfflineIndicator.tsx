@@ -1,10 +1,12 @@
 /**
- * OfflineIndicator.tsx
- * ====================
- * 网络状态指示器组件
- * - 固定在顶部显示当前在线/离线状态
- * - 离线时显示上次同步时间
- * - 恢复在线时自动淡出
+ * @file: OfflineIndicator.tsx
+ * @description: OfflineIndicator.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";

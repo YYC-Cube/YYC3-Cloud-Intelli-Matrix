@@ -1,13 +1,12 @@
 /**
- * filesystem-types.test.ts
- * =============
- * 本地文件系统 + 快捷键 类型定义验证
- *
- * 覆盖范围:
- * - FileItem / FileItemType
- * - LogEntry / LogLevel
- * - ReportConfig / ReportResult / ReportType / ReportFormat
- * - KeyboardShortcut
+ * @file: filesystem-types.test.ts
+ * @description: filesystem-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

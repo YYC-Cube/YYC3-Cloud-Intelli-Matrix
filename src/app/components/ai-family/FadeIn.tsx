@@ -1,9 +1,12 @@
 /**
- * FadeIn.tsx
- * ===========
- * 沙箱安全的入场动画组件
- * 纯 CSS transition + setTimeout，不依赖 IntersectionObserver
- * 兼容 Figma Make iframe 沙箱环境
+ * @file: FadeIn.tsx
+ * @description: FadeIn.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect } from "react";

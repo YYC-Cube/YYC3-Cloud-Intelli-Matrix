@@ -1,14 +1,12 @@
 /**
- * TopBar.tsx
- * ===========
- * 极简顶栏 · 导航已移至左侧 Sidebar（桌面）/ BottomNav + MobileDrawer（移动）
- * 
- * 移动端优化：
- * - 顶栏极简：仅 hamburger + logo + 通知 + 头像
- * - 全屏滑入抽屉 + 半透明遮罩
- * - 分类折叠/展开（手风琴模式）
- * - 用户/连接信息移入抽屉顶部
- * - 搜索框移入抽屉
+ * @file: TopBar.tsx
+ * @description: TopBar.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useRef, useEffect } from "react";

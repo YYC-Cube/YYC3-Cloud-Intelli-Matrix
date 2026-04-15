@@ -1,12 +1,12 @@
 /**
- * StageReview.tsx
- * ================
- * 阶段审核总结 · 10 章实施进度追踪
- *
- * 包含:
- * - 各章实施完成度
- * - 组件 / Hook / 路由 / 测试 统计
- * - 验收清单
+ * @file: StageReview.tsx
+ * @description: StageReview.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

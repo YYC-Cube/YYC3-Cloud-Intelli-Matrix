@@ -1,9 +1,12 @@
 /**
- * FamilyGrowth.tsx
- * ================
- * AI Family 共同成长空间 —— 成长轨迹 · 贡献度 · 里程碑
- *
- * 重构: 使用 shared.ts + FadeIn + FamilyPageHeader
+ * @file: FamilyGrowth.tsx
+ * @description: FamilyGrowth.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useMemo } from "react";

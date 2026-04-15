@@ -1,17 +1,12 @@
 /**
- * ServiceConnectionTest.tsx
- * ==========================
- * 全链路服务连接测试面板 · 路由: /connection-test
- *
- * 功能:
- * - AI 模型服务商连接测试 (Z.ai / OpenAI / DeepSeek / Kimi / Ollama / ...)
- * - 数据库连接测试 (PostgreSQL / MySQL / Redis / MongoDB / SQLite)
- * - WebSocket 连接测试
- * - 网络连通性测试 (内网 / 外网)
- * - CORS 代理检测与自动配置
- * - 详细诊断日志 + 解决方案提示
- * - 一键全部测试 + 单项测试
- * - 测试结果持久化 (localStorage)
+ * @file: ServiceConnectionTest.tsx
+ * @description: ServiceConnectionTest.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";
@@ -26,7 +21,8 @@ import {
 import { GlassCard } from "./GlassCard";
 import { ViewContext } from "../lib/view-context";
 import { useModelProvider } from "../hooks/useModelProvider";
-import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
+import type { DBConnection } from "../stores/dashboard-stores";
+import { useDbConnSlice } from "../store/slices/db-conn-slice";
 import { env } from "../lib/env-config";
 import { getOllamaEndpointInfo, getOllamaChatUrl, getOllamaTagsUrl } from "../lib/ollama-url";
 import { toast } from "sonner";
@@ -109,9 +105,9 @@ async function testFetch(url: string, options: RequestInit = {}, timeoutMs = 800
     let body = "";
     try { body = await res.text(); } catch { /* 响应体读取失败时忽略 */ }
     return { ok: res.ok, status: res.status, statusText: res.statusText, latencyMs, body };
-  } catch (err: any) {
+  } catch (err: unknown) {
     const latencyMs = Date.now() - start;
-    const msg = err?.message || String(err);
+    const msg = (err as Error)?.message || String(err);
     let errorType: "cors" | "network" | "timeout" | "unknown" = "unknown";
     if (msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("CORS") || msg.includes("cross-origin") || msg.includes("net::ERR_FAILED")) {
       errorType = "cors";
@@ -133,7 +129,7 @@ export function ServiceConnectionTest() {
   const isMobile = (view as { isMobile?: boolean })?.isMobile ?? false;
 
   const { providers, configuredModels } = useModelProvider();
-  const dbConnections = dbConnectionStore.getAll();
+  const { connections: dbConnections } = useDbConnSlice();
 
   const [results, setResults] = useState<TestResult[]>(loadResults);
   const [running, setRunning] = useState(false);
@@ -219,11 +215,11 @@ export function ServiceConnectionTest() {
           if (r.ok) {
             const data = JSON.parse(r.body || "{}");
             const models = data.models || [];
-            const found = models.some((m: any) => m.name === model || m.model === model);
+            const found = models.some((m: Record<string, unknown>) => m.name === model || m.model === model);
             if (found) {
               result.steps[result.steps.length - 1] = { label: "模型列表", status: "pass", detail: `模型 ${model} 已安装 (共 ${models.length} 个模型)`, latencyMs: r.latencyMs, timestamp: Date.now() };
             } else {
-              result.steps[result.steps.length - 1] = { label: "模型列表", status: "warn", detail: `模型 ${model} 未找到。已安装: ${models.map((m: any) => m.name).join(", ") || "(空)"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
+              result.steps[result.steps.length - 1] = { label: "模型列表", status: "warn", detail: `模型 ${model} 未找到。已安装: ${models.map((m: Record<string, unknown>) => m.name).join(", ") || "(空)"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
               result.suggestion = `请运行: ollama pull ${model}`;
             }
           }
@@ -494,8 +490,8 @@ export function ServiceConnectionTest() {
         result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `连接超时或被拒绝 (${latency}ms)`, latencyMs: latency, timestamp: Date.now() };
         result.suggestion = `WebSocket 端点 ${wsEndpoint} 不可达。Dashboard 将使用模拟数据。`;
       }
-    } catch (err: any) {
-      result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `异常: ${err.message}`, timestamp: Date.now() };
+    } catch (err: unknown) {
+      result.steps[0] = { label: "WebSocket 连接", status: "fail", detail: `异常: ${(err as Error).message}`, timestamp: Date.now() };
     }
 
     result.overallStatus = result.steps[0].status === "pass" ? "pass" : "fail";
@@ -528,7 +524,7 @@ export function ServiceConnectionTest() {
     });
 
     // Test 2: Local network
-    const localIPs = ["192.168.3.1", "192.168.1.1"];
+    const localIPs = ["192.168.1.1", "10.0.0.1"];
     for (const ip of localIPs) {
       const url = `http://${ip}`;
       result.steps.push({ label: `内网网关 ${ip}`, status: "running", detail: `探测 ${url}...`, timestamp: Date.now() });

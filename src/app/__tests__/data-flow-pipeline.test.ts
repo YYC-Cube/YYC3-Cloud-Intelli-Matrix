@@ -1,7 +1,12 @@
 /**
- * data-flow-pipeline.test.ts
- * ============================
- * 数据流管道测试
+ * @file: data-flow-pipeline.test.ts
+ * @description: data-flow-pipeline.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

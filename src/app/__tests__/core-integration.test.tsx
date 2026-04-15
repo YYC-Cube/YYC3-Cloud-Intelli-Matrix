@@ -1,19 +1,12 @@
 /**
- * core-integration.test.tsx
- * ==========================
- * YYC³ 核心组件集成测试
- *
- * 覆盖范围:
- * - createLocalStore CRUD 集成流程
- * - dashboard-stores 各 store 初始化 + CRUD + 重置
- * - deployedModelStore 完整增删改查 + 持久化
- * - userStore 完整增删改查 + 重置
- * - wifiNetworkStore 连接/断开/扫描 + 历史
- * - useSettingsStore 持久化 + 导入导出
- * - api-config 端点配置 + 重置
- * - 跨 store 数据一致性
- *
- * 运行命令: npx vitest run src/app/__tests__/core-integration.test.tsx
+ * @file: core-integration.test.tsx
+ * @description: core-integration.test.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

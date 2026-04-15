@@ -1,16 +1,12 @@
 /**
- * cross-page-data-flow.e2e.spec.ts
- * ==================================
- * 跨页面数据流 E2E 测试
- *
- * 覆盖场景:
- * - Dashboard 节点数据 → 操作审计页面引用
- * - 用户管理 CRUD → 审计日志记录
- * - 模型管理 CRUD → Dashboard 节点展示
- * - 环境变量编辑 → 全局配置生效
- * - localStorage 数据一致性 (跨页面)
- *
- * 运行: npx playwright test specs/cross-page-data-flow.e2e.spec.ts
+ * @file: cross-page-data-flow.e2e.spec.ts
+ * @description: cross-page-data-flow.e2e.spec.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 export const crossPageDataFlowTests = {

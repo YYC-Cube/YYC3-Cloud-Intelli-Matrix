@@ -1,13 +1,12 @@
 /**
- * followup-types.test.ts
- * ============
- * 一键跟进 + 巡查模式 类型定义验证
- *
- * 覆盖范围:
- * - FollowUpItem 类型结构
- * - ChainEvent 类型结构
- * - PatrolResult / PatrolCheckItem 类型
- * - 类型枚举值覆盖
+ * @file: followup-types.test.ts
+ * @description: followup-types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

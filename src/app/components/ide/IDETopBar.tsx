@@ -1,8 +1,12 @@
 /**
- * IDETopBar.tsx
- * ==============
- * IDE 顶部导航栏
- * Logo + 项目标题 + AI 模型选择器 + 公共图标区 + 用户信息
+ * @file: IDETopBar.tsx
+ * @description: IDETopBar.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

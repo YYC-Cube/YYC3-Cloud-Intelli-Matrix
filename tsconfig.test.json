@@ -10,7 +10,8 @@
   "include": [
     "src/app/__tests__/**/*.ts",
     "src/app/__tests__/**/*.tsx",
-    "src/app/__tests__/setup.ts"
+    "src/app/__tests__/setup.ts",
+    "src/vite-env.d.ts"
   ],
   "exclude": ["node_modules"]
 }

@@ -1,14 +1,19 @@
 /**
- * DatabaseAdapter.ts
- * ==================
- * 数据库适配器
- * 将 localStorage 数据迁移到数据库，并提供统一的数据访问接口
+ * @file: DatabaseAdapter.ts
+ * @description: DatabaseAdapter.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { connectionManager } from "./ConnectionManager";
 import { IndexManager } from "./IndexManager";
 import { QueryCache } from "./QueryCache";
 import { QueryAnalyzer } from "./QueryAnalyzer";
+import type { DbConnection } from "./QueryAnalyzer";
 import { SlowQueryMonitor } from "./SlowQueryMonitor";
 import type {
   DatabaseConfig,
@@ -89,7 +94,7 @@ export class DatabaseAdapter {
         listCollections?(): { toArray(): Promise<{ name: string }[]> };
       };
       this.indexManager = new IndexManager(connection, config);
-      this.queryAnalyzer = new QueryAnalyzer(connection, config);
+      this.queryAnalyzer = new QueryAnalyzer(connection as unknown as DbConnection, config);
       this.slowQueryMonitor = new SlowQueryMonitor(connection, config, {
         enabled: true,
         threshold: 1000,
@@ -387,7 +392,7 @@ export class DatabaseAdapter {
     for (const [key, value] of this.pendingChanges) {
       const [table, id] = key.split(":");
 
-      if ((value as any).deleted) {
+      if ((value as Record<string, unknown>).deleted) {
         await this.executeWithCache(`DELETE FROM ${table} WHERE id = ?`, [id]);
       } else {
         await this.executeWithCache(

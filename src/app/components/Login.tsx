@@ -1,14 +1,12 @@
 /**
- * Login 组件
- * ==========
- * YYC³ 登录页面
- * 未来科技感设计，赛博朋克风格
- * 支持 Email + Password 认证
- * 支持 Ghost Mode 幽灵登录（跳过认证，全权限）
- *
- * 预设账号（Mock 模式）：
- *   admin@cloudpivot.local / admin123
- *   dev@cloudpivot.local   / dev123
+ * @file: Login.tsx
+ * @description: Login 组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback } from "react";

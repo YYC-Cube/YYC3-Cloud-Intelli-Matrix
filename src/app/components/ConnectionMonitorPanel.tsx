@@ -1,8 +1,12 @@
 /**
- * ConnectionMonitorPanel.tsx
- * ==========================
- * 数据库连接状态监控面板
- * 实时显示连接状态、健康检查、性能指标
+ * @file: ConnectionMonitorPanel.tsx
+ * @description: ConnectionMonitorPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useContext } from "react";
@@ -24,7 +28,7 @@ import { GlassCard } from "./GlassCard";
 import { ViewContext } from "../lib/view-context";
 import { connectionManager } from "../../database/ConnectionManager";
 import type { ConnectionInfo, HealthCheckResult, PoolStats } from "../../database/types";
-import { dbConnectionStore } from "../stores/dashboard-stores";
+import { useDbConnSlice } from "../store/slices/db-conn-slice";
 
 interface ConnectionMonitorProps {
   connectionId?: string;
@@ -109,7 +113,7 @@ export function ConnectionMonitorPanel({
     }
   };
 
-  const connections = dbConnectionStore.getAll();
+  const { connections } = useDbConnSlice();
 
   if (!selectedConnectionId && _showList) {
     return (

@@ -1,7 +1,12 @@
 /**
- * config/index.ts
- * ==============
- * 统一配置管理
+ * @file: index.ts
+ * @description: config/index.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { loadConfig } from "./env";

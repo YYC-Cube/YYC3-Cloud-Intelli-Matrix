@@ -1,7 +1,12 @@
 /**
- * storage.ts
- * ==========
- * 存储配置类型定义
+ * @file: storage.ts
+ * @description: storage.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { DatabaseConfig } from "../../database/types";

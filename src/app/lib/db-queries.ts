@@ -1,18 +1,12 @@
 /**
- * 数据库查询函数
- * ===============
- * YYC3 数据持久化层 — localStorage 可编辑实现
- *
- * 数据库 Schema 对接：
- *   core.models       -> 模型配置
- *   core.agents        -> Agent 配置
- *   telemetry.inference_logs -> 推理日志
- *   infra.nodes        -> 节点状态
- *
- * 数据源策略:
- *   1. 首次启动 → 写入默认 Mock 数据到 localStorage
- *   2. 后续读取 → 从 localStorage 获取 (支持 CRUD)
- *   3. 接入 Supabase 后 → 切换为 supabase.from() 调用
+ * @file: db-queries.ts
+ * @description: 数据库查询函数
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { supabase } from "./supabaseClient";

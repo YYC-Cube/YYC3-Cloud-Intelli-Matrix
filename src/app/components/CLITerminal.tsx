@@ -1,8 +1,12 @@
 /**
- * CLITerminal.tsx
- * ================
- * Web 端 CLI 终端模拟器
- * 支持 yyc3 命令、自动补全、历史导航
+ * @file: CLITerminal.tsx
+ * @description: CLITerminal.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useRef, useEffect, useContext } from "react";

@@ -1,14 +1,12 @@
 /**
- * CreationStudio.integration.test.tsx
- * ====================================
- * CreationStudio 组件集成测试
- * 测试AI创作工坊与音频引擎的集成
- *
- * @file CreationStudio.integration.test.tsx
- * @description CreationStudio与音频引擎集成测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: CreationStudio.integration.test.tsx
+ * @description: CreationStudio与音频引擎集成测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

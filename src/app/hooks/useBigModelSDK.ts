@@ -1,14 +1,12 @@
 /**
- * useBigModelSDK.ts
- * ==================
- * BigModel SDK 桥接层 Hook
- *
- * 功能:
- * - 将 ConfiguredModel → 实际 API 调用
- * - 统一 chat / chatStream 接口 (支持 Z.ai / OpenAI / Ollama / 其他 OpenAI-compatible)
- * - Mock 模式: 无 API Key 时返回模拟数据
- * - 使用统计 (localStorage 持久化)
- * - 会话管理 (localStorage 持久化)
+ * @file: useBigModelSDK.ts
+ * @description: useBigModelSDK.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useMemo, useRef } from "react";

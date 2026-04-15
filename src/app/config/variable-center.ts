@@ -1,18 +1,12 @@
 /**
- * variable-center.ts
- * ===================
- * YYC³ 变量中心 - 统一管理所有变量类型
- *
- * 支持的变量类型：
- * - 设备变量 (device): 节点、GPU、CPU、内存等
- * - 人员变量 (user): 用户信息、权限、角色
- * - 密钥变量 (secret): API Key、认证密钥
- * - 模型配置 (model): 提供商、模型列表、参数
- * - 系统配置 (system): 语言、主题、AI参数
- * - 环境变量 (env): API端点、端口、存储前缀
- *
- * @version v1.0.0
- * @created 2026-04-06
+ * @file: variable-center.ts
+ * @description: variable-center.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-06
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ═══════════════════════════════════════════════════════════════

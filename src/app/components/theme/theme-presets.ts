@@ -1,7 +1,12 @@
 /**
- * theme-presets.ts
- * =================
- * 预设主题配置
+ * @file: theme-presets.ts
+ * @description: theme-presets.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 export interface ThemePreset {

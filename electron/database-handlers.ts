@@ -60,7 +60,7 @@ async function initializeDatabase(config: any): Promise<void> {
   // 在实际应用中，这里应该使用真实的数据库驱动
   // 例如：better-sqlite3、mysql2、pg 等
   if (currentConnection) {
-    console.log(`[Database] Initialized ${currentConnection.type} database`);
+    console.info(`[Database] Initialized ${currentConnection.type} database`);
   }
 }
 
@@ -74,7 +74,7 @@ async function executeQuery(sql: string, params?: any[]): Promise<any[]> {
 
   // 模拟查询结果
   // 在实际应用中，这里应该使用真实的数据库驱动执行查询
-  console.log(`[Database] Executing query: ${sql}`);
+  console.info(`[Database] Executing query: ${sql}`);
   
   return [];
 }
@@ -89,7 +89,7 @@ async function executeStatement(sql: string, params?: any[]): Promise<{ affected
 
   // 模拟执行结果
   // 在实际应用中，这里应该使用真实的数据库驱动执行语句
-  console.log(`[Database] Executing statement: ${sql}`);
+  console.info(`[Database] Executing statement: ${sql}`);
   
   return {
     affectedRows: 0,

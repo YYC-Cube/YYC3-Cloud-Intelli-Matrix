@@ -1,10 +1,12 @@
 /**
- * STORAGE-AUDIT.ts
- * =================
- * YYC³ Cloud Intelli-Matrix — 存储设计真实审计报告
- *
- * 基于 Guidelines.md 第五章 / 第七章 / 第十章 + 代码全量审查
- * 审计日期: 2026-03-01
+ * @file: STORAGE-AUDIT.ts
+ * @description: STORAGE-AUDIT.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ─────────────────────────────────────────────────────

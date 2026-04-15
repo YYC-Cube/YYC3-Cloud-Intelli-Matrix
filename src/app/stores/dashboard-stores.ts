@@ -1,20 +1,39 @@
 /**
- * dashboard-stores.ts
- * ====================
- * 统一 localStorage CRUD 数据存储
+ * @file: dashboard-stores.ts
+ * @description: YYC³ Dashboard Stores (Legacy) · createLocalStore 实例
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-16
+ * @status: deprecated (类型已迁移至 types/index.ts)
+ * @tags: [module],[legacy]
  *
- * 将所有原始硬编码 MOCK 数据转为可编辑 + 持久化:
- * - 节点 (nodes)
- * - 模型性能 (modelPerformance)
- * - 模型分布 (modelDistribution)
- * - 最近操作 (recentOps)
- * - 雷达对比 (radarData)
- * - 日志 (logs)
- * - 数据库连接 (dbConnections)
+ * @brief: 类型定义已迁移到 types/index.ts，本文件仅保留 store 实例和重新导出
+ *
+ * @migration-note:
+ * - 所有 interface 定义已迁移至 src/app/types/index.ts (Section 38)
+ * - Slice Store 已改为从 types/index.ts 导入类型
+ * - 本文件通过 re-export 保持向后兼容
+ * - 下一个 Phase 将移除本文件
  */
 
 import { createLocalStore } from "../lib/create-local-store";
-import type { NodeData, LogLevel } from "../types";
+import type { NodeData } from "../types";
+
+// 从统一类型文件 re-export，保持向后兼容
+export type {
+  ModelPerfEntry,
+  ModelDistEntry,
+  RecentOpEntry,
+  RadarEntry,
+  StoredLogEntry,
+  DBConnection,
+  DeployedModel,
+  WifiNetwork,
+  UserRecord,
+  WifiAutoReconnectSettings,
+  FollowUpRecord,
+} from "../types";
 
 // ============================================================
 // 1. 节点存储
@@ -32,21 +51,21 @@ const DEFAULT_NODES: (NodeData & { id: string })[] = [
   { id: "GPU-H100-01", status: "active",   gpu: 65, mem: 58, temp: 62, model: "GLM-4",        tasks: 78 },
 ];
 
+/**
+ * @deprecated 此 Store 已被 useNodeSlice (Zustand) 完全替代。
+ * 节点数据的唯一权威源现在是 src/app/store/slices/node-slice.ts。
+ * 当前仅被测试文件引用（global-data-interoperability.test.ts）。
+ * 计划于 Phase 4 Step 4.3 完成测试迁移后删除。
+ * 最后更新: 2026-04-15
+ * @see useNodeSlice - 替代方案
+ */
 export const nodeStore = createLocalStore<NodeData & { id: string }>("yyc3_nodes", DEFAULT_NODES, "node");
 
 // ============================================================
 // 2. 模型性能存储
 // ============================================================
 
-export interface ModelPerfEntry {
-  id: string;
-  model: string;
-  accuracy: number;
-  speed: number;
-  memory: number;
-  cost: number;
-}
-
+import type { ModelPerfEntry } from "../types";
 const DEFAULT_MODEL_PERF: ModelPerfEntry[] = [
   { id: "mp-1", model: "LLaMA-70B",    accuracy: 94.2, speed: 85, memory: 78, cost: 62 },
   { id: "mp-2", model: "Qwen-72B",     accuracy: 92.8, speed: 88, memory: 72, cost: 68 },
@@ -61,12 +80,7 @@ export const modelPerfStore = createLocalStore<ModelPerfEntry>("yyc3_model_perf"
 // 3. 模型分布存储
 // ============================================================
 
-export interface ModelDistEntry {
-  id: string;
-  name: string;
-  value: number;
-}
-
+import type { ModelDistEntry } from "../types";
 const DEFAULT_MODEL_DIST: ModelDistEntry[] = [
   { id: "md-1", name: "LLaMA-70B",   value: 35 },
   { id: "md-2", name: "Qwen-72B",    value: 25 },
@@ -81,15 +95,7 @@ export const modelDistStore = createLocalStore<ModelDistEntry>("yyc3_model_dist"
 // 4. 最近操作存储
 // ============================================================
 
-export interface RecentOpEntry {
-  id: string;
-  action: string;
-  target: string;
-  user: string;
-  time: string;
-  status: "success" | "running" | "pending" | "warning" | "error";
-}
-
+import type { RecentOpEntry } from "../types";
 const DEFAULT_RECENT_OPS: RecentOpEntry[] = [
   { id: "OP-001", action: "模型部署", target: "DeepSeek-V3 → GPU-A100-03", user: "admin",   time: "14:28:32", status: "success" },
   { id: "OP-002", action: "推理任务", target: "Batch#2847 → LLaMA-70B",    user: "api_svc", time: "14:25:10", status: "running" },
@@ -104,13 +110,7 @@ export const recentOpsStore = createLocalStore<RecentOpEntry>("yyc3_recent_ops",
 // 5. 雷达数据存储
 // ============================================================
 
-export interface RadarEntry {
-  id: string;
-  metric: string;
-  A: number;
-  B: number;
-}
-
+import type { RadarEntry } from "../types";
 const DEFAULT_RADAR: RadarEntry[] = [
   { id: "rd-1", metric: "inferenceSpeed",    A: 92, B: 85 },
   { id: "rd-2", metric: "modelAccuracy",     A: 88, B: 94 },
@@ -126,14 +126,7 @@ export const radarStore = createLocalStore<RadarEntry>("yyc3_radar_data", DEFAUL
 // 6. 日志存储
 // ============================================================
 
-export interface StoredLogEntry {
-  id: string;
-  timestamp: number;
-  level: LogLevel;
-  source: string;
-  message: string;
-}
-
+import type { StoredLogEntry } from "../types";
 const now = Date.now();
 const DEFAULT_LOGS: StoredLogEntry[] = [
   { id: "log-001", timestamp: now - 120000,  level: "info",  source: "GPU-A100-01", message: "推理任务完成 #12847, 延迟 820ms" },
@@ -148,7 +141,7 @@ const DEFAULT_LOGS: StoredLogEntry[] = [
   { id: "log-010", timestamp: now - 1200000, level: "fatal", source: "GPU-A100-03", message: "GPU 驱动崩溃, 节点进入降级模式" },
   { id: "log-011", timestamp: now - 1320000, level: "info",  source: "system",      message: "配置热更新完成 patrol.interval=15" },
   { id: "log-012", timestamp: now - 1440000, level: "warn",  source: "system",      message: "存储空间 85.8%, 接近告警阈值" },
-  { id: "log-013", timestamp: now - 1560000, level: "info",  source: "GPU-A100-01", message: "NAS 备份已完成 12.8GB → 192.168.3.200" },
+  { id: "log-013", timestamp: now - 1560000, level: "info",  source: "GPU-A100-01", message: "NAS 备份已完成 12.8GB → 本地存储" },
   { id: "log-014", timestamp: now - 1680000, level: "debug", source: "scheduler",   message: "推理队列长度 3, 平均等待 45ms" },
   { id: "log-015", timestamp: now - 1800000, level: "info",  source: "system",      message: "Token 吞吐率 138K/s, 近 1h 稳定" },
 ];
@@ -159,21 +152,8 @@ export const logStore = createLocalStore<StoredLogEntry>("yyc3_logs", DEFAULT_LO
 // 7. 数据库连接存储
 // ============================================================
 
-export interface DBConnection {
-  id: string;
-  name: string;
-  type: "postgresql" | "mysql" | "sqlite" | "redis" | "mongodb" | "custom";
-  host: string;
-  port: number;
-  database: string;
-  username: string;
-  password: string; // 仅存于 localStorage, 不上传
-  status: "connected" | "disconnected" | "error" | "testing";
-  lastTestAt?: number;
-  options?: string;
-}
-
-const DEFAULT_DB_CONNECTIONS: DBConnection[] = [
+import type { DBConnection as DBConnectionType } from "../types";
+const DEFAULT_DB_CONNECTIONS: DBConnectionType[] = [
   {
     id: "db-pg-main",
     name: "主数据库 (PostgreSQL)",
@@ -199,21 +179,13 @@ const DEFAULT_DB_CONNECTIONS: DBConnection[] = [
   },
 ];
 
-export const dbConnectionStore = createLocalStore<DBConnection>("yyc3_db_connections", DEFAULT_DB_CONNECTIONS, "db");
+export const dbConnectionStore = createLocalStore<DBConnectionType>("yyc3_db_connections", DEFAULT_DB_CONNECTIONS, "db");
 
 // ============================================================
 // 8. 模型管理存储 (SystemSettings 模型管理)
 // ============================================================
 
-export interface DeployedModel {
-  id: string;
-  name: string;
-  version: string;
-  size: string;
-  status: "deployed" | "deploying" | "standby" | "error";
-  gpu: string;
-}
-
+import type { DeployedModel } from "../types";
 const DEFAULT_DEPLOYED_MODELS: DeployedModel[] = [
   { id: "dm-1", name: "LLaMA-70B",    version: "v2.1", size: "140GB", status: "deployed",  gpu: "GPU-A100-01" },
   { id: "dm-2", name: "Qwen-72B",     version: "v1.5", size: "145GB", status: "deployed",  gpu: "GPU-A100-02" },
@@ -228,16 +200,7 @@ export const deployedModelStore = createLocalStore<DeployedModel>("yyc3_deployed
 // 9. WiFi 网络存储
 // ============================================================
 
-export interface WifiNetwork {
-  id: string;
-  ssid: string;
-  signal: number;
-  security: string;
-  connected: boolean;
-  password?: string;
-  lastConnectedAt?: number;
-}
-
+import type { WifiNetwork } from "../types";
 const DEFAULT_WIFI_NETWORKS: WifiNetwork[] = [];
 
 export const wifiNetworkStore = createLocalStore<WifiNetwork>("yyc3_wifi_networks", DEFAULT_WIFI_NETWORKS, "wifi");
@@ -246,19 +209,7 @@ export const wifiNetworkStore = createLocalStore<WifiNetwork>("yyc3_wifi_network
 // 10. 用户管理存储
 // ============================================================
 
-export interface UserRecord {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  status: "online" | "offline";
-  lastLogin: string;
-  sessions: number;
-  apiCalls: number;
-  locked: boolean;
-}
-
+import type { UserRecord } from "../types";
 const DEFAULT_USERS: UserRecord[] = [
   { id: "usr-1", name: "张管理", username: "admin", email: "admin@cloudpivot.ai", role: "超级管理员", status: "online", lastLogin: "2026-02-22 14:30", sessions: 3, apiCalls: 1284, locked: false },
   { id: "usr-2", name: "李运维", username: "ops_li", email: "ops_li@cloudpivot.ai", role: "运维工程师", status: "online", lastLogin: "2026-02-22 14:25", sessions: 1, apiCalls: 856, locked: false },
@@ -273,19 +224,10 @@ const DEFAULT_USERS: UserRecord[] = [
 export const userStore = createLocalStore<UserRecord>("yyc3_users", DEFAULT_USERS, "usr");
 
 // ============================================================
-// 11. WiFi 自动重连设置存储 (GAP-002 修复)
+// 11. WiFi 自动重连设置存储
 // ============================================================
 
-export interface WifiAutoReconnectSettings {
-  id: string;
-  enabled: boolean;
-  preferStrongestSignal: boolean;
-  intervalSeconds: number;
-  maxRetries: number;
-  preferredSsid: string;
-  lastUpdatedAt: number;
-}
-
+import type { WifiAutoReconnectSettings } from "../types";
 const DEFAULT_WIFI_AUTO_RECONNECT: WifiAutoReconnectSettings[] = [
   {
     id: "wifi-ar-config",
@@ -326,25 +268,10 @@ export function updateWifiAutoReconnectConfig(
 }
 
 // ============================================================
-// 12. 后续跟进任务存储 (P0 修复)
+// 12. 后续跟进任务存储
 // ============================================================
 
-export interface FollowUpRecord {
-  id: string;
-  taskId: string;
-  taskName: string;
-  assignee: string;
-  assigneeName: string;
-  priority: "low" | "medium" | "high" | "critical";
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  dueDate: number;
-  completedAt?: number;
-  notes?: string;
-  createdAt: number;
-  updatedAt: number;
-  category: "maintenance" | "optimization" | "security" | "feature" | "bugfix";
-}
-
+import type { FollowUpRecord } from "../types";
 const DEFAULT_FOLLOW_UPS: FollowUpRecord[] = [
   {
     id: "fu-001",

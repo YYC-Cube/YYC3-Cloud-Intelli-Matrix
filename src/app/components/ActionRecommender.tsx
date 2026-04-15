@@ -1,7 +1,12 @@
 /**
- * ActionRecommender.tsx
- * ======================
- * 操作推荐引擎 · 展示 AI 推荐操作列表
+ * @file: ActionRecommender.tsx
+ * @description: ActionRecommender.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

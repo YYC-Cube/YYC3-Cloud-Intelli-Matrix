@@ -1,15 +1,12 @@
 /**
- * HA-ARCHITECTURE-TEST.ts
- * ========================
- * YYC3 Cloud Intelli-Matrix -- 高可用架构测试规范
- *
- * 审计日期: 2026-03-02
- * 适用版本: 1.0.0-rc.2
- *
- * 本文件定义了系统在本地闭环部署 (192.168.3.x:3118) 场景下的
- * 高可用性、容错性、降级策略的测试用例与验收标准。
- *
- * 导出为 TypeScript 常量，可在 DevGuidePage 中直接引用渲染。
+ * @file: HA-ARCHITECTURE-TEST.ts
+ * @description: HA-ARCHITECTURE-TEST.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

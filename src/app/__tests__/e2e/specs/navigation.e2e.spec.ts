@@ -1,17 +1,12 @@
 /**
- * navigation.e2e.spec.ts
- * =======================
- * YYC3 路由导航 E2E 测试
- *
- * 覆盖场景:
- * - 29 条路由可达性
- * - Sidebar 导航交互
- * - 移动端底部导航
- * - 404 页面
- * - 浏览器前进/后退
- *
- * 依赖: @playwright/test (需在独立环境安装)
- * 运行: npx playwright test specs/navigation.e2e.spec.ts
+ * @file: navigation.e2e.spec.ts
+ * @description: navigation.e2e.spec.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // ============================================================

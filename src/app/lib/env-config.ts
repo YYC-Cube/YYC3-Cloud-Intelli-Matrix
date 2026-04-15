@@ -1,19 +1,12 @@
 /**
- * env-config.ts
- * ==============
- * 不可逆/敏感环境变量集中管理
- *
- * 所有不应硬编码的关键变量通过此模块统一管理:
- * - API 端点 (生产/开发)
- * - 版本号
- * - 系统名称
- * - 端口配置
- * - 加密/认证密钥前缀
- *
- * 优先级: import.meta.env > localStorage > 默认值
- *
- * 🚨 不可逆变量: 一旦修改可能导致数据不兼容,
- *    必须通过 env() 读取, 禁止硬编码
+ * @file: env-config.ts
+ * @description: env-config.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 // ============================================================
@@ -80,7 +73,7 @@ const DEFAULTS: EnvConfig = {
   SYSTEM_VERSION: "3.2.0",
   SYSTEM_BUILD: "2026.03.07",
 
-  API_BASE_URL: "http://192.168.3.1:3118/api",
+  API_BASE_URL: "http://localhost:3113/api",
   WS_ENDPOINT: "ws://localhost:3113/ws",
   OLLAMA_BASE_URL: "http://localhost:11434",
   OLLAMA_PROXY_PATH: "/api/v1/llm/ollama",
@@ -131,6 +124,7 @@ function loadEnvOverrides(): Partial<EnvConfig> {
   const overrides: Partial<EnvConfig> = {};
   try {
     // 1. 从 Vite 环境变量读取 (VITE_YYC3_ 前缀)
+    // @ts-ignore - Vite env
     const metaEnv = import.meta.env;
     if (metaEnv.VITE_YYC3_SYSTEM_NAME)     {overrides.SYSTEM_NAME = metaEnv.VITE_YYC3_SYSTEM_NAME;}
     if (metaEnv.VITE_YYC3_SYSTEM_VERSION)   {overrides.SYSTEM_VERSION = metaEnv.VITE_YYC3_SYSTEM_VERSION;}

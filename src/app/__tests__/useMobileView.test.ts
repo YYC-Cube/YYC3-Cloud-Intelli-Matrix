@@ -1,13 +1,12 @@
 /**
- * useMobileView.test.ts
- * ======================
- * 移动端视图检测Hook测试
- *
- * @file useMobileView.test.ts
- * @description useMobileView Hook单元测试
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-05
+ * @file: useMobileView.test.ts
+ * @description: useMobileView Hook单元测试
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-05
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

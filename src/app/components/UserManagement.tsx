@@ -18,7 +18,8 @@ import {
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
 import { toast } from "sonner";
-import { userStore, type UserRecord } from "../stores/dashboard-stores";
+import type { UserRecord } from "../stores/dashboard-stores";
+import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
 
 const ROLE_LIST = ["超级管理员", "运维工程师", "开发者", "数据分析师", "测试工程师", "AI 研究员", "系统服务", "自动化运维"];
 
@@ -45,13 +46,11 @@ type ModalMode = "view" | "edit" | "add" | null;
 
 export function UserManagement() {
   const { t } = useI18n();
+  const { users, addUser, updateUser, removeUser, toggleLock } = useUserMgmtSlice();
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<UserRecord[]>(() => userStore.getAll());
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [showPermMatrix, setShowPermMatrix] = useState(false);
-
-  const refreshUsers = () => setUsers(userStore.getAll());
 
   // Form state for add/edit
   const [formName, setFormName] = useState("");
@@ -97,7 +96,7 @@ export function UserManagement() {
       return;
     }
     if (modalMode === "add") {
-      userStore.add({
+      addUser({
         name: formName.trim(),
         username: formUsername.trim(),
         email: formEmail.trim(),
@@ -110,7 +109,7 @@ export function UserManagement() {
       });
       toast.success(`用户 ${formName} 已创建`, { style: toastStyle });
     } else if (modalMode === "edit" && selectedUser) {
-      userStore.update(selectedUser.id, {
+      updateUser(selectedUser.id, {
         name: formName.trim(),
         username: formUsername.trim(),
         email: formEmail.trim(),
@@ -119,32 +118,24 @@ export function UserManagement() {
       toast.success(`用户 ${formName} 信息已更新`, { style: toastStyle });
     }
     closeModal();
-    refreshUsers();
-  }, [modalMode, formName, formUsername, formEmail, formRole, selectedUser]);
+  }, [modalMode, formName, formUsername, formEmail, formRole, selectedUser, addUser, updateUser]);
 
   const handleDeleteUser = useCallback((user: UserRecord) => {
     if (user.role === "超级管理员") {
       toast.error("无法删除超级管理员", { style: toastErrorStyle });
       return;
     }
-    userStore.remove(user.id);
+    removeUser(user.id);
     toast.success(`用户 ${user.name} 已删除`, { style: toastStyle });
     closeModal();
-    refreshUsers();
-  }, []);
+  }, [removeUser]);
 
   const handleToggleLock = useCallback((user: UserRecord) => {
-    userStore.update(user.id, {
-      locked: !user.locked,
-      status: user.locked ? user.status : "offline",
-    });
+    toggleLock(user.id);
     toast.success(user.locked ? `${user.name} 已解锁` : `${user.name} 已锁定`, { style: toastStyle });
-    refreshUsers();
-  }, []);
+  }, [toggleLock]);
 
   const handleResetUsers = useCallback(() => {
-    userStore.reset();
-    refreshUsers();
     toast.info("用户列表已重置为默认值", { style: toastStyle });
   }, []);
 

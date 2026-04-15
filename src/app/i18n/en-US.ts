@@ -1,7 +1,12 @@
 /**
- * en-US.ts
- * =========
- * English language pack
+ * @file: en-US.ts
+ * @description: en-US.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type { TranslationKeys } from "./zh-CN";
@@ -48,7 +53,7 @@ const enUS: TranslationKeys = {
   nav: {
     dataMonitor: "Monitoring",
     followUp: "Follow-up",
-    followUpManager: "Follow-up Tasks",
+    followUpManager: "Collaboration",
     patrol: "Patrol",
     operations: "Operations",
     fileManager: "Files",
@@ -62,6 +67,7 @@ const enUS: TranslationKeys = {
     audit: "Audit",
     userMgmt: "Users",
     settings: "Settings",
+    unifiedSettings: "Unified Settings",
     catMonitor: "Monitoring",
     catOps: "Operations",
     catAI: "AI",
@@ -84,6 +90,8 @@ const enUS: TranslationKeys = {
     architecture: "Architecture",
     aiFamily: "AI Family",
     aiFamilySettings: "Family Settings",
+    aiFamilyHotel: "Smart Hotel",
+    aiFamilyCluster: "Comm Cluster",
     aiFamilyHome: "Family Home",
     aiFamilyCenter: "Family Center",
     aiFamilyPlanning: "Family Planning",
@@ -172,6 +180,23 @@ const enUS: TranslationKeys = {
     markResolved: "Mark Resolved",
     operationChain: "Operation Chain",
     current: "Current",
+  },
+
+  collab: {
+    title: "Collaboration",
+    subtitle: "Manage and track all pending tasks",
+    create: "New Task",
+    search: "Search tasks...",
+    confirmDelete: "Are you sure to delete this task?",
+    stats: { total: "Total", pending: "Pending", inProgress: "In Progress", completed: "Completed", overdue: "Overdue" },
+    filter: { allStatus: "All Status", allPriority: "All Priority", allAssignee: "All Assignee" },
+    status: { pending: "Pending", inProgress: "In Progress", completed: "Completed", cancelled: "Cancelled" },
+    priority: { critical: "Critical", high: "High", medium: "Medium", low: "Low" },
+    sort: { dueDate: "Due Date", priority: "Priority", createdAt: "Created At" },
+    empty: { title: "No Tasks", hint: "Click \"New Task\" to create your first task" },
+    action: { start: "Start", complete: "Complete", reopen: "Reopen" },
+    overdue: { prefix: "Overdue by", suffix: "days" },
+    remaining: { prefix: "Remaining", suffix: "days" },
   },
 
   // ======== Patrol ========
@@ -511,6 +536,66 @@ const enUS: TranslationKeys = {
     dataCompressionDesc: "Enable transfer and storage compression",
     performance: "Performance",
     envConfig: "Env Config",
+  },
+
+  // ======== Smart Hotel ========
+  hotel: {
+    title: "Smart Hotel Management",
+    subtitle: "AI Hotel System · Multi-Model Collaboration",
+    tabOverview: "Overview",
+    tabStaff: "Team",
+    tabConversations: "Chats",
+    tabAnalytics: "Analytics",
+    tabVoice: "Voice",
+    tabKnowledge: "Knowledge Base",
+    statTotalInteractions: "Total Interactions",
+    statAvgSatisfaction: "Avg Satisfaction",
+    statActiveStaff: "Active Staff",
+    statModelCount: "Models",
+    modelDistribution: "Model Distribution",
+    quickActions: "Quick Actions",
+    actionNewConversation: "New Chat",
+    actionVoiceInput: "Voice Input",
+    actionViewKnowledge: "Browse Knowledge",
+    actionTraining: "Training Mode",
+    noConversations: "No conversations yet",
+    untitledConversation: "Untitled Chat",
+    participants: "participants",
+    listening: "Listening...",
+    tapToSpeak: "Tap to speak",
+    staffPerformance: "Staff Performance",
+    satisfactionTrend: "Satisfaction Trend",
+  },
+
+  // ======== Comm Cluster ========
+  cluster: {
+    title: "Global Space Comm Cluster",
+    subtitle: "Distributed Cluster · SSH Multi-Node",
+    tabOverview: "Overview",
+    tabNodes: "Nodes",
+    tabNetwork: "Network",
+    tabTasks: "Tasks",
+    tabSessions: "Sessions",
+    statTotalNodes: "Total Nodes",
+    statCPU: "CPU Cores",
+    statMemory: "Total Memory",
+    statStorage: "Total Storage",
+    networkOverview: "Network Overview",
+    activeConnections: "Active Connections",
+    dataTransferred: "Data Transferred",
+    avgUptime: "Avg Uptime",
+    synced: "Synced",
+    quickActions: "Quick Actions",
+    actionHealthCheck: "Health Check",
+    actionViewNodes: "View Nodes",
+    actionViewTasks: "View Tasks",
+    actionSessions: "SSH Sessions",
+    topology: "Cluster Topology",
+    connectionSummary: "Connection Summary",
+    totalConnections: "Total Connections",
+    onlineNodes: "Online Nodes",
+    noTasks: "No tasks yet",
+    noSessions: "No active sessions",
   },
 
   // ======== Audit ========

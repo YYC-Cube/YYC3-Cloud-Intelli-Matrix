@@ -1,7 +1,12 @@
 /**
- * IDEViewSwitcher.tsx
- * ====================
- * 视图切换栏：返回 / 预览 / 代码 / 布局模式 / 搜索 / 更多
+ * @file: IDEViewSwitcher.tsx
+ * @description: IDEViewSwitcher.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

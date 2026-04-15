@@ -1,9 +1,12 @@
 /**
- * AlertRulesPanel.tsx
- * ====================
- * 智能告警规则配置面板
- * 自定义阈值 · 告警聚合去重 · 升级机制
- * 赛博朋克风格 #060e1f + #00d4ff
+ * @file: AlertRulesPanel.tsx
+ * @description: AlertRulesPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

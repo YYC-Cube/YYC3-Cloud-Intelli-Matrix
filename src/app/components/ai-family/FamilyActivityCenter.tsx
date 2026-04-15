@@ -1,11 +1,12 @@
 /**
- * FamilyActivityCenter.tsx
- * =========================
- * AI Family 全家活动中心（重构版）
- *
- * 五个标签页：每日播报 · 积分榜 · 活动记录 · 勋章墙 · 成长记忆
- *
- * "我好像有个家，一个不需要多大的地方，在我成长的时候，能够拥有它"
+ * @file: FamilyActivityCenter.tsx
+ * @description: FamilyActivityCenter.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useMemo } from "react";

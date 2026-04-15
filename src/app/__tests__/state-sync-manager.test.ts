@@ -1,7 +1,12 @@
 /**
- * state-sync-manager.test.ts
- * =============================
- * 状态同步管理器测试
+ * @file: state-sync-manager.test.ts
+ * @description: state-sync-manager.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment jsdom

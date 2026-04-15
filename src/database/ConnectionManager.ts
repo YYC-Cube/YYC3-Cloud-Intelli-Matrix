@@ -1,9 +1,12 @@
 /**
- * ConnectionManager.ts
- * ==================
- * 数据库连接管理器
- * 支持 PostgreSQL、MySQL、MongoDB 连接管理
- * 包含连接池、健康检查、自动重连功能
+ * @file: ConnectionManager.ts
+ * @description: ConnectionManager.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import type {
@@ -103,9 +106,10 @@ export class ConnectionManager {
         resolve();
       }, 500 + Math.random() * 1000);
 
-      if (typeof window !== "undefined" && (window as any).__VITEST__) {
-        (window as any).__VITEST_TIMERS__ = (window as any).__VITEST_TIMERS__ || [];
-        (window as any).__VITEST_TIMERS__.push(connectTimer);
+      if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).__VITEST__) {
+        const _w = window as unknown as Record<string, unknown>;
+        (_w.__VITEST_TIMERS__ as NodeJS.Timeout[]) = (_w.__VITEST_TIMERS__ as NodeJS.Timeout[]) || [];
+        (_w.__VITEST_TIMERS__ as NodeJS.Timeout[]).push(connectTimer);
       }
     });
   }

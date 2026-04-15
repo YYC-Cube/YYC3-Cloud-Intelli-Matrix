@@ -1,10 +1,12 @@
 /**
- * useNetworkConfig Hook
- * =====================
- * 网络连接配置管理 Hook
- * - 读写 localStorage 持久化配置
- * - 自动检测网络环境
- * - WebSocket 连接测试
+ * @file: useNetworkConfig.ts
+ * @description: useNetworkConfig Hook
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";

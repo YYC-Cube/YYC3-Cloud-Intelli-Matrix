@@ -1,12 +1,12 @@
 /**
- * useLocalFileSystem.ts
- * ======================
- * 本地文件系统模拟 Hook — localStorage CRUD 版
- *
- * 模拟 ~/.yyc3-cloudpivot/ 目录结构
- * 管理文件浏览、日志查看、报告生成
- *
- * Phase-3: 文件树增删改 + localStorage 持久化
+ * @file: useLocalFileSystem.ts
+ * @description: useLocalFileSystem.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useMemo } from "react";
@@ -179,7 +179,7 @@ function generateMockLogs(count: number = 50): LogEntry[] {
     { level: "fatal", msg: "GPU 驱动崩溃, 节点进入降级模式" },
     { level: "info",  msg: "配置热更新完成 patrol.interval=15" },
     { level: "warn",  msg: "存储空间 85.8%, 接近告警阈值" },
-    { level: "info",  msg: "NAS 备份已完成 12.8GB → 192.168.3.200" },
+    { level: "info",  msg: "NAS 备份已完成 12.8GB → 本地存储" },
     { level: "debug", msg: "推理队列长度 3, 平均等待 45ms" },
     { level: "info",  msg: "Token 吞吐率 138K/s, 近 1h 稳定" },
   ];

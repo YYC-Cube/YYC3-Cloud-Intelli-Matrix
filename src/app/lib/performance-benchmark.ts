@@ -1,10 +1,12 @@
 /**
- * performance-benchmark.ts
- * ============================
- * 性能基准测试模块
- * 
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: performance-benchmark.ts
+ * @description: performance-benchmark.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 export type BenchmarkCategory = "cpu" | "memory" | "io" | "network" | "render" | "api";

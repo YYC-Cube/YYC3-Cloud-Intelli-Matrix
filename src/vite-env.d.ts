@@ -1,5 +1,12 @@
 /**
- * Vite 环境变量类型声明
+ * @file: vite-env.d.ts
+ * @description: vite-env.d.ts - YYC³ 功能模块
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 interface ImportMetaEnv {
@@ -45,6 +52,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_USE_MOCK_AUTH: string;
+  readonly VITE_MOCK_ADMIN_PASSWORD: string;
+  readonly VITE_MOCK_DEV_PASSWORD: string;
   readonly MODE: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
@@ -82,3 +91,68 @@ declare namespace NodeJS {
 }
 
 type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex";
+
+declare module "@yyc3/ai-family" {
+  import type { ComponentType } from "react";
+
+  export interface CareResponse {
+    message: string;
+    emotion?: string;
+    suggestions?: string[];
+    wisdomQuote?: { content: string; author?: string };
+  }
+
+  export interface FamilyAnthemPlayerProps {
+    anthemUrl?: string;
+    showLyrics?: boolean;
+    autoScroll?: boolean;
+    onPlay?: () => void;
+    onPause?: () => void;
+    onLyricHighlight?: (lyric: { emotion: string; text: string }) => void;
+  }
+
+  export const FamilyAnthemPlayer: ComponentType<FamilyAnthemPlayerProps>;
+
+  export interface SongUploadZoneProps {
+    onUploadSuccess?: (song: { title: string; url: string }) => void;
+    onError?: (error: Error) => void;
+    maxFiles?: number;
+  }
+
+  export const SongUploadZone: ComponentType<SongUploadZoneProps>;
+
+  export function createCareLanguageEngine(config?: {
+    founderExperienceYears?: number;
+    wisdomCorpusSize?: number;
+    personality?: string[];
+    defaultStyle?: string;
+    enableMusicIntegration?: boolean;
+    enableWisdomQuotes?: boolean;
+  }): {
+    respondToEmotion(emotion: string, context: { context: string; userName: string }): Promise<CareResponse>;
+    encourage(params: { achievement: string; context: string }): Promise<CareResponse>;
+  };
+}
+
+declare module "dompurify" {
+  interface DOMPurifyConfig {
+    ALLOWED_TAGS?: string[];
+    ALLOWED_ATTR?: string[];
+    ADD_ATTR?: string[];
+  }
+  
+  export default class DOMPurify {
+    static sanitize(dirty: string, config?: DOMPurifyConfig): string;
+    sanitize(dirty: string, config?: DOMPurifyConfig): string;
+  }
+}
+
+import type { MessageContent as BaseMessageContent } from "./app/lib/ai-family-hotel.types";
+
+declare module "./app/lib/ai-family-hotel.types" {
+  interface MessageContent extends BaseMessageContent {
+    priority?: "low" | "normal" | "high" | "urgent" | "critical";
+    context?: Record<string, unknown>;
+    messageType?: "text" | "notification" | "escalation" | "action-request" | "decision";
+  }
+}

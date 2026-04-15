@@ -1,15 +1,12 @@
 /**
- * EmotionVisualizer.tsx
- * ======================
- * 情感可视化面板
- * 实时显示当前情感状态和音乐推荐
- *
- * @file EmotionVisualizer.tsx
- * @description 情感状态可视化组件
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: EmotionVisualizer.tsx
+ * @description: 情感状态可视化组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useMemo } from "react";

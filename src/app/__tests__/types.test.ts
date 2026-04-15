@@ -1,14 +1,12 @@
 /**
- * types.test.ts
- * =========
- * YYC³ 全局类型系统 - 完整性测试
- *
- * 覆盖范围:
- * - 中心化类型文件导出完整性
- * - 各模块 re-export 兼容性
- * - 类型约束验证（枚举值、必填字段）
- * - toNodeData 转换函数正确性
- * - 跨模块类型一致性
+ * @file: types.test.ts
+ * @description: types.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

@@ -1,7 +1,12 @@
 /**
- * ide-types.ts
- * =============
- * IDE 页面专用类型定义
+ * @file: ide-types.ts
+ * @description: ide-types.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 export interface IDEFile {

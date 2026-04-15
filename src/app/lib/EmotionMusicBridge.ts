@@ -1,15 +1,12 @@
 /**
- * EmotionMusicBridge.ts
- * ======================
- * 情感数据桥接模块
- * 将情感检测结果接入音乐事件总线
- *
- * @file EmotionMusicBridge.ts
- * @description 情感感知音乐控制桥接
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: EmotionMusicBridge.ts
+ * @description: 情感感知音乐控制桥接
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import musicEventBus from "./MusicEventBus";

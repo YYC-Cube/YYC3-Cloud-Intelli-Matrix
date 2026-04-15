@@ -1,8 +1,12 @@
 /**
- * ThemeCustomizer.tsx
- * ====================
- * 主题自定义模块 · 完整颜色系统 / 排版 / 阴影 / 品牌 / 预设
- * 采用 OKLch + HEX 双模式颜色管理
+ * @file: ThemeCustomizer.tsx
+ * @description: ThemeCustomizer.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useRef, useContext } from "react";

@@ -1,18 +1,12 @@
 /**
- * ollama-url.ts
- * ==============
- * Ollama 端点解析工具
- *
- * 路由策略 (优先级从高到低):
- * 1. 同源代理 — 当 hostname 为 192.168.* / localhost / 127.0.0.1 时,
- *    使用 `${origin}${OLLAMA_PROXY_PATH}` (零 CORS 开销)
- * 2. 直连 — 使用 OLLAMA_BASE_URL (需 OLLAMA_ORIGINS 白名单)
- *
- * 后端代理路由映射:
- *   /api/v1/llm/ollama/chat   → Ollama /api/chat
- *   /api/v1/llm/ollama/tags   → Ollama /api/tags
- *   /api/v1/llm/ollama/show   → Ollama /api/show
- *   /api/v1/llm/ollama/...    → Ollama /api/...
+ * @file: ollama-url.ts
+ * @description: ollama-url.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { env } from "./env-config";

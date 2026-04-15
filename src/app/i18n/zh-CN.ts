@@ -1,7 +1,12 @@
 /**
- * zh-CN.ts
- * =========
- * 中文简体语言包
+ * @file: zh-CN.ts
+ * @description: zh-CN.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 const zhCN = {
@@ -46,7 +51,7 @@ const zhCN = {
   nav: {
     dataMonitor: "数据监控",
     followUp: "一键跟进",
-    followUpManager: "跟进任务管理",
+    followUpManager: "协同管理",
     patrol: "巡查模式",
     operations: "操作中心",
     fileManager: "文件管理",
@@ -60,6 +65,7 @@ const zhCN = {
     audit: "操作审计",
     userMgmt: "用户管理",
     settings: "系统设置",
+    unifiedSettings: "统一设置",
     catMonitor: "监控中心",
     catOps: "运维管理",
     catAI: "AI 智能",
@@ -82,6 +88,8 @@ const zhCN = {
     architecture: "架构审计",
     aiFamily: "AI Family",
     aiFamilySettings: "Family 设置",
+    aiFamilyHotel: "智慧酒店",
+    aiFamilyCluster: "通信基站",
     aiFamilyHome: "家族首页",
     aiFamilyCenter: "Family中心",
     aiFamilyPlanning: "家族规划",
@@ -170,6 +178,23 @@ const zhCN = {
     markResolved: "标记解决",
     operationChain: "操作链路",
     current: "当前",
+  },
+
+  collab: {
+    title: "协同管理",
+    subtitle: "管理和跟踪所有待处理的跟进任务",
+    create: "新建任务",
+    search: "搜索任务...",
+    confirmDelete: "确定要删除此任务吗？",
+    stats: { total: "总数", pending: "待处理", inProgress: "进行中", completed: "已完成", overdue: "已过期" },
+    filter: { allStatus: "所有状态", allPriority: "所有优先级", allAssignee: "所有负责人" },
+    status: { pending: "待处理", inProgress: "进行中", completed: "已完成", cancelled: "已取消" },
+    priority: { critical: "紧急", high: "高", medium: "中", low: "低" },
+    sort: { dueDate: "截止日期", priority: "优先级", createdAt: "创建时间" },
+    empty: { title: "暂无任务", hint: "点击「新建任务」创建第一个协同任务" },
+    action: { start: "开始处理", complete: "标记完成", reopen: "重新打开" },
+    overdue: { prefix: "已过期", suffix: "天" },
+    remaining: { prefix: "剩余", suffix: "天" },
   },
 
   // ======== 巡查 ========
@@ -509,6 +534,66 @@ const zhCN = {
     dataCompressionDesc: "启用传输和存储压缩",
     performance: "性能监控",
     envConfig: "环境变量",
+  },
+
+  // ======== 智慧酒店 ========
+  hotel: {
+    title: "智慧酒店管理",
+    subtitle: "AI 酒店人系统 · 多模型协作",
+    tabOverview: "总览",
+    tabStaff: "团队",
+    tabConversations: "对话",
+    tabAnalytics: "分析",
+    tabVoice: "语音",
+    tabKnowledge: "知识库",
+    statTotalInteractions: "总交互量",
+    statAvgSatisfaction: "平均满意度",
+    statActiveStaff: "在线员工",
+    statModelCount: "模型数",
+    modelDistribution: "模型分布",
+    quickActions: "快捷操作",
+    actionNewConversation: "新建对话",
+    actionVoiceInput: "语音输入",
+    actionViewKnowledge: "浏览知识库",
+    actionTraining: "训练模式",
+    noConversations: "暂无对话记录",
+    untitledConversation: "未命名对话",
+    participants: "参与者",
+    listening: "正在聆听...",
+    tapToSpeak: "点击开始语音输入",
+    staffPerformance: "员工绩效排行",
+    satisfactionTrend: "满意度趋势",
+  },
+
+  // ======== 通信基站 ========
+  cluster: {
+    title: "全球空间通信基站",
+    subtitle: "分布式集群管理 · SSH 多机互联",
+    tabOverview: "总览",
+    tabNodes: "节点",
+    tabNetwork: "网络",
+    tabTasks: "任务",
+    tabSessions: "会话",
+    statTotalNodes: "节点总数",
+    statCPU: "CPU 核心",
+    statMemory: "总内存",
+    statStorage: "总存储",
+    networkOverview: "网络概览",
+    activeConnections: "活跃连接",
+    dataTransferred: "今日流量",
+    avgUptime: "平均在线率",
+    synced: "已同步",
+    quickActions: "快捷操作",
+    actionHealthCheck: "健康检查",
+    actionViewNodes: "查看节点",
+    actionViewTasks: "查看任务",
+    actionSessions: "SSH 会话",
+    topology: "集群拓扑",
+    connectionSummary: "连接摘要",
+    totalConnections: "总连接数",
+    onlineNodes: "在线节点",
+    noTasks: "暂无任务",
+    noSessions: "暂无活动会话",
   },
 
   // ======== 操作审计 ========

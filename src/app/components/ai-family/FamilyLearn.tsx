@@ -1,9 +1,12 @@
 /**
- * FamilyLearn.tsx
- * ================
- * AI Family 学习成长空间 —— 知识库 · 技能树 · AI教练 · 互动问答
- *
- * 重构: 使用 shared.ts + FadeIn + FamilyPageHeader
+ * @file: FamilyLearn.tsx
+ * @description: FamilyLearn.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState } from "react";

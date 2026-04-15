@@ -1,14 +1,12 @@
 /**
- * routes.ts
- * ==========
- * YYC³ 路由配置
- *
- * 注意: 已从 React.lazy 动态导入改为静态导入。
- * 原因: Figma Make iframe 沙箱环境对动态 import() 有模块数量/并发限制，
- *       25 个 React.lazy 路由会触发 "Failed to fetch dynamically imported module" 错误。
- *       静态导入将所有路由组件打入主 bundle，牺牲代码分割换取可靠启动。
- *
- * 恢复代码分割: 部署到独立 Vite/Node 环境后，可还原为 React.lazy 版本。
+ * @file: routes.ts
+ * @description: routes.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { createHashRouter } from "react-router";
@@ -51,6 +49,8 @@ import { FollowUpManager } from "./components/FollowUpManager";
 import { ConfigCenter } from "./components/ConfigCenter";
 import { VariableCenter } from "./components/VariableCenter";
 import { NotFound } from "./components/NotFound";
+import { UnifiedSettingsPanel } from "./components/UnifiedSettingsPanel";
+import { HotelDashboard } from "./components/HotelDashboard";
 
 // ────────────────────────────────────────────
 //  路由表
@@ -98,6 +98,8 @@ export const router = createHashRouter([
       { path: "storage", Component: StorageManager },
       { path: "config-center", Component: ConfigCenter },
       { path: "variables", Component: VariableCenter },
+      { path: "unified-settings", Component: UnifiedSettingsPanel },
+      { path: "hotel-dashboard", Component: HotelDashboard },
       { path: "*", Component: NotFound },
     ],
   },

@@ -1,13 +1,12 @@
 /**
- * i18n-consistency.test.ts
- * =============
- * 全量 i18n key 一致性验证
- *
- * 覆盖范围:
- * - zh-CN / en-US 完全一致
- * - 所有命名空间存在性
- * - key 总数统计
- * - 无空值检查
+ * @file: i18n-consistency.test.ts
+ * @description: i18n-consistency.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

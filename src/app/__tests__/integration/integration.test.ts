@@ -1,12 +1,12 @@
 /**
- * integration.test.ts
- * ====================
- * 模块间集成测试
- *
- * 测试模块之间的协作和数据流
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: integration.test.ts
+ * @description: integration.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

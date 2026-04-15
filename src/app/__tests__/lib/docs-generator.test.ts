@@ -1,10 +1,12 @@
 /**
- * docs-generator.test.ts
- * ============================
- * 文档生成器模块测试
- *
- * @version 1.0.0
- * @author YYC³ Team
+ * @file: docs-generator.test.ts
+ * @description: docs-generator.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [lib]
  */
 
 import { describe, it, expect, beforeEach } from "vitest";

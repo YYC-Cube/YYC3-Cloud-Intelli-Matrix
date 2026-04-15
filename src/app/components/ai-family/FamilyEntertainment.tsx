@@ -1,10 +1,12 @@
 /**
- * FamilyEntertainment.tsx
- * ========================
- * AI Family 文娱中心
- * 琴棋书画 · 对弈 · 才艺鉴赏 · 文化交流 · 海报广播
- *
- * "不要冷冰冰的文档模块" — 这里是有温度的家人互动空间
+ * @file: FamilyEntertainment.tsx
+ * @description: FamilyEntertainment.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useMemo } from "react";
@@ -203,7 +205,7 @@ export function FamilyEntertainment() {
                 <FadeIn key={game.key} delay={i * 0.06}>
                   <GlassCard
                     className={`p-5 text-center transition-all ${game.available ? "cursor-pointer hover:scale-[1.03]" : "opacity-50"}`}
-                    onClick={() => game.available && setGameType(game.key as any)}
+                    onClick={() => game.available && setGameType(game.key as "gomoku")}
                     glowColor={game.available ? `${game.color}06` : undefined}
                   >
                     <div

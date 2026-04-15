@@ -1,15 +1,12 @@
 /**
- * LyricsGeneratorPanel.tsx
- * =========================
- * AI 歌词生成器面板组件
- * 提供歌词生成的用户界面
- *
- * @file LyricsGeneratorPanel.tsx
- * @description AI 歌词生成器 UI 组件
- * @author YanYuCloudCube Team <admin@0379.email>
- * @version v1.0.0
- * @created 2026-04-04
- * @updated 2026-04-04
+ * @file: LyricsGeneratorPanel.tsx
+ * @description: AI 歌词生成器 UI 组件
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-04
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import { useState, useCallback } from "react";

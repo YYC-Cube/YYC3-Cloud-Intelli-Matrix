@@ -1,7 +1,12 @@
 /**
- * security-i18n.test.ts
- * =======================
- * security 命名空间 i18n 一致性测试
+ * @file: security-i18n.test.ts
+ * @description: security-i18n.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 import { describe, it, expect } from "vitest";

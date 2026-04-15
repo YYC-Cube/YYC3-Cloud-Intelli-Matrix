@@ -1,14 +1,12 @@
 /**
- * DevGuidePage.tsx
- * ==================
- * 第十章 · 开发实施建议 · 可视化面板
- *
- * 路由: /dev-guide
- *
- * 包含:
- * 10.1 技术选型表
- * 10.2 开发优先级 (Phase 1/2/3 + 进度追踪)
- * 架构概览 · 存储策略
+ * @file: DevGuidePage.tsx
+ * @description: DevGuidePage.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

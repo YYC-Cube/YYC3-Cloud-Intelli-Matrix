@@ -1,18 +1,12 @@
 /**
- * CodeEditor.tsx
- * ===============
- * CodeMirror 语法高亮编辑器 · 赛博朋克主题
- *
- * 自动检测文件扩展名切换语言模式:
- *  js/ts/jsx/tsx → JavaScript/TypeScript
- *  json → JSON
- *  py → Python
- *  sql → SQL
- *  md → Markdown
- *  html/htm → HTML
- *  css/scss → CSS
- *  xml/svg → XML
- *  yaml/yml → YAML
+ * @file: CodeEditor.tsx
+ * @description: CodeEditor.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import * as React from "react";

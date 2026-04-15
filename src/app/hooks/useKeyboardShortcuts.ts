@@ -1,18 +1,12 @@
 /**
- * useKeyboardShortcuts.ts
- * ========================
- * 全局快捷键系统 Hook
- *
- * Guidelines 6.2 快捷键绑定:
- * ─────────────────────────────────────────
- * Cmd/Ctrl + K           快速搜索         全局
- * Cmd/Ctrl + Shift + A   告警列表         全局
- * Cmd/Ctrl + Shift + P   巡查面板         全局
- * Cmd/Ctrl + Shift + O   操作中心         全局
- * Cmd/Ctrl + Shift + L   日志查看         全局
- * Cmd/Ctrl + Shift + F   文件管理         全局
- * Ctrl + `               集成终端         全局
- * Esc                    关闭抽屉/模态框   全局
+ * @file: useKeyboardShortcuts.ts
+ * @description: useKeyboardShortcuts.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useEffect, useCallback, useRef } from "react";

@@ -36,7 +36,7 @@ export function VinylPhotoPlayer({
   onOpenVideo,
 }: VinylPhotoPlayerProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [_imageLoaded, setImageLoaded] = useState(false);
   const [showVideoHint, setShowVideoHint] = useState(false);
 
   const displayPhotos = photos.length > 0 ? photos : DMUSIC_PHOTOS;

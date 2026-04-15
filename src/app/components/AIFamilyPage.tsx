@@ -1,12 +1,12 @@
 /**
- * AIFamilyPage.tsx
- * =================
- * YYC³ AI Family 交互中心
- * 全屏沉浸式 12 小时时钟环布局
- * 8 位 AI Family 成员 + 中心品牌标识
- *
- * 设计规范: guidelines/Family-AI.md & guidelines/AI-Family.md
- * 风格: 赛博朋克 · 深空黑背景 · 霓虹光效 · 真实时钟走动
+ * @file: AIFamilyPage.tsx
+ * @description: AIFamilyPage.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useEffect, useRef, useMemo } from "react";

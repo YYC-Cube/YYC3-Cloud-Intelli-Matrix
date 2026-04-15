@@ -1,10 +1,12 @@
 /**
- * usePushNotifications Hook
- * =========================
- * 推送通知管理
- * - 权限请求
- * - 通知发送
- * - 订阅管理
+ * @file: usePushNotifications.ts
+ * @description: usePushNotifications Hook
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback } from "react";

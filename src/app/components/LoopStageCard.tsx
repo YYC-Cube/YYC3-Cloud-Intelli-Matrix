@@ -1,7 +1,12 @@
 /**
- * LoopStageCard.tsx
- * ==================
- * 单个闭环阶段卡片
+ * @file: LoopStageCard.tsx
+ * @description: LoopStageCard.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React from "react";

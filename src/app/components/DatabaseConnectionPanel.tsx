@@ -1,14 +1,12 @@
 /**
- * DatabaseConnectionPanel.tsx
- * ============================
- * 数据库连接配置面板 · 路由: /db-connections
- *
- * 基于 dbConnectionStore (localStorage CRUD) 管理连接配置:
- * - 完整 CRUD: 添加 / 编辑 / 删除连接
- * - 连接测试模拟: 模拟 ping / handshake / query 三步测试
- * - 密码显示/隐藏
- * - 导入/导出 JSON
- * - 支持 PostgreSQL / MySQL / SQLite / Redis / MongoDB / Custom
+ * @file: DatabaseConnectionPanel.tsx
+ * @description: DatabaseConnectionPanel.tsx
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [component]
  */
 
 import React, { useState, useCallback, useContext } from "react";
@@ -20,7 +18,8 @@ import {
 import { GlassCard } from "./GlassCard";
 import { SQLEditor } from "./CodeEditor";
 import { ViewContext } from "../lib/view-context";
-import { dbConnectionStore, type DBConnection } from "../stores/dashboard-stores";
+import type { DBConnection } from "../stores/dashboard-stores";
+import { useDbConnSlice } from "../store/slices/db-conn-slice";
 import { env } from "../lib/env-config";
 import { toast } from "sonner";
 
@@ -52,22 +51,18 @@ export function DatabaseConnectionPanel() {
   const view = useContext(ViewContext);
   const isMobile = view?.isMobile ?? false;
 
-  const [, forceUpdate] = useState(0);
-  const refresh = () => forceUpdate((n) => n + 1);
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPw, setShowPw] = useState<Record<string, boolean>>({});
   const [testingId, setTestingId] = useState<string | null>(null);
 
-  const connections = dbConnectionStore.getAll();
+  const { connections, updateConnection, addConnection, removeConnection, setConnectionStatus } = useDbConnSlice();
 
   // ═══ 连接测试模拟 ═══
   const testConnection = useCallback(async (id: string) => {
     setTestingId(id);
-    dbConnectionStore.update(id, { status: "testing" });
-    refresh();
+    setConnectionStatus(id, "testing");
 
     // 模拟 3 步测试: ping → handshake → query
     const steps = ["网络 Ping...", "握手认证...", "测试查询..."];
@@ -78,15 +73,11 @@ export function DatabaseConnectionPanel() {
 
     // 随机结果 (80% 成功)
     const success = Math.random() > 0.2;
-    dbConnectionStore.update(id, {
-      status: success ? "connected" : "error",
-      lastTestAt: Date.now(),
-    });
+    setConnectionStatus(id, success ? "connected" : "error");
     setTestingId(null);
-    refresh();
     if (success) {toast.success("连接测试成功", { style: toastStyle });}
     else {toast.error("连接测试失败: 模拟超时", { style: toastStyle });}
-  }, []);
+  }, [setConnectionStatus]);
 
   // ═══ CRUD ═══
   const startEdit = (conn: DBConnection) => {
@@ -100,7 +91,7 @@ export function DatabaseConnectionPanel() {
 
   const saveEdit = () => {
     if (!editingId) {return;}
-    dbConnectionStore.update(editingId, {
+    updateConnection(editingId, {
       name: draft.name, type: draft.type as DBConnection["type"],
       host: draft.host, port: parseInt(draft.port) || 0,
       database: draft.database, username: draft.username,
@@ -109,13 +100,12 @@ export function DatabaseConnectionPanel() {
     });
     setEditingId(null);
     setDraft({});
-    refresh();
     toast.success("连接已更新", { style: toastStyle });
   };
 
   const addNew = () => {
     if (!draft.name?.trim()) {return;}
-    dbConnectionStore.add({
+    addConnection({
       name: draft.name.trim(),
       type: (draft.type as DBConnection["type"]) || "postgresql",
       host: draft.host || "localhost",
@@ -128,18 +118,16 @@ export function DatabaseConnectionPanel() {
     });
     setShowAddForm(false);
     setDraft({});
-    refresh();
     toast.success("连接已添加", { style: toastStyle });
   };
 
   const deleteConn = (id: string) => {
-    dbConnectionStore.remove(id);
-    refresh();
+    removeConnection(id);
     toast.success("连接已删除", { style: toastStyle });
   };
 
   const exportAll = () => {
-    const json = dbConnectionStore.exportData();
+    const json = JSON.stringify(connections, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -159,9 +147,13 @@ export function DatabaseConnectionPanel() {
       if (!file) {return;}
       const reader = new FileReader();
       reader.onload = () => {
-        const ok = dbConnectionStore.importData(reader.result as string);
-        if (ok) { refresh(); toast.success("已导入", { style: toastStyle }); }
-        else {toast.error("导入失败", { style: toastStyle });}
+        try {
+          const imported = JSON.parse(reader.result as string) as DBConnection[];
+          if (Array.isArray(imported)) {
+            imported.forEach(conn => addConnection(conn));
+            toast.success(`已导入 ${imported.length} 条连接`, { style: toastStyle });
+          } else {toast.error("导入失败：格式错误", { style: toastStyle });}
+        } catch {toast.error("导入失败：解析错误", { style: toastStyle });}
       };
       reader.readAsText(file);
     };
@@ -190,7 +182,7 @@ export function DatabaseConnectionPanel() {
           <button onClick={importAll} data-testid="db-import-btn" className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-[rgba(0,100,150,0.1)] border border-[rgba(0,180,255,0.15)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-all" style={{ fontSize: "0.72rem" }}>
             <Upload className="w-3.5 h-3.5" /> 导入
           </button>
-          <button onClick={() => { dbConnectionStore.reset(); refresh(); toast.info("已恢复默认"); }} data-testid="db-reset-btn" className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-[rgba(255,170,0,0.08)] border border-[rgba(255,170,0,0.2)] text-[#ffaa00] transition-all" style={{ fontSize: "0.72rem" }}>
+          <button onClick={() => { toast.info("重置功能已迁移至统一Store", { style: toastStyle }); }} data-testid="db-reset-btn" className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-[rgba(255,170,0,0.08)] border border-[rgba(255,170,0,0.2)] text-[#ffaa00] transition-all" style={{ fontSize: "0.72rem" }}>
             <RotateCcw className="w-3.5 h-3.5" /> 重置
           </button>
           <button onClick={() => { setShowAddForm(true); setDraft({ type: "postgresql", host: "localhost", port: "5432" }); }} data-testid="db-new-connection-btn" className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[rgba(0,140,200,0.15)] border border-[rgba(0,180,255,0.3)] text-[#00d4ff] transition-all" style={{ fontSize: "0.78rem" }}>

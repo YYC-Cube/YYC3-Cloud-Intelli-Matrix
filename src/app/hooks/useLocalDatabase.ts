@@ -1,27 +1,12 @@
 /**
- * useLocalDatabase.ts
- * ====================
- * 本地数据库管理 Hook
- *
- * 功能:
- *  - 自动检测本地数据库服务 (PostgreSQL / MySQL / Redis)
- *  - 连接管理 (CRUD, 测试连接, IndexedDB 持久化)
- *  - SQL 查询控制台 (含历史记录持久化)
- *  - 表浏览 & 数据预览
- *  - 备份 & 恢复
- *  - 快速 SQL 模板
- *
- * 后端 API 接口规范 (预留):
- *  POST /api/db/detect          → 自动扫描本地数据库端口
- *  POST /api/db/connect         → 建立连接
- *  POST /api/db/disconnect      → 断开连接
- *  POST /api/db/query           → 执行 SQL
- *  POST /api/db/tables          → 获取表列表
- *  POST /api/db/table/:name     → 获取表详情 + 数据
- *  POST /api/db/backup          → 创建备份
- *  POST /api/db/restore         → 恢复备份
- *  POST /api/db/test            → 测试连接
- *  POST /api/db/table-data      → 分页获取表数据
+ * @file: useLocalDatabase.ts
+ * @description: useLocalDatabase.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [hook]
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -129,12 +114,18 @@ const DB_COLORS: Record<DatabaseType, string> = {
   postgresql: "#336791",
   mysql: "#4479A1",
   redis: "#DC382D",
+  sqlite: "#003B57",
+  mongodb: "#47A248",
+  custom: "#6B7280",
 };
 
 const DEFAULT_PORTS: Record<DatabaseType, number> = {
   postgresql: 5432,
   mysql: 3306,
   redis: 6379,
+  sqlite: 0,
+  mongodb: 27017,
+  custom: 0,
 };
 
 export const SQL_TEMPLATES: SQLTemplate[] = [

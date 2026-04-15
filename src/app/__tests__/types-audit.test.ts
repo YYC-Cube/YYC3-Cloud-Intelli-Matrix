@@ -1,13 +1,12 @@
 /**
- * types-audit.test.ts
- * =====================
- * 全局类型定义完整性审计测试
- *
- * 确保:
- *  - types/index.ts 导出所有必要类型
- *  - 类型转换函数正确工作
- *  - 无散落的重复类型定义
- *  - 各模块从 ../types 统一导入
+ * @file: types-audit.test.ts
+ * @description: types-audit.test.ts
+ * @author: YanYuCloudCube Team
+ * @version: v1.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-04-08
+ * @status: active
+ * @tags: [module]
  */
 
 // @vitest-environment node

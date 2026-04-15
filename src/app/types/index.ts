@@ -1714,7 +1714,11 @@ export type StoreName =
   | "fileVersions"
   | "dbConnections"
   | "queryHistory"
-  | "committedChanges";
+  | "committedChanges"
+  | "agent_memories"
+  | "agent_tasks"
+  | "mcp_contexts"
+  | "inference_cache";
 
 /** 存储变更事件 (BroadcastChannel) */
 export interface StorageChangeEvent {

@@ -26,7 +26,7 @@
 // ============================================================
 
 const DB_NAME = "yyc3_matrix";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 /** IndexedDB store 名称 — centralized in types/index.ts */
 import type { StoreName, StorageChangeEvent } from "../types";
@@ -54,6 +54,10 @@ export const ALL_STORES: StoreName[] = [
   "dbConnections",
   "queryHistory",
   "committedChanges",
+  "agent_memories",
+  "agent_tasks",
+  "mcp_contexts",
+  "inference_cache",
 ] as const as unknown as StoreName[];
 
 /** 打开数据库，自动创建 object stores */
@@ -68,9 +72,49 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+
+      // v4 自定义 keyPath store
+      const customStores: Record<string, string> = {
+        mcp_contexts: "agentId",
+        inference_cache: "hash",
+      };
+
+      // v1-v3: 标准 store (keyPath: "id")，跳过自定义 keyPath 的 store
       for (const name of ALL_STORES) {
+        if (customStores[name]) continue;
         if (!db.objectStoreNames.contains(name)) {
           db.createObjectStore(name, { keyPath: "id" });
+        }
+      }
+
+      // v4: 自定义 keyPath store + 索引
+      if (event.oldVersion < 4) {
+        // agent_memories: keyPath=id + indexes
+        if (!db.objectStoreNames.contains("agent_memories")) {
+          const store = db.createObjectStore("agent_memories", { keyPath: "id" });
+          store.createIndex("by_agent", "agentId");
+          store.createIndex("by_category", "category");
+          store.createIndex("by_timestamp", "timestamp");
+        }
+
+        // agent_tasks: keyPath=id + indexes
+        if (!db.objectStoreNames.contains("agent_tasks")) {
+          const store = db.createObjectStore("agent_tasks", { keyPath: "id" });
+          store.createIndex("by_assignee", "assigneeId");
+          store.createIndex("by_status", "status");
+          store.createIndex("by_created", "createdAt");
+        }
+
+        // mcp_contexts: keyPath=agentId
+        if (!db.objectStoreNames.contains("mcp_contexts")) {
+          db.createObjectStore("mcp_contexts", { keyPath: "agentId" });
+        }
+
+        // inference_cache: keyPath=hash + indexes
+        if (!db.objectStoreNames.contains("inference_cache")) {
+          const store = db.createObjectStore("inference_cache", { keyPath: "hash" });
+          store.createIndex("by_model", "modelId");
+          store.createIndex("by_timestamp", "timestamp");
         }
       }
     };

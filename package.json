@@ -49,6 +49,7 @@
     "@codemirror/view": "^6.39.16",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mlc-ai/web-llm": "^0.2.82",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.8",
     "@popperjs/core": "^2.11.8",

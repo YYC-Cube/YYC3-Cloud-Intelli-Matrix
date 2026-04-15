@@ -62,6 +62,11 @@ export interface EnvConfig {
   SQL_BLOCKED_COMMANDS: string;
   SQL_MAX_HISTORY: number;
   SQL_TEST_SIMULATE_DELAY: number;
+
+  // ── WebGPU 推理 ──
+  WEBLLM_DEFAULT_MODEL: string;
+  WEBLLM_CACHE_DIR: string;
+  INFERENCE_DEFAULT_BACKEND: "ollama" | "webgpu";
 }
 
 // ============================================================
@@ -108,6 +113,11 @@ const DEFAULTS: EnvConfig = {
   SQL_BLOCKED_COMMANDS: "DROP,DELETE,TRUNCATE,ALTER",
   SQL_MAX_HISTORY: 20,
   SQL_TEST_SIMULATE_DELAY: 500,
+
+  // ── WebGPU 推理 ──
+  WEBLLM_DEFAULT_MODEL: "SmolLM2-135M-Instruct-q4f16_1-MLC",
+  WEBLLM_CACHE_DIR: "webllm",
+  INFERENCE_DEFAULT_BACKEND: "ollama",
 };
 
 // ============================================================

@@ -91,7 +91,7 @@ const DEFAULTS: EnvConfig = {
   NODE_ENV: "development",
 
   DEFAULT_AI_BASE_URL: "https://api.openai.com/v1",
-  DEFAULT_AI_MODEL: "gpt-4o",
+  DEFAULT_AI_MODEL: "codegeex4:latest",
   DEFAULT_AI_TEMPERATURE: 0.7,
   DEFAULT_AI_MAX_TOKENS: 2048,
   DEFAULT_AI_TIMEOUT: 30000,

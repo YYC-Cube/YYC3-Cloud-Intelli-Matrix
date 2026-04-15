@@ -5,8 +5,18 @@
  * @version: v1.0.0
  * @created: 2026-04-08
  * @updated: 2026-04-08
- * @status: active
- * @tags: [module]
+ * @status: deprecated
+ * @tags: [module],[legacy]
+ *
+ * @deprecated 本文件中所有 store 已迁移至 store/slices/ 目录:
+ * - useUserStore → useAppSlice (store/slices/app-slice.ts)
+ * - useUIStore → useAppSlice (store/slices/app-slice.ts)
+ * - useAlertStore → useAppSlice (store/slices/app-slice.ts)
+ * - useNodeCacheStore → useNodeSlice (store/slices/node-slice.ts)
+ * - usePerformanceStore → useMetricsSlice (store/slices/metrics-slice.ts)
+ * - useSettingsStore → useSettingsStore hook (hooks/useSettingsStore.ts)
+ *
+ * 本文件将在 v4.0 移除。当前保留仅作向后兼容。
  */
 
 import { create } from 'zustand';

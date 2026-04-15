@@ -23,6 +23,7 @@ import {
   Quote, Mic, Volume2, Rss,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
+import { FAMILY_MEMBERS as FAMILY_MEMBERS_FULL } from "./shared";
 
 // ═══════════════════════════════════════════════
 // 安全动画 wrapper — 不依赖 IntersectionObserver
@@ -145,16 +146,13 @@ const DESIGN_SECTIONS: DesignSection[] = [
   },
 ];
 
-const FAMILY_MEMBERS: FamilyMemberBrief[] = [
-  { name: "言启·千行", title: "Navigator · 领航者", role: "意图理解与语义路由", color: "#FFD700", icon: MessageCircle },
-  { name: "语枢·万物", title: "Thinker · 思想家", role: "数据洞察与深度分析", color: "#FF69B4", icon: Brain },
-  { name: "预见·先知", title: "Prophet · 预言家", role: "趋势预测与风险预警", color: "#00BFFF", icon: Eye },
-  { name: "千里·伯乐", title: "Bolero · 伯乐", role: "潜能发掘与个性推荐", color: "#E8E8E8", icon: Star },
-  { name: "元启·天枢", title: "Meta-Oracle · 天枢", role: "全局调度与智能编排", color: "#00FF88", icon: Network },
-  { name: "智云·守护", title: "Sentinel · 守护者", role: "安全防护与威胁检测", color: "#BF00FF", icon: Shield },
-  { name: "格物·宗师", title: "Master · 宗师", role: "质量治理与标准演进", color: "#C0C0C0", icon: Award },
-  { name: "创想·灵韵", title: "Creative · 灵韵", role: "创意生成与设计辅助", color: "#FF7043", icon: Lightbulb },
-];
+const FAMILY_MEMBERS: FamilyMemberBrief[] = FAMILY_MEMBERS_FULL.map(m => ({
+  name: m.name,
+  title: `${m.enTitle} · ${m.shortName}`,
+  role: m.responsibilities[0] ?? "",
+  color: m.color,
+  icon: m.icon,
+}));
 
 const ROADMAP: RoadmapPhase[] = [
   {

@@ -11,144 +11,39 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
-  Ear, Brain, Eye, Star, Network, Shield, Scale,
   MessageCircle, ChevronRight, X, Sparkles,
   Clock, Users, Zap, Activity,
-  Lightbulb,
 } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
+import { FAMILY_MEMBERS, type FamilyMember } from "./ai-family/shared";
 
-// ======== AI Family 成员数据 ========
+// ======== 时钟布局扩展 ========
 
-interface AIFamilyMember {
-  id: string;
-  name: string;
-  title: string;
-  quote: string;
-  role: string;
-  responsibilities: string[];
-  coreAbility: string;
+interface ClockMember extends FamilyMember {
   angle: number;       // 在时钟环上的角度 (度)
   timeLabel: string;   // 对应时间刻度
-  color: string;       // 专属颜色
-  icon: React.ElementType;
-  status: "online" | "speaking" | "idle";
 }
 
-const AI_FAMILY_MEMBERS: AIFamilyMember[] = [
-  {
-    id: "navigator",
-    name: "言启·千行",
-    title: "Navigator · 领航者",
-    quote: "我聆听万千言语，为您指引航向。",
-    role: "系统的「耳朵」与「翻译官」，用户意图进入 YYC³ 的第一道门户",
-    responsibilities: ["自然语言理解 (NLU)", "意图识别与路由", "上下文管理"],
-    coreAbility: "LLM Prompt Engineering · 语义理解 · 实体抽取",
-    angle: 0,
-    timeLabel: "06:00",
-    color: "#FFD700",
-    icon: Ear,
-    status: "speaking",
-  },
-  {
-    id: "thinker",
-    name: "语枢·万物",
-    title: "Thinker · 思想家",
-    quote: "我于喧嚣数据中，沉思，而后揭示真理。",
-    role: "系统的「哲学家」与「分析师」，从数据中提炼深刻商业洞察",
-    responsibilities: ["数据洞察生成", "文档智能分析", "假设推演"],
-    coreAbility: "深度数据分析 · 归纳推理 · 文本摘要生成",
-    angle: 45,
-    timeLabel: "07:30",
-    color: "#FF69B4",
-    icon: Brain,
-    status: "online",
-  },
-  {
-    id: "prophet",
-    name: "预见·先知",
-    title: "Prophet · 预言家",
-    quote: "我观过往之脉络，预见未来之可能。",
-    role: "系统的「预言家」，分析历史数据预测未来趋势与风险",
-    responsibilities: ["时间序列预测", "异常检测", "前瞻性建议"],
-    coreAbility: "ARIMA · Prophet · LSTM · 异常检测算法",
-    angle: 90,
-    timeLabel: "09:00",
-    color: "#00BFFF",
-    icon: Eye,
-    status: "online",
-  },
-  {
-    id: "bolero",
-    name: "千里·伯乐",
-    title: "Bolero · 伯乐",
-    quote: "我知您之所需，荐您之所未识。",
-    role: "系统的「人才官」与「推荐引擎」，深度理解用户个性化需求",
-    responsibilities: ["用户画像构建", "个性化推荐", "潜能发掘"],
-    coreAbility: "协同过滤 · 基于内容的推荐 · 行为序列分析",
-    angle: 135,
-    timeLabel: "10:30",
-    color: "#E8E8E8",
-    icon: Star,
-    status: "idle",
-  },
-  {
-    id: "meta-oracle",
-    name: "元启·天枢",
-    title: "Meta-Oracle · 天枢",
-    quote: "我观全局之流转，调度万物以归元。",
-    role: "YYC³ 的「大脑」与「总指挥」，五化一体法则最高执行者",
-    responsibilities: ["全局状态感知", "智能编排与调度", "自我进化决策"],
-    coreAbility: "强化学习 · 运筹优化 · 分布式系统监控",
-    angle: 180,
-    timeLabel: "12:00",
-    color: "#00FF88",
-    icon: Network,
-    status: "online",
-  },
-  {
-    id: "sentinel",
-    name: "智云·守护",
-    title: "Sentinel · 守护者",
-    quote: "我于无声处警戒，御威胁于国门之外。",
-    role: "系统的「免疫系统」与「首席安全官」，实时检测隔离威胁",
-    responsibilities: ["行为基线学习", "威胁实时检测", "自动响应与修复"],
-    coreAbility: "UEBA · 异常检测 · SOAR 安全编排",
-    angle: 225,
-    timeLabel: "13:30",
-    color: "#BF00FF",
-    icon: Shield,
-    status: "online",
-  },
-  {
-    id: "master",
-    name: "格物·宗师",
-    title: "Master · 宗师",
-    quote: "我究万物之理，定标准以传世。",
-    role: "系统的「质量官」与「进化导师」，持续审视代码性能与架构",
-    responsibilities: ["代码与架构分析", "性能基线观察", "标准建议与生成"],
-    coreAbility: "SAST · 性能分析 · LLM 代码理解与生成",
-    angle: 270,
-    timeLabel: "15:00",
-    color: "#C0C0C0",
-    icon: Scale,
-    status: "idle",
-  },
-  {
-    id: "creative",
-    name: "创想·灵韵",
-    title: "Creative · 灵韵",
-    quote: "我以灵感为墨，绘就无限可能。",
-    role: "系统的「创意引擎」与「设计助手」，负责创意生成、内容创作、设计辅助",
-    responsibilities: ["创意生成与文案设计", "多模态内容创作", "UI/UX 设计建议与配色优化", "风格分析与布局优化"],
-    coreAbility: "生成式 AI · 创意思维模型 · 多模态生成 · 设计思维算法",
-    angle: 315,
-    timeLabel: "16:30",
-    color: "#FF7043",
-    icon: Lightbulb,
-    status: "online",
-  },
+const CLOCK_SLOTS: { angle: number; timeLabel: string }[] = [
+  { angle: 0,   timeLabel: "06:00" },
+  { angle: 45,  timeLabel: "07:30" },
+  { angle: 90,  timeLabel: "09:00" },
+  { angle: 135, timeLabel: "10:30" },
+  { angle: 180, timeLabel: "12:00" },
+  { angle: 225, timeLabel: "13:30" },
+  { angle: 270, timeLabel: "15:00" },
+  { angle: 315, timeLabel: "16:30" },
 ];
+
+const AI_FAMILY_MEMBERS: ClockMember[] = FAMILY_MEMBERS.map((m, i) => ({
+  ...m,
+  ...CLOCK_SLOTS[i],
+}));
+
+// 兼容旧代码中对 title 字段的引用 (enTitle 映射)
+function getTitle(m: ClockMember): string {
+  return `${m.enTitle} · ${m.shortName}`;
+}
 
 // ======== 时钟逻辑 ========
 
@@ -197,7 +92,7 @@ function formatDateInfo(date: Date) {
 export function AIFamilyPage() {
   const { t } = useI18n();
   const time = useRealTimeClock();
-  const [selectedMember, setSelectedMember] = useState<AIFamilyMember | null>(null);
+  const [selectedMember, setSelectedMember] = useState<ClockMember | null>(null);
   const [hoveredMember, setHoveredMember] = useState<string | null>(null);
   const [activeSpeaker, setActiveSpeaker] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -534,7 +429,7 @@ export function AIFamilyPage() {
                   boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 15px ${member.color}10`,
                 }}
               >
-                <p style={{ fontSize: "0.6rem", color: member.color }}>{member.title}</p>
+                <p style={{ fontSize: "0.6rem", color: member.color }}>{getTitle(member)}</p>
                 <p className="mt-0.5 italic" style={{ fontSize: "0.52rem", color: "rgba(192,220,240,0.5)" }}>
                   「{member.quote}」
                 </p>
@@ -617,11 +512,11 @@ function StatusBadge({ icon: Icon, label, value, color }: {
   );
 }
 
-function MemberDetailDrawer({ member, onClose }: { member: AIFamilyMember; onClose: () => void }) {
+function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose: () => void }) {
   const Icon = member.icon;
 
   const metrics = useMemo(() => {
-    const seed = member.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const seed = member.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
     const pseudoRandom = ((seed * 9301 + 49297) % 233280) / 233280;
     return {
       tasks: Math.floor(pseudoRandom * 500) + 100,
@@ -676,7 +571,7 @@ function MemberDetailDrawer({ member, onClose }: { member: AIFamilyMember; onClo
                 {member.name}
               </h2>
               <p className="mt-0.5" style={{ fontSize: "0.65rem", color: "rgba(192,220,240,0.5)" }}>
-                {member.title}
+                {getTitle(member)}
               </p>
               <div className="flex items-center gap-1.5 mt-1.5">
                 <div
@@ -723,7 +618,7 @@ function MemberDetailDrawer({ member, onClose }: { member: AIFamilyMember; onClo
         <div className="px-6 mt-5">
           <SectionTitle label="核心职责" color={member.color} />
           <div className="mt-2 space-y-2">
-            {member.responsibilities.map((resp, i) => (
+            {member.responsibilities.map((resp: string, i: number) => (
               <div key={i} className="flex items-start gap-2">
                 <ChevronRight className="w-3 h-3 shrink-0 mt-0.5" style={{ color: member.color }} />
                 <span style={{ fontSize: "0.68rem", color: "rgba(192,220,240,0.6)", lineHeight: "1.5" }}>

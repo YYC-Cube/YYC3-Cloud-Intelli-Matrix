@@ -19,6 +19,7 @@ import type {
 } from "../types";
 import { getOllamaTagsUrl } from "../lib/ollama-url";
 import { testAIConnection, type AIConnectionConfig } from "../lib/connection-test-engine";
+import { encrypt, decrypt, isCryptoAvailable } from "../lib/crypto-vault";
 
 // ============================================================
 // 内置服务商默认值 (仅首次初始化时写入 localStorage)
@@ -161,15 +162,47 @@ export function saveProviders(providers: ModelProviderDef[]) {
 export function loadModels(): ConfiguredModel[] {
   try {
     const raw = localStorage.getItem(MODELS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const models: ConfiguredModel[] = JSON.parse(raw);
+    return models;
+    // Note: apiKey fields starting with "vault:" are encrypted
+    // Use getDecryptedApiKey() for async decryption
   } catch {
     return [];
   }
 }
 
-export function saveModels(models: ConfiguredModel[]) {
+/**
+ * 异步解密模型 API Key
+ * 如果 key 以 "vault:" 开头，则解密；否则原样返回
+ */
+export async function getDecryptedApiKey(model: ConfiguredModel): Promise<string> {
+  const key = model.apiKey || "";
+  if (key.startsWith("vault:") && isCryptoAvailable()) {
+    try {
+      return await decrypt(key.slice(6)); // Remove "vault:" prefix
+    } catch {
+      return ""; // Decryption failed (device change etc.)
+    }
+  }
+  return key;
+}
+
+export async function saveModels(models: ConfiguredModel[]) {
   try {
-    localStorage.setItem(MODELS_KEY, JSON.stringify(models));
+    const serializable = await Promise.all(
+      models.map(async (m) => {
+        let encryptedKey = m.apiKey || "";
+        // Encrypt apiKey if crypto available and key is non-empty plaintext
+        if (isCryptoAvailable() && encryptedKey && !encryptedKey.startsWith("vault:")) {
+          try {
+            encryptedKey = "vault:" + await encrypt(encryptedKey);
+          } catch { /* Fall back to plaintext */ }
+        }
+        return { ...m, apiKey: encryptedKey };
+      })
+    );
+    localStorage.setItem(MODELS_KEY, JSON.stringify(serializable));
   } catch { /* Storage unavailable */ }
   // SSOT 桥接: 同步到 GlobalStore
   try {
@@ -202,7 +235,7 @@ export function useModelProvider() {
     saveProviders(providers);
   }, [providers]);
 
-  // 持久化 configuredModels
+  // 持久化 configuredModels (async for apiKey encryption)
   useEffect(() => {
     saveModels(configuredModels);
   }, [configuredModels]);

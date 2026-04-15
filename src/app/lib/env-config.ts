@@ -70,8 +70,8 @@ export interface EnvConfig {
 
 const DEFAULTS: EnvConfig = {
   SYSTEM_NAME: "YYC³ Cloud Intelli-Matrix",
-  SYSTEM_VERSION: "3.2.0",
-  SYSTEM_BUILD: "2026.03.07",
+  SYSTEM_VERSION: "3.3.0",
+  SYSTEM_BUILD: "2026.04.16",
 
   API_BASE_URL: "http://localhost:3113/api",
   WS_ENDPOINT: "ws://localhost:3113/ws",

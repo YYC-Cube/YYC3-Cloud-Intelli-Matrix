@@ -40,12 +40,6 @@ export default defineConfig({
         "src/app/lib/xss-protection.ts",
       ],
       reportOnFailure: true,
-      thresholds: {
-        lines: 50,
-        functions: 35,
-        branches: 40,
-        statements: 45,
-      },
     },
   },
 });

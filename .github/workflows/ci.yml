@@ -314,7 +314,7 @@ jobs:
           echo "Lighthouse Test Status: ${{ needs.lighthouse-test.result }}"
           exit 1
       - name: Slack notification (optional)
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always() && vars.SLACK_WEBHOOK != ''
         uses: slackapi/slack-github-action@v3
         with:
           payload: |

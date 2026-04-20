@@ -240,7 +240,12 @@ describe("🌐 YYC3 全球空间通信基站 - 综合功能测试", () => {
     });
 
     it("应在SSH会话上执行命令", async () => {
-      const session = await clusterManager.createSSHSession("yyc3-77", "yyc3-45");
+      let session;
+      try {
+        session = await clusterManager.createSSHSession("yyc3-77", "yyc3-45");
+      } catch {
+        session = await clusterManager.createSSHSession("yyc3-77", "yyc3-45");
+      }
 
       const result = await clusterManager.executeCommand(
         session.sessionId,

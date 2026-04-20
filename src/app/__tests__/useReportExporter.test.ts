@@ -226,12 +226,14 @@ describe("useReportExporter", () => {
         vi.advanceTimersByTime(1500);
       });
 
-      const openSpy = vi.spyOn(window, "open").mockReturnValue({
+      const mockWin = {
         document: {
           write: vi.fn(),
           close: vi.fn(),
         },
-      } as any);
+        location: { href: "" },
+      } as any;
+      const openSpy = vi.spyOn(window, "open").mockReturnValue(mockWin);
 
       act(() => {
         result.current.exportReport("print");

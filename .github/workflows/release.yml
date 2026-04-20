@@ -81,7 +81,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
+          pnpm install --frozen-lockfile
 
       - name: Run tests
         run: pnpm test:ci

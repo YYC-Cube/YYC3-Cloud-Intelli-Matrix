@@ -14,6 +14,10 @@ on:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
+  GIT_CONFIG_GLOBAL: |-
+    [url "https://github.com/"]
+      insteadOf = git@github.com:
+      insteadOf = git://github.com/
 
 jobs:
   validate-tag:
@@ -76,8 +80,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

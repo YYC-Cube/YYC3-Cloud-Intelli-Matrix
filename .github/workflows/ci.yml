@@ -10,6 +10,10 @@ on:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
+  GIT_CONFIG_GLOBAL: |-
+    [url "https://github.com/"]
+      insteadOf = git@github.com:
+      insteadOf = git://github.com/
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -67,8 +71,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Check code headers
@@ -101,8 +103,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run tests with coverage
@@ -132,8 +132,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
@@ -173,8 +171,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build project
@@ -211,8 +207,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build project
@@ -238,8 +232,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - name: Configure git for HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:" && git config --global url."https://github.com/".insteadOf "git://github.com/"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Electron (Linux)

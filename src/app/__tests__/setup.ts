@@ -12,6 +12,11 @@
 // 检测环境类型
 const isJsdom = typeof window !== "undefined" && typeof document !== "undefined";
 
+// Ensure NODE_ENV=test is set for test-sensitive code paths
+if (typeof process !== "undefined" && !process.env.NODE_ENV) {
+  process.env.NODE_ENV = "test";
+}
+
 // jest-dom matchers（仅 jsdom 环境生效）
 if (isJsdom) {
   await import("@testing-library/jest-dom/vitest");

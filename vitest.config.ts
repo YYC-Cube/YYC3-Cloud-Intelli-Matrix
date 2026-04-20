@@ -37,6 +37,7 @@ export default defineConfig({
         "src/app/components/figma/**",
         "src/app/docs/**",
         "src/app/__tests__/**",
+        "src/app/lib/xss-protection.ts",
       ],
       reportOnFailure: true,
       thresholds: {

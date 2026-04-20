@@ -14,10 +14,6 @@ on:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
-  GIT_CONFIG_GLOBAL: |-
-    [url "https://github.com/"]
-      insteadOf = git@github.com:
-      insteadOf = git://github.com/
 
 jobs:
   validate-tag:
@@ -81,9 +77,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
         run: pnpm test:ci

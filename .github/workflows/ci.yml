@@ -10,10 +10,6 @@ on:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
-  GIT_CONFIG_GLOBAL: |-
-    [url "https://github.com/"]
-      insteadOf = git@github.com:
-      insteadOf = git://github.com/
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,9 +68,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Check code headers
         run: pnpm check-headers
       - name: Type check
@@ -106,9 +100,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Run tests with coverage
         run: pnpm test:ci --shard=${{ matrix.shard-index }}/${{ matrix.shard-total }} --coverage
       - name: Upload coverage to Codecov
@@ -137,9 +129,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm test:e2e:install
       - name: Build project
@@ -178,9 +168,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build project
         run: pnpm build
       - name: Start server
@@ -216,9 +204,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build project
         run: pnpm build
 
@@ -243,9 +229,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - name: Install dependencies
-        run: |
-          printf '[url "https://github.com/"]\n  insteadOf = git@github.com:\n  insteadOf = git://github.com/\n' > ~/.gitconfig
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build Electron (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: pnpm build:electron

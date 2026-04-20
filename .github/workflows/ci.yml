@@ -1,335 +1,335 @@
-  name: CI/CD Pipeline                                                                                                                        
-                                                                                                                                              
-  on:
-    push:
-      branches: [main, master, develop]
-    pull_request:
-      branches: [main, master, develop]
-    workflow_dispatch:
+name: CI/CD Pipeline
 
-  env:
-    NODE_VERSION: '20.x'
-    PNPM_VERSION: '9.x'
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch:
 
-  concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '9.x'
 
-  jobs:
-    dependency-review:
-      name: Dependency Review
-      runs-on: ubuntu-latest
-      if: github.event_name == 'pull_request'
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Dependency Review
-          uses: actions/dependency-review-action@v4
-          with:
-            fail-on-severity: high
-            deny-licenses: GPL-3.0, AGPL-3.0
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-    security-scan:
-      name: Security Scan (SAST/DAST)
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Run Trivy vulnerability scanner
-          uses: aquasecurity/trivy-action@master
-          with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            format: 'sarif'
-            output: 'trivy-results.sarif'
-        - name: Upload Trivy results to GitHub Security tab
-          uses: github/codeql-action/upload-sarif@v4
-          if: always()
-          with:
-            sarif_file: 'trivy-results.sarif'
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
 
-    quality:
-      name: Code Quality
-      runs-on: ubuntu-latest
-      needs: [dependency-review, security-scan]
-      if: always() && (needs.dependency-review.result == 'success' || needs.dependency-review.result == 'skipped') && (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped')
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-          with:
-            fetch-depth: 0
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Check code headers
-          run: pnpm check-headers
-        - name: Type check
-          run: pnpm exec tsc --noEmit
-        - name: Lint code
-          run: pnpm run lint
-        - name: Check formatting
-          run: pnpm exec prettier --check "src/**/*.{ts,tsx}" || true
+  security-scan:
+    name: Security Scan (SAST/DAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
 
-    test:
-      name: Test (shard ${{ matrix.shard-index }})
-      runs-on: ubuntu-latest
-      strategy:
-        fail-fast: false
-        matrix:
-          node-version: [20.x]
-          shard-index: [1, 2, 3, 4]
-          shard-total: [4]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ matrix.node-version }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Run tests with coverage
-          run: pnpm test:ci --shard=${{ matrix.shard-index }}/${{ matrix.shard-total }} --coverage
-        - name: Upload coverage to Codecov
-          uses: codecov/codecov-action@v6
-          if: always()
-          with:
-            token: ${{ secrets.CODECOV_TOKEN }}
-            files: ./coverage/lcov.info
-            flags: unittests
-            name: codecov-shard-${{ matrix.shard-index }}
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: [dependency-review, security-scan]
+    if: always() && (needs.dependency-review.result == 'success' || needs.dependency-review.result == 'skipped') && (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check code headers
+        run: pnpm check-headers
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+      - name: Lint code
+        run: pnpm run lint
+      - name: Check formatting
+        run: pnpm exec prettier --check "src/**/*.{ts,tsx}" || true
 
-    e2e-test:
-      name: E2E Tests (Playwright)
-      runs-on: ubuntu-latest
-      needs: [build]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Install Playwright browsers
-          run: pnpm test:e2e:install
-        - name: Build project
-          run: pnpm build
-        - name: Run E2E tests
-          run: pnpm test:e2e
-        - name: Upload Playwright report
-          if: always()
-          uses: actions/upload-artifact@v7
-          with:
-            name: playwright-report
-            path: playwright-report/
-            retention-days: 7
-        - name: Upload Playwright screenshots
-          if: failure()
-          uses: actions/upload-artifact@v7
-          with:
-            name: playwright-screenshots
-            path: test-results/
-            retention-days: 7
+  test:
+    name: Test (shard ${{ matrix.shard-index }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x]
+        shard-index: [1, 2, 3, 4]
+        shard-total: [4]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests with coverage
+        run: pnpm test:ci --shard=${{ matrix.shard-index }}/${{ matrix.shard-total }} --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-shard-${{ matrix.shard-index }}
 
-    lighthouse-test:
-      name: Performance Test (Lighthouse CI)
-      runs-on: ubuntu-latest
-      needs: [build]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Build project
-          run: pnpm build
-        - name: Start server
-          run: |
-            pnpm dev &
-            sleep 30
-        - name: Run Lighthouse CI
-          run: pnpm test:lighthouse
-          env:
-            LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-        - name: Upload Lighthouse results
-          if: always()
-          uses: actions/upload-artifact@v7
-          with:
-            name: lighthouse-results
-            path: .lighthouseci/
-            retention-days: 7
+  e2e-test:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm test:e2e:install
+      - name: Build project
+        run: pnpm build
+      - name: Run E2E tests
+        run: pnpm test:e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+      - name: Upload Playwright screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-screenshots
+          path: test-results/
+          retention-days: 7
 
-    build:
-      name: Build
-      runs-on: ubuntu-latest
-      needs: [quality, test]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Build project
-          run: pnpm build
+  lighthouse-test:
+    name: Performance Test (Lighthouse CI)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build project
+        run: pnpm build
+      - name: Start server
+        run: |
+          pnpm dev &
+          sleep 30
+      - name: Run Lighthouse CI
+        run: pnpm test:lighthouse
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 7
 
-    electron-build:
-      name: Electron Build Verification
-      runs-on: ${{ matrix.os }}
-      needs: [build]
-      strategy:
-        fail-fast: false
-        matrix:
-          os: [ubuntu-latest, macos-latest, windows-latest]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v5
-          with:
-            version: ${{ env.PNPM_VERSION }}
-        - name: Setup Node.js
-          uses: actions/setup-node@v6
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-            cache: 'pnpm'
-        - name: Install dependencies
-          run: pnpm install --frozen-lockfile
-        - name: Build Electron (Linux)
-          if: matrix.os == 'ubuntu-latest'
-          run: pnpm build:electron
-        - name: Build Electron (macOS)
-          if: matrix.os == 'macos-latest'
-          run: pnpm build:mac
-        - name: Build Electron (Windows)
-          if: matrix.os == 'windows-latest'
-          run: pnpm build:win
-        - name: Upload Electron artifacts
-          if: always()
-          uses: actions/upload-artifact@v7
-          with:
-            name: electron-build-${{ matrix.os }}
-            path: |
-              dist-electron/*.dmg
-              dist-electron/*.exe
-              dist-electron/*.AppImage
-              dist-electron/*.deb
-            retention-days: 7
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build project
+        run: pnpm build
 
-    docker:
-      name: Docker Build & Push
-      runs-on: ubuntu-latest
-      needs: [build, electron-build, e2e-test, lighthouse-test]
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-      permissions:
-        contents: read
-        packages: write
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v6
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v4
-        - name: Login to GHCR
-          uses: docker/login-action@v4
-          with:
-            registry: ghcr.io
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-        - name: Build and push
-          uses: docker/build-push-action@v7
-          with:
-            context: .
-            platforms: linux/amd64,linux/arm64
-            push: true
-            tags: ghcr.io/${{ github.repository }}:latest
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+  electron-build:
+    name: Electron Build Verification
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Electron (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm build:electron
+      - name: Build Electron (macOS)
+        if: matrix.os == 'macos-latest'
+        run: pnpm build:mac
+      - name: Build Electron (Windows)
+        if: matrix.os == 'windows-latest'
+        run: pnpm build:win
+      - name: Upload Electron artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: electron-build-${{ matrix.os }}
+          path: |
+            dist-electron/*.dmg
+            dist-electron/*.exe
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+          retention-days: 7
 
-    notify:
-      name: CI/CD Notification
-      runs-on: ubuntu-latest
-      needs: [dependency-review, security-scan, quality, test, build, electron-build, e2e-test, lighthouse-test, docker]
-      if: always() && github.event_name != 'pull_request'
-      permissions:
-        contents: read
-        actions: write
-      steps:
-        - name: Send success notification
-          if: ${{ needs.build.result == 'success' && needs.e2e-test.result == 'success' && needs.lighthouse-test.result == 'success' }}
-          run: |
-            echo "✅ CI/CD Pipeline Succeeded!"
-            echo "Repository: ${{ github.repository }}"
-            echo "Branch: ${{ github.ref_name }}"
-            echo "Commit: ${{ github.sha }}"
-            echo "Actor: ${{ github.actor }}"
-        - name: Send failure notification
-          if: ${{ needs.build.result == 'failure' || needs.test.result == 'failure' || needs.quality.result == 'failure' || needs.e2e-test.result == 'failure' || needs.lighthouse-test.result == 'failure' }}
-          run: |
-            echo "❌ CI/CD Pipeline Failed!"
-            echo "Repository: ${{ github.repository }}"
-            echo "Branch: ${{ github.ref_name }}"
-            echo "Commit: ${{ github.sha }}"
-            echo "Actor: ${{ github.actor }}"
-            echo "Build Status: ${{ needs.build.result }}"
-            echo "Test Status: ${{ needs.test.result }}"
-            echo "Quality Status: ${{ needs.quality.result }}"
-            echo "Security Status: ${{ needs.security-scan.result }}"
-            echo "Electron Build Status: ${{ needs.electron-build.result }}"
-            echo "E2E Test Status: ${{ needs.e2e-test.result }}"
-            echo "Lighthouse Test Status: ${{ needs.lighthouse-test.result }}"
-            exit 1
-        - name: Slack notification (optional)
-          if: always() && secrets.SLACK_WEBHOOK_URL != ''
-          uses: slackapi/slack-github-action@v3
-          with:
-            payload: |
-              {
-                "text": "CI/CD Pipeline ${{ job.status }}",
-                "blocks": [
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Status:* ${{ job.status }}\n*Actor:* ${{ github.actor }}"
-                    }
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [build, electron-build, e2e-test, lighthouse-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  notify:
+    name: CI/CD Notification
+    runs-on: ubuntu-latest
+    needs: [dependency-review, security-scan, quality, test, build, electron-build, e2e-test, lighthouse-test, docker]
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Send success notification
+        if: ${{ needs.build.result == 'success' && needs.e2e-test.result == 'success' && needs.lighthouse-test.result == 'success' }}
+        run: |
+          echo "✅ CI/CD Pipeline Succeeded!"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+      - name: Send failure notification
+        if: ${{ needs.build.result == 'failure' || needs.test.result == 'failure' || needs.quality.result == 'failure' || needs.e2e-test.result == 'failure' || needs.lighthouse-test.result == 'failure' }}
+        run: |
+          echo "❌ CI/CD Pipeline Failed!"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Build Status: ${{ needs.build.result }}"
+          echo "Test Status: ${{ needs.test.result }}"
+          echo "Quality Status: ${{ needs.quality.result }}"
+          echo "Security Status: ${{ needs.security-scan.result }}"
+          echo "Electron Build Status: ${{ needs.electron-build.result }}"
+          echo "E2E Test Status: ${{ needs.e2e-test.result }}"
+          echo "Lighthouse Test Status: ${{ needs.lighthouse-test.result }}"
+          exit 1
+      - name: Slack notification (optional)
+        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v3
+        with:
+          payload: |
+            {
+              "text": "CI/CD Pipeline ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Status:* ${{ job.status }}\n*Actor:* ${{ github.actor }}"
                   }
-                ]
-              }
-          env:
-            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-            SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

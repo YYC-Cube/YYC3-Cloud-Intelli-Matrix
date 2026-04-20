@@ -21,11 +21,12 @@ import {
 import { GlassCard } from "./GlassCard";
 import { ViewContext } from "../lib/view-context";
 import { useModelProvider } from "../hooks/useModelProvider";
-import type { DBConnection } from "../stores/dashboard-stores";
+import type { DBConnection } from "../types";
 import { useDbConnSlice } from "../store/slices/db-conn-slice";
 import { env } from "../lib/env-config";
 import { getOllamaEndpointInfo, getOllamaChatUrl, getOllamaTagsUrl } from "../lib/ollama-url";
 import { toast } from "sonner";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 
 // ============================================================
 // Types
@@ -68,19 +69,6 @@ const STATUS_META: Record<TestStatus, { label: string; color: string; icon: Reac
   warn:    { label: "警告",   color: "#ffaa00", icon: AlertTriangle },
   skip:    { label: "跳过",   color: "rgba(0,212,255,0.2)", icon: Clock },
 };
-
-const RESULTS_KEY = "yyc3_connection_test_results";
-
-function loadResults(): TestResult[] {
-  try {
-    const raw = localStorage.getItem(RESULTS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveResults(results: TestResult[]) {
-  try { localStorage.setItem(RESULTS_KEY, JSON.stringify(results)); } catch { /* localStorage 不可用时忽略 */ }
-}
 
 // ============================================================
 // Network test helpers
@@ -131,19 +119,28 @@ export function ServiceConnectionTest() {
   const { providers, configuredModels } = useModelProvider();
   const { connections: dbConnections } = useDbConnSlice();
 
-  const [results, setResults] = useState<TestResult[]>(loadResults);
+  const sliceResults = useUIPrefsSlice((s) => s.connectionTestResults);
+  const setSliceResults = useUIPrefsSlice((s) => s.setConnectionTestResults);
+  const results = (sliceResults ?? []) as TestResult[];
+  const setResults = useCallback((action: TestResult[] | ((prev: TestResult[]) => TestResult[])) => {
+    if (typeof action === "function") {
+      const current = (useUIPrefsSlice.getState().connectionTestResults ?? []) as TestResult[];
+      setSliceResults(action(current) as unknown[]);
+    } else {
+      setSliceResults(action as unknown[]);
+    }
+  }, [setSliceResults]);
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [proxyUrl, setProxyUrl] = useState(() => localStorage.getItem("yyc3_cors_proxy") || "");
+  const proxyUrl = useUIPrefsSlice((s) => s.corsProxyUrl);
+  const setCorsProxyUrl = useUIPrefsSlice((s) => s.setCorsProxyUrl);
   const [showProxy, setShowProxy] = useState(false);
   const abortRef = useRef(false);
 
   const toggleExpand = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
   const saveProxy = (url: string) => {
-    setProxyUrl(url);
-    if (url) {localStorage.setItem("yyc3_cors_proxy", url);}
-    else {localStorage.removeItem("yyc3_cors_proxy");}
+    setCorsProxyUrl(url);
   };
 
   // ============================================================
@@ -680,14 +677,13 @@ export function ServiceConnectionTest() {
       setResults([...allResults]);
     }
 
-    saveResults(allResults);
     setRunning(false);
 
     const passCount = allResults.filter((r) => r.overallStatus === "pass").length;
     const failCount = allResults.filter((r) => r.overallStatus === "fail").length;
     const warnCount = allResults.filter((r) => r.overallStatus === "warn").length;
     toast.success(`测试完成: ${passCount} 通过 / ${warnCount} 警告 / ${failCount} 失败`, { style: toastStyle, duration: 4000 });
-  }, [testNetwork, testWebSocket, testAIProvider, testDB, configuredModels, providers, dbConnections, proxyUrl]);
+  }, [testNetwork, testWebSocket, testAIProvider, testDB, configuredModels, providers, dbConnections, proxyUrl, setResults]);
 
   // Run single test
   const _runSingleTest = useCallback(async (testId: string) => {
@@ -697,7 +693,6 @@ export function ServiceConnectionTest() {
       setResults((prev) => {
         const next = prev.filter((r) => r.id !== testId);
         next.unshift(res);
-        saveResults(next);
         return next;
       });
     } else if (testId === "ws-main") {
@@ -705,17 +700,15 @@ export function ServiceConnectionTest() {
       setResults((prev) => {
         const next = prev.filter((r) => r.id !== testId);
         next.unshift(res);
-        saveResults(next);
         return next;
       });
     }
-  }, [testNetwork, testWebSocket]);
+  }, [testNetwork, testWebSocket, setResults]);
 
   const stopTests = () => { abortRef.current = true; };
 
   const clearResults = () => {
-    setResults([]);
-    localStorage.removeItem(RESULTS_KEY);
+    setSliceResults([]);
     toast.info("测试结果已清空", { style: toastStyle });
   };
 
@@ -866,17 +859,17 @@ export function ServiceConnectionTest() {
         <div className="flex flex-wrap gap-2">
           <QuickTestButton label="网络连通性" icon={Network} color="#00d4ff" onClick={async () => {
             const r = await testNetwork();
-            setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; saveResults(next); return next; });
+            setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; return next; });
           }} />
           <QuickTestButton label="WebSocket" icon={Radio} color="#7b2ff7" onClick={async () => {
             const r = await testWebSocket();
-            setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; saveResults(next); return next; });
+            setResults((prev) => { const next = [r, ...prev.filter((p) => p.id !== r.id)]; return next; });
           }} />
           {providers.filter(p => p.isLocal).map((p) => (
             <QuickTestButton key={p.id} label={p.label} icon={Server} color="#00ff88" onClick={async () => {
               const model = p.models[0] || "llama3:8b";
               const r = await testAIProvider(p.id, p.label, p.baseUrl, p.authType, "", model, true);
-              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; saveResults(next); return next; });
+              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; return next; });
             }} />
           ))}
           {providers.filter(p => !p.isLocal).slice(0, 4).map((p) => (
@@ -885,13 +878,13 @@ export function ServiceConnectionTest() {
               const model = cm?.model || p.models[0] || "test";
               const key = cm?.apiKey || "";
               const r = await testAIProvider(p.id, p.label, p.baseUrl, p.authType, key, model, false, cm?.proxyUrl || proxyUrl || undefined);
-              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; saveResults(next); return next; });
+              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; return next; });
             }} />
           ))}
           {dbConnections.slice(0, 3).map((db) => (
             <QuickTestButton key={db.id} label={db.name} icon={Database} color="#336791" onClick={async () => {
               const r = await testDB(db);
-              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; saveResults(next); return next; });
+              setResults((prev) => { const next = [r, ...prev.filter((pr) => pr.id !== r.id)]; return next; });
             }} />
           ))}
         </div>

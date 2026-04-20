@@ -13,6 +13,7 @@ import * as React from "react";
 import { useState } from "react";
 import { X, Share2, Copy, Check, Eye, Edit3, Shield } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
+import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -24,17 +25,11 @@ type SharePermission = "readonly" | "readwrite" | "admin";
 export function ShareDialog({ isOpen, onClose }: ShareDialogProps) {
   const { t } = useI18n();
   const [permission, setPermission] = useState<SharePermission>("readonly");
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyFeedback<boolean>();
 
   if (!isOpen) {return null;}
 
   const shareUrl = "https://yyc3.cloud/ide/share/proj-abc123";
-
-  const handleCopy = () => {
-    navigator.clipboard?.writeText(shareUrl).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const permOptions: { value: SharePermission; label: string; icon: React.ElementType; desc: string }[] = [
     { value: "readonly", label: t("ide.shareReadOnly"), icon: Eye, desc: "View only" },
@@ -96,7 +91,7 @@ export function ShareDialog({ isOpen, onClose }: ShareDialogProps) {
                 {shareUrl}
               </div>
               <button
-                onClick={handleCopy}
+                onClick={() => copyToClipboard(shareUrl, true)}
                 className={`p-2 rounded-md transition-all ${
                   copied
                     ? "bg-[rgba(0,255,136,0.12)] text-[#00ff88] border border-[rgba(0,255,136,0.3)]"

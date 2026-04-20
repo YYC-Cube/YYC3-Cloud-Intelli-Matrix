@@ -1,53 +1,66 @@
 /**
  * @file: useModelProvider.test.tsx
- * @description: useModelProvider.test.tsx description
+ * @description: useModelProvider Hook test — Zustand slice integration
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-03-31
- * @updated: 2026-03-31
+ * @updated: 2026-04-19
  * @status: active
  * @tags: [component]
  */
 
 // @vitest-environment jsdom
-/**
- * useModelProvider.test.tsx
- * ===============
- * useModelProvider Hook 测试
- */
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
-  };
-})();
-Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
-
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import React from "react";
 import { renderHook, act, cleanup } from "@testing-library/react";
+
+// ── Mock dependencies before imports ──────────────────────────
+
+vi.mock("../lib/ollama-url", () => ({
+  getOllamaTagsUrl: vi.fn(() => "http://localhost:11434/api/tags"),
+}));
+
+vi.mock("../lib/connection-test-engine", () => ({
+  testAIConnection: vi.fn(async () => ({
+    overallStatus: "pass",
+    steps: [],
+    totalLatencyMs: 50,
+  })),
+}));
+
+// Mock fetch to throw so fetchOllamaModels triggers mock fallback
+global.fetch = vi.fn(() => { throw new Error("Network error"); }) as any;
+
+// Reset the Zustand store state between tests
+import { useProviderSlice, BUILTIN_PROVIDERS as SLICE_BUILTIN } from "../store/slices/provider-slice";
+
+// Import hook after mocks
 import { useModelProvider, MODEL_PROVIDERS } from "../hooks/useModelProvider";
 
 describe("useModelProvider", () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.clearAllMocks();
+    // Reset Zustand store to clean state with fresh builtin providers
+    useProviderSlice.setState({
+      providers: SLICE_BUILTIN.map((p) => ({ ...p })),
+      configuredModels: [],
+      ollamaModels: [],
+      ollamaLoading: false,
+      ollamaError: null,
+    });
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  describe("MODEL_PROVIDERS 注册表", () => {
-    it("应有 9 个提供商", () => {
+  describe("MODEL_PROVIDERS registry", () => {
+    it("should have 9 providers", () => {
       expect(MODEL_PROVIDERS.length).toBe(9);
     });
 
-    it("应含 Z.ai", () => {
+    it("should contain Z.ai", () => {
       const zhipu = MODEL_PROVIDERS.find((p) => p.id === "zhipu");
       expect(zhipu).toBeDefined();
       expect(zhipu!.label).toBe("Z.ai");
@@ -55,14 +68,14 @@ describe("useModelProvider", () => {
       expect(zhipu!.isLocal).toBe(false);
     });
 
-    it("应含 OpenAI", () => {
+    it("should contain OpenAI", () => {
       const openai = MODEL_PROVIDERS.find((p) => p.id === "openai");
       expect(openai).toBeDefined();
       expect(openai!.authType).toBe("bearer");
       expect(openai!.models.length).toBeGreaterThanOrEqual(4);
     });
 
-    it("应含 Ollama (本地)", () => {
+    it("should contain Ollama (local)", () => {
       const ollama = MODEL_PROVIDERS.find((p) => p.id === "ollama");
       expect(ollama).toBeDefined();
       expect(ollama!.isLocal).toBe(true);
@@ -70,28 +83,28 @@ describe("useModelProvider", () => {
       expect(ollama!.authType).toBe("none");
     });
 
-    it("应含 DeepSeek", () => {
+    it("should contain DeepSeek", () => {
       expect(MODEL_PROVIDERS.find((p) => p.id === "deepseek")).toBeDefined();
     });
 
-    it("应含 Kimi-CN 和 Kimi-Global", () => {
+    it("should contain Kimi-CN and Kimi-Global", () => {
       expect(MODEL_PROVIDERS.find((p) => p.id === "kimi-cn")).toBeDefined();
       expect(MODEL_PROVIDERS.find((p) => p.id === "kimi-global")).toBeDefined();
     });
 
-    it("应含火山引擎系列", () => {
+    it("should contain volcengine series", () => {
       expect(MODEL_PROVIDERS.find((p) => p.id === "volcengine")).toBeDefined();
       expect(MODEL_PROVIDERS.find((p) => p.id === "volcengine-plan")).toBeDefined();
     });
   });
 
-  describe("Hook 基本功能", () => {
-    it("初始应无已配置模型", () => {
+  describe("Hook basic functionality", () => {
+    it("initially should have no configured models", () => {
       const { result } = renderHook(() => useModelProvider());
       expect(result.current.configuredModels.length).toBe(0);
     });
 
-    it("addModel 应添加一个模型", () => {
+    it("addModel should add a model", () => {
       const { result } = renderHook(() => useModelProvider());
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
@@ -101,7 +114,7 @@ describe("useModelProvider", () => {
       expect(result.current.configuredModels[0].providerId).toBe("openai");
     });
 
-    it("removeModel 应删除一个模型", () => {
+    it("removeModel should remove a model", () => {
       const { result } = renderHook(() => useModelProvider());
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
@@ -113,7 +126,7 @@ describe("useModelProvider", () => {
       expect(result.current.configuredModels.length).toBe(0);
     });
 
-    it("testConnection 应更新状态为 active", async () => {
+    it("testConnection should update status to active", async () => {
       const { result } = renderHook(() => useModelProvider());
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
@@ -125,7 +138,7 @@ describe("useModelProvider", () => {
       expect(result.current.configuredModels[0].status).toBe("active");
     });
 
-    it("modalOpen 控制应正常工作", () => {
+    it("modalOpen control should work", () => {
       const { result } = renderHook(() => useModelProvider());
       expect(result.current.modalOpen).toBe(false);
       act(() => result.current.openModal());
@@ -134,7 +147,7 @@ describe("useModelProvider", () => {
       expect(result.current.modalOpen).toBe(false);
     });
 
-    it("stats 应正确计算", () => {
+    it("stats should calculate correctly", () => {
       const { result } = renderHook(() => useModelProvider());
       act(() => {
         result.current.addModel("openai", "gpt-4o", "sk-test-123");
@@ -144,13 +157,11 @@ describe("useModelProvider", () => {
       expect(result.current.stats.providers).toBe(2);
     });
 
-    it("fetchOllamaModels 应获取模型 (Mock fallback)", async () => {
-      const { result } = renderHook(() => useModelProvider());
-      await act(async () => {
-        await result.current.fetchOllamaModels();
-      });
-      // Mock fallback should return 6 models
-      expect(result.current.ollamaModels.length).toBe(6);
+    it("fetchOllamaModels should fetch models (Mock fallback)", async () => {
+      // Test directly through the store to avoid useEffect timing issues
+      await useProviderSlice.getState().fetchOllamaModels();
+      const ollamaModels = useProviderSlice.getState().ollamaModels;
+      expect(ollamaModels.length).toBe(6);
     });
   });
 });

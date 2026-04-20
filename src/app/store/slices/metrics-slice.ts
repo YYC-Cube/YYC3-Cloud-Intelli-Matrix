@@ -13,28 +13,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { ModelPerfEntry, ModelDistEntry, RadarEntry } from '../../types';
 
-export interface ModelPerfEntry {
-  id: string;
-  model: string;
-  accuracy: number;
-  speed: number;
-  memory: number;
-  cost: number;
-}
-
-export interface ModelDistEntry {
-  id: string;
-  name: string;
-  value: number;
-}
-
-export interface RadarEntry {
-  id: string;
-  metric: string;
-  A: number;
-  B: number;
-}
+// Re-export for backward compatibility
+export type { ModelPerfEntry, ModelDistEntry, RadarEntry };
 
 interface MetricsSlice {
   modelPerf: ModelPerfEntry[];

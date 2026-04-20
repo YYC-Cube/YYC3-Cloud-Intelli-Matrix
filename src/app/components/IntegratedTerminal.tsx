@@ -33,12 +33,13 @@ import { useTerminal } from "../hooks/useTerminal";
 import { ViewContext } from "../lib/view-context";
 import { AuthContext } from "../lib/authContext";
 import { isGhostMode } from "../lib/supabaseClient";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 
 /* ── 常量 ─────────────────────────────── */
 const MIN_HEIGHT = 180;
-const DEFAULT_HEIGHT = 320;
+const _DEFAULT_HEIGHT = 320;
 const MAX_HEIGHT_RATIO = 0.75;
-const STORAGE_KEY = "yyc3_terminal_height";
+
 const MAX_TABS = 6;
 
 /* ── 类型 ─────────────────────────────── */
@@ -254,14 +255,8 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
   );
 
   // ── 面板高度 ──
-  const [panelHeight, setPanelHeight] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? Math.max(MIN_HEIGHT, parseInt(saved, 10)) : DEFAULT_HEIGHT;
-    } catch {
-      return DEFAULT_HEIGHT;
-    }
-  });
+  const panelHeight = useUIPrefsSlice((s) => s.terminalHeight);
+  const setTerminalHeight = useUIPrefsSlice((s) => s.setTerminalHeight);
   const [maximized, setMaximized] = useState(false);
 
   const dragRef = useRef<{
@@ -282,15 +277,6 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
       }, 0);
     }
   }, [open, tabs.length]);
-
-  // Persist height
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(panelHeight));
-    } catch {
-      // Ignore storage errors
-    }
-  }, [panelHeight]);
 
   /* ── 拖拽调高 ─────────────────────────── */
   const onDragStart = useCallback(
@@ -315,7 +301,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
           maxH,
           Math.max(MIN_HEIGHT, dragRef.current.startH + delta)
         );
-        setPanelHeight(newH);
+        setTerminalHeight(newH);
         setMaximized(false);
       };
 
@@ -332,7 +318,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
       document.addEventListener("touchmove", onMove);
       document.addEventListener("touchend", onEnd);
     },
-    [panelHeight]
+    [panelHeight, setTerminalHeight]
   );
 
   const toggleMaximize = useCallback(() => {
@@ -459,7 +445,7 @@ export function IntegratedTerminal({ open, onClose }: IntegratedTerminalProps) {
 
                 <button
                   onClick={() => {
-                    setPanelHeight(MIN_HEIGHT);
+                    setTerminalHeight(MIN_HEIGHT);
                     setMaximized(false);
                   }}
                   className="p-1 rounded text-[rgba(0,212,255,0.3)] hover:text-[rgba(0,212,255,0.6)] hover:bg-[rgba(0,40,80,0.3)] transition-all"

@@ -14,12 +14,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, cleanup } from "@testing-library/react";
 import { useOfflineMode } from "../hooks/useOfflineMode";
 import { LOCALSTORAGE_KEYS } from "../lib/yyc3-storage";
+import { useOfflineSlice } from "../store/slices/offline-slice";
 
 describe("useOfflineMode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     localStorage.clear();
+    // Reset the Zustand offline slice to default state
+    useOfflineSlice.setState({
+      dashboardSnapshot: null,
+      offlineSnapshot: null,
+      offlineSnapshotTime: null,
+    });
   });
 
   afterEach(() => {
@@ -77,7 +84,7 @@ describe("useOfflineMode", () => {
 
     act(() => {
       Object.defineProperty(navigator, "onLine", { value: true, configurable: true });
-      window.dispatchEvent(new Event("online"));
+      window.dispatchEvent(new window.Event("online"));
     });
 
     expect(result.current.isOnline).toBe(true);
@@ -94,7 +101,7 @@ describe("useOfflineMode", () => {
 
     act(() => {
       Object.defineProperty(navigator, "onLine", { value: false, configurable: true });
-      window.dispatchEvent(new Event("offline"));
+      window.dispatchEvent(new window.Event("offline"));
     });
 
     expect(result.current.isOnline).toBe(false);
@@ -108,25 +115,28 @@ describe("useOfflineMode", () => {
       result.current.saveOfflineSnapshot();
     });
 
-    const snapshot = localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot);
-    expect(snapshot).toBeDefined();
-    const parsed = JSON.parse(snapshot!);
-    expect(parsed.test).toBe("data");
-    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineTime)).toBeDefined();
+    // Check Zustand slice instead of raw localStorage
+    const state = useOfflineSlice.getState();
+    expect(state.offlineSnapshot).toBeDefined();
+    expect((state.offlineSnapshot as Record<string, unknown>).test).toBe("data");
+    expect(state.offlineSnapshotTime).toBeDefined();
   });
 
   it("should not save offline snapshot when no dashboard state", () => {
-    localStorage.removeItem(LOCALSTORAGE_KEYS.dashboardState);
+    // Ensure slice has no dashboard snapshot
+    useOfflineSlice.setState({ dashboardSnapshot: null });
 
     const { result } = renderHook(() => useOfflineMode());
 
-    localStorage.removeItem(LOCALSTORAGE_KEYS.dashboardState);
+    // Ensure no dashboard snapshot exists in slice
+    useOfflineSlice.setState({ dashboardSnapshot: null });
 
     act(() => {
       result.current.saveOfflineSnapshot();
     });
 
-    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot)).toBeNull();
+    const state = useOfflineSlice.getState();
+    expect(state.offlineSnapshot).toBeNull();
   });
 
   it("should sync offline data", async () => {
@@ -145,7 +155,8 @@ describe("useOfflineMode", () => {
 
     expect(result.current.lastSyncTime).not.toBeNull();
     expect(result.current.pendingSync).toBe(false);
-    expect(localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot)).toBeNull();
+    // After sync, the offline snapshot should be cleared in the slice
+    expect(useOfflineSlice.getState().offlineSnapshot).toBeNull();
   });
 
   it("should handle sync when no offline snapshot", async () => {
@@ -189,10 +200,10 @@ describe("useOfflineMode", () => {
       result.current.saveDashboardState({ test: "manual-data" });
     });
 
-    const saved = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
+    // Check Zustand slice instead of raw localStorage
+    const saved = useOfflineSlice.getState().dashboardSnapshot;
     expect(saved).toBeDefined();
-    const parsed = JSON.parse(saved!);
-    expect(parsed.test).toBe("manual-data");
+    expect((saved as Record<string, unknown>).test).toBe("manual-data");
   });
 
   it("should load dashboard state", () => {
@@ -205,7 +216,7 @@ describe("useOfflineMode", () => {
     const loaded = result.current.loadDashboardState();
 
     expect(loaded).toBeDefined();
-    expect(loaded?.test).toBe("data");
+    expect((loaded as Record<string, unknown>)?.test).toBe("data");
   });
 
   it("should cleanup event listeners on unmount", () => {
@@ -235,7 +246,8 @@ describe("useOfflineMode", () => {
       vi.advanceTimersByTime(30000);
     });
 
-    const saved = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
+    // Check Zustand slice instead of raw localStorage
+    const saved = useOfflineSlice.getState().dashboardSnapshot;
     expect(saved).toBeDefined();
   });
 });

@@ -17,7 +17,7 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
-import { FAMILY_MEMBERS } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
 
 // ═══ 热力图 ═══
 function generateHeatmap(): number[][] {
@@ -45,8 +45,9 @@ const WEEKLY_STATS = [
 ];
 
 export function FamilyGrowth() {
+  const { members } = useFamilyMemberSlice();
   const heatmap = useMemo(() => generateHeatmap(), []);
-  const sortedMembers = useMemo(() => [...FAMILY_MEMBERS].sort((a, b) => b.contribution - a.contribution), []);
+  const sortedMembers = useMemo(() => [...members].sort((a, b) => b.stats.contribution - a.stats.contribution), [members]);
   const heatColors = ["rgba(0,40,80,0.2)", "rgba(0,212,255,0.15)", "rgba(0,212,255,0.3)", "rgba(0,212,255,0.5)", "rgba(0,212,255,0.7)"];
 
   return (
@@ -121,8 +122,8 @@ export function FamilyGrowth() {
               <div className="space-y-3">
                 {sortedMembers.map((m, i) => {
                   const Icon = m.icon;
-                  const maxContrib = sortedMembers[0].contribution;
-                  const width = (m.contribution / maxContrib) * 100;
+                  const maxContrib = sortedMembers[0].stats.contribution;
+                  const width = (m.stats.contribution / maxContrib) * 100;
                   const medals = ["#FFD700", "#C0C0C0", "#CD7F32"];
                   return (
                     <FadeIn key={m.id} delay={i * 0.05}>
@@ -140,7 +141,7 @@ export function FamilyGrowth() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-[rgba(224,240,255,0.7)] truncate" style={{ fontSize: "0.75rem" }}>{m.name}</span>
-                            <span style={{ fontSize: "0.7rem", color: m.color }}>{m.contribution}</span>
+                            <span style={{ fontSize: "0.7rem", color: m.color }}>{m.stats.contribution}</span>
                           </div>
                           <div className="h-1.5 rounded-full bg-[rgba(0,40,80,0.2)] overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${width}%`, background: `linear-gradient(90deg, ${m.color}, ${m.color}60)` }} />
@@ -192,7 +193,7 @@ export function FamilyGrowth() {
             <h2 className="text-[#e0f0ff]" style={{ fontSize: "0.95rem" }}>连续在线天数</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            {FAMILY_MEMBERS.map((m, i) => {
+            {members.map((m, i) => {
               const Icon = m.icon;
               return (
                 <FadeIn key={m.id} delay={i * 0.04}>
@@ -202,7 +203,7 @@ export function FamilyGrowth() {
                     </div>
                     <div className="flex items-center justify-center gap-1">
                       <Flame className="w-3 h-3 text-[#FF6B6B]" />
-                      <span style={{ fontSize: "0.9rem", color: m.color }}>{m.streak}</span>
+                      <span style={{ fontSize: "0.9rem", color: m.color }}>{m.stats.streak}</span>
                     </div>
                     <p className="text-[rgba(224,240,255,0.3)] truncate mt-0.5" style={{ fontSize: "0.55rem" }}>{m.name}</p>
                   </GlassCard>

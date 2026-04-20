@@ -34,7 +34,7 @@ export class XSSProtection {
       const DOMPurifyModule = await import('dompurify');
       this.sanitizer = DOMPurifyModule.default as unknown as DOMPurify;
       this.isInitialized = true;
-    } catch (_error) {
+    } catch {
       console.warn('DOMPurify not available, using fallback sanitization');
       this.isInitialized = true;
     }

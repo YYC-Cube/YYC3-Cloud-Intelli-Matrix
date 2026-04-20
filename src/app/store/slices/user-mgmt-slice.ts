@@ -31,7 +31,7 @@ export interface UserMgmtSlice {
 
 export const useUserMgmtSlice = create<UserMgmtSlice>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       users: DEFAULT_USERS,
       addUser: (user) => set((s) => ({ users: [...s.users, { ...user, id: `usr-${Date.now()}` }] })),
       updateUser: (id, updates) => set((s) => ({ users: s.users.map((u) => u.id === id ? { ...u, ...updates } : u) })),

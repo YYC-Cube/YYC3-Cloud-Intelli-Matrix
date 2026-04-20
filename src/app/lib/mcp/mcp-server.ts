@@ -20,9 +20,7 @@
 
 import type {
   MCPAgentConfig,
-  MCPCapability,
   MCPTool,
-  MCPToolCall,
   MCPToolResult,
   MCPToolExecutor,
   MCPContext,
@@ -30,7 +28,6 @@ import type {
   MCPContextRole,
   MCPRequest,
   MCPResponse,
-  MCPError,
   MCPEventType,
   MCPCallEvent,
   MCPResultEvent,

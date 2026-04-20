@@ -420,7 +420,7 @@ export class HotelVoiceService {
         if (this.config.continuous) {
           try {
             this.recognition!.start();
-          } catch (_e) {
+          } catch {
             this.setStatus("idle");
           }
         } else {

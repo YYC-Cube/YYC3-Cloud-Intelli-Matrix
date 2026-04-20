@@ -4,7 +4,7 @@
  * @author: YanYuCloudCube Team (导师指导)
  * @version: v1.0.0
  * @created: 2026-04-09
- * @updated: 2026-04-16
+ * @updated: 2026-04-20
  * @status: active
  * @tags: [yyc3, cluster, ssh, distributed, global]
  *
@@ -26,7 +26,6 @@ import type {
   NodeStatus,
   ClusterStatistics,
   NASStorageConfig,
-  YYC3Location,
 } from "./yyc3-cluster.types";
 import {
   isValidYYC3DeviceID,
@@ -515,7 +514,7 @@ export class YYC3ClusterManager {
     });
 
     return Array.from(regions.entries()).map(([region, data]) => ({
-      region: region as YYC3Location,
+      region: region as import('./yyc3-cluster.types').YYC3Location,
       nodeCount: data.nodeCount,
       backupNodes: data.nodes.filter(n => n !== "yyc3-45"), // NAS作为主存储
       latencyToOtherRegions: new Map<string, number>(),

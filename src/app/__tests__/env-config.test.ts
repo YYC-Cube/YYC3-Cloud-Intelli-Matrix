@@ -40,12 +40,12 @@ describe("env-config", () => {
 
     it("should return default system version", () => {
       const version = env("SYSTEM_VERSION");
-      expect(version).toBe("3.2.0");
+      expect(version).toBe("3.3.0");
     });
 
     it("should return default API base URL", () => {
       const apiUrl = env("API_BASE_URL");
-      expect(apiUrl).toBe("http://192.168.3.1:3118/api");
+      expect(apiUrl).toBe("http://localhost:3113/api");
     });
 
     it("should return default WS endpoint", () => {
@@ -95,7 +95,7 @@ describe("env-config", () => {
 
     it("should return default AI model", () => {
       const model = env("DEFAULT_AI_MODEL");
-      expect(model).toBe("gpt-4o");
+      expect(model).toBe("codegeex4:latest");
     });
 
     it("should return default AI temperature", () => {

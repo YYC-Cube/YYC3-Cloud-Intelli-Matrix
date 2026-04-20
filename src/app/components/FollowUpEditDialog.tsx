@@ -12,8 +12,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Save, Calendar, User, Flag, FileText } from "lucide-react";
 import { GlassCard } from "./GlassCard";
-import type { FollowUpRecord } from "../stores/dashboard-stores";
-import type { UserRecord } from "../stores/dashboard-stores";
+import type { FollowUpRecord, UserRecord } from "../types";
 
 interface FollowUpEditDialogProps {
   isOpen: boolean;

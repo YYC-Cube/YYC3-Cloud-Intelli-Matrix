@@ -48,18 +48,18 @@ export function useAgentOrchestrator(autoInit = true): UseAgentOrchestratorRetur
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
 
-  useEffect(() => {
-    if (!autoInit || initialized.current) return;
-    initialized.current = true;
-    registerBuiltinAgents();
-    refresh();
-  }, [autoInit]);
-
   const refresh = useCallback(() => {
     const orch = getAgentOrchestrator();
     setAgentStatuses(orch.getAllStatuses());
     setTasks(orch.getAllTasks());
   }, []);
+
+  useEffect(() => {
+    if (!autoInit || initialized.current) {return;}
+    initialized.current = true;
+    registerBuiltinAgents();
+    refresh();
+  }, [autoInit, refresh]);
 
   const submitTask = useCallback(async (
     description: string,

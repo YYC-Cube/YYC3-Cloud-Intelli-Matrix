@@ -92,6 +92,7 @@ export function GitPanel({
     return () => {
       gitService.destroy();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeGit = async () => {

@@ -9,7 +9,7 @@
  * @tags: [tag1],[tag2],[tag3]
  */
 
-import React, { useState, useContext, Suspense } from "react";
+import React, { useState, useContext, Suspense, useMemo, useCallback } from "react";
 import { Outlet, useLocation } from "react-router";
 import { Toaster } from "sonner";
 import { TopBar } from "./TopBar";
@@ -55,21 +55,26 @@ export function Layout() {
 
   const isDesktop = !view.isMobile && !view.isTablet;
 
-  // 全局快捷键
+  const stableView = useMemo(() => view, [view]);
+
+  const handleEscape = useCallback(() => {
+    setMobileMenuOpen(false);
+    setCommandPaletteOpen(false);
+    setTerminalOpen(false);
+  }, []);
+  const handleSearch = useCallback(() => setCommandPaletteOpen(true), []);
+  const handleToggleTerminal = useCallback(() => setTerminalOpen((prev) => !prev), []);
+
   useKeyboardShortcuts({
     enabled: true,
-    onEscape: () => {
-      setMobileMenuOpen(false);
-      setCommandPaletteOpen(false);
-      setTerminalOpen(false);
-    },
-    onSearch: () => setCommandPaletteOpen(true),
-    onToggleTerminal: () => setTerminalOpen((prev) => !prev),
+    onEscape: handleEscape,
+    onSearch: handleSearch,
+    onToggleTerminal: handleToggleTerminal,
   });
 
   return (
     <WebSocketContext.Provider value={wsData}>
-      <ViewContext.Provider value={view}>
+      <ViewContext.Provider value={stableView}>
         <div className="h-screen w-screen flex flex-col overflow-hidden" style={{
           background: "linear-gradient(135deg, #060e1f 0%, #0a1628 30%, #081430 60%, #040c1a 100%)",
         }}>

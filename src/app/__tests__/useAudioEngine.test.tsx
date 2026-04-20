@@ -70,6 +70,31 @@ class MockAudioContext {
 
 vi.stubGlobal("AudioContext", MockAudioContext);
 
+// Mock HTML Audio element for jsdom
+class MockHTMLAudioElement {
+  src = "";
+  crossOrigin = "";
+  preload = "";
+  volume = 1;
+  currentTime = 0;
+  duration = NaN;
+  readyState = 0;
+  private listeners: Record<string, (() => void)[]> = {};
+
+  load() { this.readyState = 4; }
+  play() { return Promise.resolve(); }
+  pause() {}
+  addEventListener(event: string, handler: () => void) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(handler);
+  }
+  removeEventListener(event: string, handler: () => void) {
+    this.listeners[event] = (this.listeners[event] || []).filter(h => h !== handler);
+  }
+}
+
+vi.stubGlobal("Audio", function() { return new MockHTMLAudioElement(); });
+
 const mockTrack: AudioTrack = {
   id: "test-01",
   title: "测试歌曲",
@@ -191,8 +216,15 @@ describe("useAudioEngine", () => {
 
   describe("进度控制", () => {
     it("should seek to specific time", () => {
+      // Use a track without audioUrl so seek works in demo mode
+      const demoTrack: AudioTrack = {
+        id: "test-demo",
+        title: "演示歌曲",
+        artist: "系统",
+        duration: 180,
+      };
       const { result } = renderHook(() =>
-        useAudioEngine({ track: mockTrack })
+        useAudioEngine({ track: demoTrack })
       );
 
       act(() => {
@@ -203,8 +235,14 @@ describe("useAudioEngine", () => {
     });
 
     it("should clamp seek time to valid range", () => {
+      const demoTrack: AudioTrack = {
+        id: "test-demo",
+        title: "演示歌曲",
+        artist: "系统",
+        duration: 180,
+      };
       const { result } = renderHook(() =>
-        useAudioEngine({ track: mockTrack })
+        useAudioEngine({ track: demoTrack })
       );
 
       act(() => {
@@ -245,8 +283,15 @@ describe("useAudioEngine", () => {
     });
 
     it("should reset current time when loading new track", () => {
+      // Use a demo-mode track (no audioUrl) so seek works in demo mode
+      const demoTrack: AudioTrack = {
+        id: "test-demo",
+        title: "演示歌曲",
+        artist: "系统",
+        duration: 180,
+      };
       const { result } = renderHook(() =>
-        useAudioEngine({ track: mockTrack })
+        useAudioEngine({ track: demoTrack })
       );
 
       act(() => {
@@ -337,9 +382,16 @@ describe("useAudioEngine", () => {
 
     it("should call onTimeUpdate during playback", () => {
       const onTimeUpdate = vi.fn();
+      // Use a track without audioUrl so playback works in demo mode
+      const demoTrack: AudioTrack = {
+        id: "test-demo",
+        title: "演示歌曲",
+        artist: "系统",
+        duration: 180,
+      };
       const { result } = renderHook(() =>
         useAudioEngine({
-          track: mockTrack,
+          track: demoTrack,
           onTimeUpdate,
         })
       );

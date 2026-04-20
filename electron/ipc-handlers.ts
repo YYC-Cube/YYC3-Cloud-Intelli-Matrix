@@ -8,8 +8,16 @@ import { ipcMain, dialog, app, shell } from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import { execFile } from "child_process";
 import { IPCChannel, type IPCResponse } from "../src/shared/ipc-types";
 import { permissionManager } from "./permission-manager";
+
+const ALLOWED_SHELL_COMMANDS = new Set([
+  'open', 'xdg-open', 'start',
+  'ping', 'echo', 'which', 'where',
+]);
+
+const DANGEROUS_ARG_PATTERN = /[|;&`$>\n\r]/;
 
 /**
  * 创建成功响应
@@ -371,10 +379,24 @@ export function registerShellHandlers(): void {
     }
   });
 
-  // 执行命令
-  ipcMain.handle(IPCChannel.SHELL_EXECUTE, async (_, command: string, args?: string[]) => {
+  // 执行命令 (白名单限制)
+  ipcMain.handle(IPCChannel.SHELL_EXECUTE, async (_, command: string, args: string[] = []) => {
     try {
-      return createSuccessResponse(`Command: ${command} ${args?.join(" ") || ""}`);
+      const baseCmd = path.basename(command);
+      if (!ALLOWED_SHELL_COMMANDS.has(baseCmd)) {
+        return createErrorResponse(`Command not allowed: ${baseCmd}`);
+      }
+      for (const arg of args) {
+        if (DANGEROUS_ARG_PATTERN.test(arg)) {
+          return createErrorResponse('Invalid argument: contains disallowed characters');
+        }
+      }
+      const result = await new Promise<string>((resolve, reject) => {
+        execFile(command, args, { timeout: 10000 }, (err, stdout) => {
+          if (err) { reject(err); } else { resolve(stdout); }
+        });
+      });
+      return createSuccessResponse(result);
     } catch (error) {
       return createErrorResponse(error instanceof Error ? error.message : String(error));
     }

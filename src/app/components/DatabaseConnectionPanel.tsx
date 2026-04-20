@@ -18,8 +18,9 @@ import {
 import { GlassCard } from "./GlassCard";
 import { SQLEditor } from "./CodeEditor";
 import { ViewContext } from "../lib/view-context";
-import type { DBConnection } from "../stores/dashboard-stores";
 import { useDbConnSlice } from "../store/slices/db-conn-slice";
+import type { PoolConfig } from "../store/slices/db-conn-slice";
+import type { DBConnection } from "../types";
 import { env } from "../lib/env-config";
 import { toast } from "sonner";
 
@@ -202,7 +203,7 @@ export function DatabaseConnectionPanel() {
             </div>
             <div>
               <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.65rem" }}>类型</label>
-              <select value={draft.type || "postgresql"} onChange={(e) => { const t = e.target.value; setDraft((p) => ({ ...p, type: t, port: String(DB_TYPE_META[t]?.defaultPort || 0) })); }} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.75rem" }}>
+              <select aria-label="数据库类型" value={draft.type || "postgresql"} onChange={(e) => { const t = e.target.value; setDraft((p) => ({ ...p, type: t, port: String(DB_TYPE_META[t]?.defaultPort || 0) })); }} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.75rem" }}>
                 {DB_TYPES.map((t) => <option key={t} value={t}>{DB_TYPE_META[t]?.label || t}</option>)}
               </select>
             </div>
@@ -212,7 +213,7 @@ export function DatabaseConnectionPanel() {
             </div>
             <div>
               <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.65rem" }}>端口</label>
-              <input type="number" value={draft.port || ""} onChange={(e) => setDraft((p) => ({ ...p, port: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none font-mono" style={{ fontSize: "0.75rem" }} />
+              <input type="number" aria-label="端口" value={draft.port || ""} onChange={(e) => setDraft((p) => ({ ...p, port: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none font-mono" style={{ fontSize: "0.75rem" }} placeholder="5432" />
             </div>
             <div>
               <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.65rem" }}>数据库名</label>
@@ -224,7 +225,7 @@ export function DatabaseConnectionPanel() {
             </div>
             <div>
               <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.65rem" }}>密码</label>
-              <input type="password" value={draft.password || ""} onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none" style={{ fontSize: "0.75rem" }} />
+              <input type="password" aria-label="密码" value={draft.password || ""} onChange={(e) => setDraft((p) => ({ ...p, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none" style={{ fontSize: "0.75rem" }} placeholder="密码" />
             </div>
             <div>
               <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.65rem" }}>选项</label>
@@ -256,7 +257,7 @@ export function DatabaseConnectionPanel() {
                 <div className="space-y-3">
                   <div className={`grid gap-2 ${isMobile ? "grid-cols-1" : "grid-cols-2"}`}>
                     <input value={draft.name || ""} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none" style={{ fontSize: "0.72rem" }} placeholder="名称" />
-                    <select value={draft.type || "postgresql"} onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value }))} className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
+                    <select aria-label="数据库类型" value={draft.type || "postgresql"} onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value }))} className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff]" style={{ fontSize: "0.72rem" }}>
                       {DB_TYPES.map((t) => <option key={t} value={t}>{DB_TYPE_META[t]?.label}</option>)}
                     </select>
                     <input value={draft.host || ""} onChange={(e) => setDraft((p) => ({ ...p, host: e.target.value }))} className="px-2 py-1.5 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none font-mono" style={{ fontSize: "0.72rem" }} placeholder="host" />
@@ -340,55 +341,18 @@ export function DatabaseConnectionPanel() {
 // 连接池配置子组件
 // ============================================================
 
-const POOL_STORAGE_KEY = "yyc3_db_pool_config";
-
-interface PoolConfig {
-  minConnections: number;
-  maxConnections: number;
-  idleTimeoutMs: number;
-  acquireTimeoutMs: number;
-  maxRetries: number;
-  healthCheckIntervalMs: number;
-  enableAutoScale: boolean;
-  enableHealthCheck: boolean;
-}
-
-const DEFAULT_POOL: PoolConfig = {
-  minConnections: env("DB_POOL_MIN"),
-  maxConnections: env("DB_POOL_MAX"),
-  idleTimeoutMs: env("DB_POOL_IDLE_TIMEOUT"),
-  acquireTimeoutMs: env("DB_POOL_ACQUIRE_TIMEOUT"),
-  maxRetries: 3,
-  healthCheckIntervalMs: 60000,
-  enableAutoScale: true,
-  enableHealthCheck: true,
-};
-
-function loadPoolConfig(): PoolConfig {
-  try {
-    const raw = localStorage.getItem(POOL_STORAGE_KEY);
-    if (raw) {return { ...DEFAULT_POOL, ...JSON.parse(raw) };}
-  } catch { /* ignore */ }
-  return { ...DEFAULT_POOL };
-}
-
-function savePoolConfig(config: PoolConfig): void {
-  try { localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(config)); } catch { /* ignore */ }
-}
-
 function ConnectionPoolConfig() {
-  const [pool, setPool] = useState<PoolConfig>(loadPoolConfig);
+  const pool = useDbConnSlice((s) => s.poolConfig);
+  const setPoolConfig = useDbConnSlice((s) => s.setPoolConfig);
+  const resetPoolConfig = useDbConnSlice((s) => s.resetPoolConfig);
   const [expanded, setExpanded] = useState(false);
 
   const update = (key: keyof PoolConfig, value: number | boolean) => {
-    const next = { ...pool, [key]: value };
-    setPool(next);
-    savePoolConfig(next);
+    setPoolConfig({ [key]: value });
   };
 
   const resetPool = () => {
-    localStorage.removeItem(POOL_STORAGE_KEY);
-    setPool({ ...DEFAULT_POOL });
+    resetPoolConfig();
     toast.info("连接池配置已重置", { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
   };
 
@@ -434,6 +398,7 @@ function ConnectionPoolConfig() {
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
+                    aria-label={label}
                     value={pool[key] as number}
                     min={min}
                     max={max}
@@ -488,8 +453,6 @@ function ConnectionPoolConfig() {
 // SQL 快速测试子组件
 // ============================================================
 
-const SQL_HISTORY_KEY = "yyc3_sql_history";
-
 interface SQLResult {
   columns: string[];
   rows: string[][];
@@ -539,9 +502,9 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
   const [executing, setExecuting] = useState(false);
   const [result, setResult] = useState<SQLResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<string[]>(() => {
-    try { const raw = localStorage.getItem(SQL_HISTORY_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
-  });
+  const history = useDbConnSlice((s) => s.sqlHistory);
+  const addSqlHistory = useDbConnSlice((s) => s.addSqlHistory);
+  const clearSqlHistoryAction = useDbConnSlice((s) => s.clearSqlHistory);
 
   const executeSQL = useCallback(async () => {
     if (!sqlValue.trim()) {return;}
@@ -550,9 +513,7 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
     setError(null);
 
     // 保存历史
-    const newHistory = [sqlValue, ...history.filter((h) => h !== sqlValue)].slice(0, 20);
-    setHistory(newHistory);
-    try { localStorage.setItem(SQL_HISTORY_KEY, JSON.stringify(newHistory)); } catch { /* ignore */ }
+    addSqlHistory(sqlValue);
 
     // 模拟执行
     const delay = env("SQL_TEST_SIMULATE_DELAY");
@@ -571,11 +532,10 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
       setResult({ ...MOCK_SQL_RESULTS.SELECT, executionTime: Math.floor(5 + Math.random() * 25) });
     }
     setExecuting(false);
-  }, [sqlValue, history]);
+  }, [sqlValue, addSqlHistory]);
 
   const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem(SQL_HISTORY_KEY);
+    clearSqlHistoryAction();
     toast.info("历史已清除");
   };
 
@@ -597,6 +557,7 @@ function SQLQuickTest({ connections }: { connections: DBConnection[] }) {
           {/* 连接选择 + 执行按钮 */}
           <div className="flex items-center gap-2 flex-wrap">
             <select
+              aria-label="选择数据库连接"
               value={selectedConnId}
               onChange={(e) => setSelectedConnId(e.target.value)}
               className="px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none"

@@ -49,7 +49,7 @@ class MCPBridge {
 
   /** 启动桥接 */
   start(): void {
-    if (this.active) return;
+    if (this.active) {return;}
     this.active = true;
 
     // 1. DataBus → MCP: 订阅关键实体的数据变更
@@ -104,7 +104,7 @@ class MCPBridge {
   /** DataBus 事件 → Agent 上下文 */
   private handleDataBusEvent(event: DataChangeEvent): void {
     const targetAgents = ENTITY_AGENT_MAP[event.entity];
-    if (!targetAgents) return;
+    if (!targetAgents) {return;}
 
     const ctxMgr = getMCPContextManager();
     const summary = this.summarizeDataEvent(event);

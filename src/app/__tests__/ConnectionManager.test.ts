@@ -15,8 +15,8 @@ import type { DatabaseConfig, ConnectionPoolConfig } from "../../database/types"
 
 describe("ConnectionManager", () => {
   beforeEach(() => {
-    vi.clearAllTimers();
     vi.useFakeTimers();
+    vi.clearAllTimers();
     connectionManager.setTestMode(true);
   });
 

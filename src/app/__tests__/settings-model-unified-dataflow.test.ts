@@ -249,7 +249,7 @@ describe("env-config — 环境变量可编辑", () => {
     resetEnvConfig();
 
     expect(env("OLLAMA_BASE_URL")).toBe("http://localhost:11434");
-    expect(env("DEFAULT_AI_MODEL")).toBe("gpt-4o");
+    expect(env("DEFAULT_AI_MODEL")).toBe("codegeex4:latest");
     expect(env("DEFAULT_AI_TEMPERATURE")).toBe(0.7);
   });
 

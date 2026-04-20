@@ -15,7 +15,6 @@ import { AIAgent } from "./agent-base";
 import { getMCPContextManager } from "../mcp/mcp-context";
 import type {
   AgentTask,
-  AgentState,
   AgentStatus,
   TaskPriority,
   TaskDecomposition,
@@ -107,7 +106,7 @@ export class AgentOrchestrator {
   /** 提交复合任务 (多 Agent 协作) */
   async submitCollaborativeTask(
     description: string,
-    priority: TaskPriority = "normal",
+    _priority: TaskPriority = "normal",
   ): Promise<AgentTask[]> {
     const decomposition = this.decomposeTask(description);
     const results: AgentTask[] = [];
@@ -152,7 +151,7 @@ export class AgentOrchestrator {
   /** 选择最佳 Agent */
   private async selectBestAgent(task: AgentTask): Promise<AIAgent | undefined> {
     const candidates = this.getIdleAgents();
-    if (candidates.length === 0) return undefined;
+    if (candidates.length === 0) {return undefined;}
 
     // 对每个候选 Agent 计算匹配度
     const scored: AgentSelection[] = candidates.map((agent) => {

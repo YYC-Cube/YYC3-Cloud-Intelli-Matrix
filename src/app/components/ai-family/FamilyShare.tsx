@@ -17,7 +17,7 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
-import { MEMBERS_MAP } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
 
 interface SharePost {
   id: string;
@@ -87,6 +87,7 @@ const CATEGORY_MAP: Record<string, { label: string; color: string; icon: React.E
 };
 
 export function FamilyShare() {
+  const { members } = useFamilyMemberSlice();
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const [filter, setFilter] = useState<string>("all");
 
@@ -145,7 +146,7 @@ export function FamilyShare() {
       {/* 帖子列表 */}
       <div className="max-w-4xl mx-auto px-4 md:px-8 mt-6 space-y-5">
         {filtered.map((post, i) => {
-          const member = MEMBERS_MAP[post.author];
+          const member = members.find(m => m.id === post.author);
           const cat = CATEGORY_MAP[post.category];
           const Icon = member?.icon || Smile;
           return (

@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useUserMgmtSlice } from '../../store/slices/user-mgmt-slice';
-import type { UserRecord } from '../../stores/dashboard-stores';
+import type { UserRecord } from '../../types';
 
 describe('useUserMgmtSlice', () => {
   beforeEach(() => {

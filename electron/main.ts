@@ -33,6 +33,31 @@ let mainWindow: Electron.BrowserWindow | null = null;
 let tray: Electron.Tray | null = null;
 
 const isMac = process.platform === 'darwin';
+const isDev = !app.isPackaged;
+
+const CSP_DEV = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self' ws: wss: https://*.supabase.co http://localhost:*",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
+const CSP_PROD = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self' wss: https://*.supabase.co",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -150,12 +175,7 @@ function init() {
         callback({
           responseHeaders: {
             ...details.responseHeaders,
-            'Content-Security-Policy': [
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-              "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
-              "font-src 'self' data:; connect-src 'self' ws: wss: https://*.supabase.co; " +
-              "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-            ],
+            'Content-Security-Policy': [isDev ? CSP_DEV : CSP_PROD],
           },
         });
       });

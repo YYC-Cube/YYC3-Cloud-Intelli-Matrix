@@ -1,19 +1,24 @@
 /**
  * @file: app-slice.ts
- * @description: YYC³ 应用基础 Slice · 合并原 useUserStore + useUIStore + useAlertStore + usePerformanceStore
+ * @description: YYC³ 应用基础 Slice · recentOps + 运行时状态
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-15
- * @updated: 2026-04-16
+ * @updated: 2026-04-17
  * @status: active
  * @tags: [store],[slice],[app]
  *
- * @brief: 应用级基础状态：用户认证、UI主题、告警、性能指标
+ * @brief: 应用级运行时状态（纯内存，不持久化）
+ *
+ * @details:
+ * - recentOps: 最近操作记录（Dashboard/DataEditorPanel 消费）
+ * - commandPaletteOpen/alerts/fps/memoryUsage: 运行时 UI 状态
+ * - theme/locale/sidebarCollapsed 已在 Phase Q 移除（僵尸数据，0 渲染消费者）
+ *   实际规范源: theme=Layout.tsx 硬编码, locale=useI18n/yyc3_locale, sidebar=Layout.tsx useState
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { AppUser, AlertData, Locale } from '../../types';
+import type { AlertData } from '../../types';
 
 export interface RecentOpEntry {
   id: string;
@@ -33,12 +38,6 @@ const DEFAULT_RECENT_OPS: RecentOpEntry[] = [
 ];
 
 interface AppSlice {
-  user: AppUser | null;
-  token: string | null;
-  isGhost: boolean;
-  theme: 'light' | 'dark' | 'cyberpunk';
-  locale: Locale;
-  sidebarCollapsed: boolean;
   commandPaletteOpen: boolean;
   alerts: AlertData[];
   maxAlerts: number;
@@ -46,13 +45,6 @@ interface AppSlice {
   memoryUsage: number;
   recentOps: RecentOpEntry[];
 
-  setUser: (user: AppUser | null) => void;
-  setToken: (token: string | null) => void;
-  setIsGhost: (isGhost: boolean) => void;
-  logout: () => void;
-  setTheme: (theme: 'light' | 'dark' | 'cyberpunk') => void;
-  setLocale: (locale: Locale) => void;
-  toggleSidebar: () => void;
   setCommandPaletteOpen: (open: boolean) => void;
   addAlert: (alert: AlertData) => void;
   removeAlert: (id: string) => void;
@@ -63,48 +55,23 @@ interface AppSlice {
   clearRecentOps: () => void;
 }
 
-export const useAppSlice = create<AppSlice>()(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isGhost: false,
-      theme: 'cyberpunk',
-      locale: 'zh-CN',
-      sidebarCollapsed: false,
-      commandPaletteOpen: false,
-      alerts: [],
-      maxAlerts: 100,
-      fps: 60,
-      memoryUsage: 0,
-      recentOps: DEFAULT_RECENT_OPS,
+export const useAppSlice = create<AppSlice>()((set) => ({
+  commandPaletteOpen: false,
+  alerts: [],
+  maxAlerts: 100,
+  fps: 60,
+  memoryUsage: 0,
+  recentOps: DEFAULT_RECENT_OPS,
 
-      setUser: (user) => set({ user }),
-      setToken: (token) => set({ token }),
-      setIsGhost: (isGhost) => set({ isGhost }),
-      logout: () => set({ user: null, token: null, isGhost: false }),
-      setTheme: (theme) => set({ theme }),
-      setLocale: (locale) => set({ locale }),
-      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-      setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
-      addAlert: (alert) =>
-        set((s) => ({ alerts: [alert, ...s.alerts].slice(0, s.maxAlerts) })),
-      removeAlert: (id) =>
-        set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
-      clearAlerts: () => set({ alerts: [] }),
-      setFps: (fps) => set({ fps }),
-      setMemoryUsage: (usage) => set({ memoryUsage: usage }),
-      addRecentOp: (op) =>
-        set((s) => ({ recentOps: [op, ...s.recentOps].slice(0, 50) })),
-      clearRecentOps: () => set({ recentOps: [] }),
-    }),
-    {
-      name: 'yyc3-app-slice',
-      partialize: (state) => ({
-        theme: state.theme,
-        locale: state.locale,
-        sidebarCollapsed: state.sidebarCollapsed,
-      }),
-    }
-  )
-);
+  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
+  addAlert: (alert) =>
+    set((s) => ({ alerts: [alert, ...s.alerts].slice(0, s.maxAlerts) })),
+  removeAlert: (id) =>
+    set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
+  clearAlerts: () => set({ alerts: [] }),
+  setFps: (fps) => set({ fps }),
+  setMemoryUsage: (usage) => set({ memoryUsage: usage }),
+  addRecentOp: (op) =>
+    set((s) => ({ recentOps: [op, ...s.recentOps].slice(0, 50) })),
+  clearRecentOps: () => set({ recentOps: [] }),
+}));

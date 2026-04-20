@@ -78,8 +78,10 @@ export type ModelCapability =
 
 // ============================================================
 // 预定义的智谱AI模型配置
+// ⚠️ DEPRECATED: 仅 ai-family-hotel-manager 及其测试使用，不对应 provider-slice 的模型体系。
 // ============================================================
 
+/** @deprecated 仅酒店管理器使用，不对应 provider-slice 的模型体系 */
 export const ZHIPU_MODELS: Record<string, ModelConfig> = {
   "chatglm3-6b": {
     provider: "zhipu",

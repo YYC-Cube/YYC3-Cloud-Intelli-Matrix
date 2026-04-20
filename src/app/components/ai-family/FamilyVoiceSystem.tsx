@@ -19,52 +19,17 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, hexToRgb, getHourlyCare,
+  hexToRgb, getHourlyCare,
   DEFAULT_VOICE_PROFILES, AI_RESPONSES,
-  type FamilyMember, type VoiceProfile,
+  type VoiceProfile,
 } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
+import type { VoiceConversation } from "../../store/slices/family-settings-slice";
+import type { UnifiedFamilyMember } from "../../types";
 import musicEventBus from "../../lib/MusicEventBus";
 import { parseVoiceCommand } from "../../lib/VoiceCommandParser";
 import emotionMusicBridge from "../../lib/EmotionMusicBridge";
-
-// ═══ localStorage ═══
-
-const STORAGE_KEY = "yyc3-family-voice-profiles";
-const CONV_STORAGE_KEY = "yyc3-family-voice-conversations";
-
-function loadProfiles(): VoiceProfile[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : DEFAULT_VOICE_PROFILES;
-  } catch { return DEFAULT_VOICE_PROFILES; }
-}
-
-function saveProfiles(profiles: VoiceProfile[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles)); } catch { /* noop */ }
-}
-
-// ═══ 对话记录 ═══
-
-interface VoiceConversation {
-  id: string;
-  memberId: string;
-  userText: string;
-  aiText: string;
-  timestamp: string;
-}
-
-function loadConversations(): VoiceConversation[] {
-  try {
-    const raw = localStorage.getItem(CONV_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveConversations(convs: VoiceConversation[]) {
-  try {
-    localStorage.setItem(CONV_STORAGE_KEY, JSON.stringify(convs.slice(-100)));
-  } catch { /* noop */ }
-}
 
 // ═══ TTS 引擎 ═══
 
@@ -98,7 +63,7 @@ function VoiceCard({
   onStop,
   onStartConversation,
 }: {
-  member: FamilyMember;
+  member: UnifiedFamilyMember;
   profile: VoiceProfile;
   isPlaying: boolean;
   onUpdateProfile: (updates: Partial<VoiceProfile>) => void;
@@ -249,7 +214,7 @@ function VoiceConversationPanel({
   onClose,
   onNewConversation,
 }: {
-  member: FamilyMember;
+  member: UnifiedFamilyMember;
   profile: VoiceProfile;
   conversations: VoiceConversation[];
   onClose: () => void;
@@ -328,7 +293,7 @@ function VoiceConversationPanel({
     return () => {
       try { recognition.abort(); } catch { /* noop */ }
     };
-  }, []);
+  }, [member.id]);
 
   const startListening = useCallback(() => {
     if (!recognitionRef.current) {return;}
@@ -520,15 +485,18 @@ function VoiceConversationPanel({
 // ═══ 主组件 ═══
 
 export function FamilyVoiceSystem() {
-  const [profiles, setProfiles] = useState<VoiceProfile[]>(DEFAULT_VOICE_PROFILES);
+  const { members } = useFamilyMemberSlice();
+  const profiles = useFamilySettingsSlice((s) => s.voiceProfiles);
+  const conversations = useFamilySettingsSlice((s) => s.voiceConversations);
   const [playingMemberId, setPlayingMemberId] = useState<string | null>(null);
   const [ttsSupported, setTtsSupported] = useState(true);
   const [conversationMemberId, setConversationMemberId] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<VoiceConversation[]>([]);
 
   useEffect(() => {
-    setProfiles(loadProfiles());
-    setConversations(loadConversations());
+    // Seed default profiles if slice is empty
+    if (useFamilySettingsSlice.getState().voiceProfiles.length === 0) {
+      useFamilySettingsSlice.getState().setVoiceProfiles(DEFAULT_VOICE_PROFILES);
+    }
     setTtsSupported("speechSynthesis" in window);
     // Pre-load voices
     if ("speechSynthesis" in window) {
@@ -538,16 +506,10 @@ export function FamilyVoiceSystem() {
   }, []);
 
   const handleUpdateProfile = useCallback((memberId: string, updates: Partial<VoiceProfile>) => {
-    setProfiles(prev => {
-      const next = prev.map(p =>
-        p.memberId === memberId ? { ...p, ...updates } : p
-      );
-      saveProfiles(next);
-      return next;
-    });
+    useFamilySettingsSlice.getState().updateVoiceProfile(memberId, updates);
   }, []);
 
-  const handlePlay = useCallback((member: FamilyMember) => {
+  const handlePlay = useCallback((member: UnifiedFamilyMember) => {
     const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0];
     setPlayingMemberId(member.id);
     speak(member.greeting, profile, () => setPlayingMemberId(null));
@@ -567,7 +529,7 @@ export function FamilyVoiceSystem() {
 
   // Broadcast all (sequential)
   const handleBroadcastAll = useCallback(async () => {
-    for (const member of FAMILY_MEMBERS) {
+    for (const member of members) {
       const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[0];
       setPlayingMemberId(member.id);
       await new Promise<void>(resolve => {
@@ -576,14 +538,10 @@ export function FamilyVoiceSystem() {
       await new Promise(r => setTimeout(r, 300));
     }
     setPlayingMemberId(null);
-  }, [profiles]);
+  }, [members, profiles]);
 
   const handleNewConversation = useCallback((conv: VoiceConversation) => {
-    setConversations(prev => {
-      const next = [...prev, conv];
-      saveConversations(next);
-      return next;
-    });
+    useFamilySettingsSlice.getState().addVoiceConversation(conv);
   }, []);
 
   const srSupported = typeof window !== "undefined" && (
@@ -675,7 +633,7 @@ export function FamilyVoiceSystem() {
           <FadeIn delay={0.05}>
             <div className="mb-6">
               <VoiceConversationPanel
-                member={FAMILY_MEMBERS.find(m => m.id === conversationMemberId) || FAMILY_MEMBERS[0]}
+                member={members.find(m => m.id === conversationMemberId) || members[0]}
                 profile={profiles.find(p => p.memberId === conversationMemberId) || DEFAULT_VOICE_PROFILES[0]}
                 conversations={conversations}
                 onClose={() => setConversationMemberId(null)}
@@ -687,7 +645,7 @@ export function FamilyVoiceSystem() {
 
         {/* Voice cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {FAMILY_MEMBERS.map((member, i) => {
+          {members.map((member, i) => {
             const profile = profiles.find(p => p.memberId === member.id) || DEFAULT_VOICE_PROFILES[i];
             return (
               <VoiceCard

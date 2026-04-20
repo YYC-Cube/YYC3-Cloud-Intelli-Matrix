@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import { useCopyFeedback } from "../hooks/useCopyFeedback";
 import {
   X, AlertTriangle, AlertCircle, Info, XCircle, Clock, User,
   ChevronRight, Zap, Bot, CheckCircle, Loader2,
@@ -75,7 +76,7 @@ export function FollowUpDrawer({
   const [activeTab, setActiveTab] = useState<"detail" | "chain" | "metrics" | "ai">("detail");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [copiedIdx, copyText] = useCopyFeedback<number>();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // Reset tab on new item
@@ -104,11 +105,6 @@ export function FollowUpDrawer({
     setAiLoading(false);
   };
 
-  const copyText = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
-  };
 
   if (!item) {return null;}
 

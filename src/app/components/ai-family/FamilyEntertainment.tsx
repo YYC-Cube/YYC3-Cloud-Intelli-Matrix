@@ -19,7 +19,9 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
-import { FAMILY_MEMBERS, getHourlyCare, type FamilyMember } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
+import { getHourlyCare } from "./shared";
 
 // ═══ 五子棋逻辑 ═══
 type Stone = "black" | "white" | null;
@@ -51,12 +53,13 @@ function checkWin(board: Stone[][], row: number, col: number, stone: Stone): boo
 
 // ═══ 主组件 ═══
 export function FamilyEntertainment() {
+  const { members } = useFamilyMemberSlice();
   const [activeTab, setActiveTab] = useState<"games" | "art" | "broadcast">("games");
   const [gameType, setGameType] = useState<"gomoku" | null>(null);
   const [board, setBoard] = useState(createBoard);
   const [currentPlayer, setCurrentPlayer] = useState<"black" | "white">("black");
   const [winner, setWinner] = useState<string | null>(null);
-  const [opponent] = useState<FamilyMember>(FAMILY_MEMBERS[1]); // 万物 — 擅长思考
+  const [opponent] = useState<UnifiedFamilyMember>(members[1]); // 万物 — 擅长思考
   const [aiThinking, setAiThinking] = useState(false);
 
   // 整点关爱
@@ -125,10 +128,10 @@ export function FamilyEntertainment() {
   };
 
   // ═══ 广播语录 ═══
-  const broadcasts = useMemo(() => FAMILY_MEMBERS.map(m => ({
+  const broadcasts = useMemo(() => members.map(m => ({
     member: m,
     message: m.careMessage,
-  })), []);
+  })), [members]);
 
   // 才艺展示
   const artworks = [
@@ -408,7 +411,7 @@ export function FamilyEntertainment() {
                           {b.message}
                         </p>
                         <p className="text-[rgba(224,240,255,0.2)] mt-2 italic" style={{ fontSize: "0.65rem" }}>
-                          —— {b.member.personality}
+                          —— {b.member.personality.description}
                         </p>
                       </div>
                     </div>

@@ -356,7 +356,7 @@ export class AIFamilySyncEngine {
         changesSynchronized: synchronized,
         durationMs,
       };
-    } catch (error) {
+    } catch {
       this.isSyncing = false;
       return {
         success: false,
@@ -721,7 +721,7 @@ export class AIFamilySyncEngine {
       const stats = statsRaw ? JSON.parse(statsRaw) : {};
       stats[key] = (stats[key] || 0) + value;
       localStorage.setItem(statsKey, JSON.stringify(stats));
-    } catch (_error) {
+    } catch {
       // ignore
     }
   }
@@ -733,7 +733,7 @@ export class AIFamilySyncEngine {
         const stats = JSON.parse(statsRaw);
         return stats[key] ?? null;
       }
-    } catch (_error) {
+    } catch {
       // ignore
     }
     return null;

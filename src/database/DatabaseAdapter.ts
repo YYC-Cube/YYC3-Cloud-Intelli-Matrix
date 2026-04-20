@@ -13,7 +13,6 @@ import { connectionManager } from "./ConnectionManager";
 import { IndexManager } from "./IndexManager";
 import { QueryCache } from "./QueryCache";
 import { QueryAnalyzer } from "./QueryAnalyzer";
-import type { DbConnection } from "./QueryAnalyzer";
 import { SlowQueryMonitor } from "./SlowQueryMonitor";
 import type {
   DatabaseConfig,
@@ -90,11 +89,11 @@ export class DatabaseAdapter {
     if (connectionInfo && connectionInfo.connection) {
       const connection = connectionInfo.connection as {
         query<T = unknown>(sql: string, params?: QueryParams): Promise<QueryResult<T>>;
-        collection?(name: string): { indexes(): Promise<unknown[]> };
+        collection(name: string): { indexes(): Promise<unknown[]>; explain(pipeline: unknown[]): Promise<unknown> };
         listCollections?(): { toArray(): Promise<{ name: string }[]> };
       };
       this.indexManager = new IndexManager(connection, config);
-      this.queryAnalyzer = new QueryAnalyzer(connection as unknown as DbConnection, config);
+      this.queryAnalyzer = new QueryAnalyzer(connection, config);
       this.slowQueryMonitor = new SlowQueryMonitor(connection, config, {
         enabled: true,
         threshold: 1000,

@@ -270,8 +270,8 @@ describe("supabaseClient (Mock)", () => {
   describe("ghostSignIn", () => {
     it("应创建幽灵模式会话", () => {
       const session = ghostSignIn();
-
-      expect(session).toBeDefined();
+      expect(session).not.toBeNull();
+      if (!session) { return; }
       expect(session.user.role).toBe("admin");
       expect(session.user.email).toBe("ghost@yyc3.local");
       expect(localStorageMock.setItem).toHaveBeenCalledWith("yyc3_session", expect.any(String));
@@ -281,12 +281,16 @@ describe("supabaseClient (Mock)", () => {
     it("应生成唯一 token", () => {
       const session1 = ghostSignIn();
       const session2 = ghostSignIn();
-
+      expect(session1).not.toBeNull();
+      expect(session2).not.toBeNull();
+      if (!session1 || !session2) { return; }
       expect(session1.token).not.toBe(session2.token);
     });
 
     it("应设置 24 小时过期时间", () => {
       const session = ghostSignIn();
+      expect(session).not.toBeNull();
+      if (!session) { return; }
       const now = Date.now();
       const oneDay = 24 * 60 * 60 * 1000;
 

@@ -9,7 +9,7 @@
  * @tags: [component]
  */
 
-import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
+import React, { useState, useRef, useEffect, useCallback, useContext, memo } from "react";
 import {
   MessageSquare, Send, Square, Plus, Trash2, User,
   Activity, Zap, BarChart3, Clock, AlertCircle,
@@ -51,7 +51,7 @@ function StatusBadge({ status, t }: { status: SDKConnectionStatus; t: (key: stri
 // 子组件: 消息气泡
 // ============================================================
 
-function MessageBubble({ msg, t }: { msg: ChatMessage; t: (key: string) => string }) {
+const MessageBubble = memo(function MessageBubble({ msg, t }: { msg: ChatMessage; t: (key: string) => string }) {
   const isUser = msg.role === "user";
   const isError = msg.content.startsWith("[ERROR]");
 
@@ -105,7 +105,7 @@ function MessageBubble({ msg, t }: { msg: ChatMessage; t: (key: string) => strin
       </div>
     </div>
   );
-}
+});
 
 // ============================================================
 // 主组件

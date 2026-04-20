@@ -10,6 +10,7 @@
  */
 
 import type { FamilyMember } from "../components/ai-family/shared";
+import { FamilyDataAccessor } from "./family-data-accessor";
 
 export interface FamilyTheme {
   id: string;
@@ -536,8 +537,7 @@ class FamilyThemeManagerClass {
     if (!theme) {
       return undefined;
     }
-    const { FAMILY_MEMBERS } = require("../components/ai-family/shared");
-    return FAMILY_MEMBERS.find((m: FamilyMember) => m.id === theme.memberId);
+    return FamilyDataAccessor.getMembers().find((m) => m.id === theme.memberId);
   }
 }
 

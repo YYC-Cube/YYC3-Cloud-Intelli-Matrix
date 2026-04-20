@@ -19,10 +19,12 @@ import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
 import {
-  FAMILY_MEMBERS, MEDALS, MEMBER_MEDALS, FAMILY_ACTIVITIES,
+  MEDALS, MEMBER_MEDALS, FAMILY_ACTIVITIES,
   SAMPLE_MEMORIES, generateDailyBroadcast, getMember,
-  type FamilyMember, type Medal,
+  type Medal,
 } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 
 /* ═══════════════════════════════════════
    常量与类型
@@ -186,8 +188,9 @@ function BroadcastTab() {
    ═══════════════════════════════════════ */
 
 function ScoreboardTab() {
+  const { members } = useFamilyMemberSlice();
   const sorted = useMemo(() =>
-    [...FAMILY_MEMBERS].sort((a, b) => b.contribution - a.contribution), []
+    [...members].sort((a, b) => b.stats.contribution - a.stats.contribution), [members]
   );
 
   const podiumOrder = [1, 0, 2]; // 银、金、铜
@@ -224,7 +227,7 @@ function ScoreboardTab() {
                   <Icon className="w-5 h-5" style={{ color: m.color }} />
                 </div>
                 <p className="text-[rgba(224,240,255,0.85)]" style={{ fontSize: "0.78rem" }}>{m.shortName}</p>
-                <p className="mt-1" style={{ fontSize: "1.1rem", color: m.color }}>{m.contribution.toLocaleString()}</p>
+                <p className="mt-1" style={{ fontSize: "1.1rem", color: m.color }}>{m.stats.contribution.toLocaleString()}</p>
                 <p className="text-[rgba(224,240,255,0.25)]" style={{ fontSize: "0.55rem" }}>积分</p>
               </GlassCard>
             );
@@ -251,7 +254,7 @@ function ScoreboardTab() {
                     <div className="flex items-center gap-2">
                       <span style={{ fontSize: "0.82rem", color: m.color }}>{m.name}</span>
                       <span className="text-[rgba(224,240,255,0.2)]" style={{ fontSize: "0.55rem" }}>
-                        Lv.{Math.floor(m.contribution / 100)}
+                        Lv.{Math.floor(m.stats.contribution / 100)}
                       </span>
                     </div>
                     <div className="flex gap-1 mt-1">
@@ -267,12 +270,12 @@ function ScoreboardTab() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p style={{ fontSize: "1rem", color: m.color }}>{m.contribution.toLocaleString()}</p>
+                    <p style={{ fontSize: "1rem", color: m.color }}>{m.stats.contribution.toLocaleString()}</p>
                     <div className="flex items-center gap-1 justify-end mt-0.5">
                       <TrendingUp className="w-3 h-3 text-[#00FF88]" />
-                      <span className="text-[#00FF88]" style={{ fontSize: "0.6rem" }}>+{m.growth}</span>
+                      <span className="text-[#00FF88]" style={{ fontSize: "0.6rem" }}>+{m.stats.growth}</span>
                       <span className="text-[rgba(224,240,255,0.2)] ml-1" style={{ fontSize: "0.55rem" }}>
-                        连续{m.streak}天
+                        连续{m.stats.streak}天
                       </span>
                     </div>
                   </div>
@@ -501,6 +504,7 @@ function ActivitiesTab() {
    ═══════════════════════════════════════ */
 
 function MedalsTab() {
+  const { members } = useFamilyMemberSlice();
   return (
     <div className="space-y-6">
       <FadeIn delay={0.05}>
@@ -516,7 +520,7 @@ function MedalsTab() {
           const holders = Object.entries(MEMBER_MEDALS)
             .filter(([, mids]) => mids.includes(medal.id))
             .map(([mid]) => getMember(mid))
-            .filter(Boolean) as FamilyMember[];
+            .filter(Boolean) as unknown as UnifiedFamilyMember[];
 
           return (
             <FadeIn key={medal.id} delay={0.1 + i * 0.04}>
@@ -561,7 +565,7 @@ function MedalsTab() {
           <Star className="w-4 h-4 text-[#FFD700]" /> 家人荣誉榜
         </h3>
         <div className="space-y-2">
-          {FAMILY_MEMBERS.map((m, i) => {
+          {members.map((m, i) => {
             const mMedals = (MEMBER_MEDALS[m.id] || [])
               .map(mid => MEDALS.find(med => med.id === mid))
               .filter(Boolean) as Medal[];
@@ -608,6 +612,7 @@ function MedalsTab() {
    ═══════════════════════════════════════ */
 
 function MemoriesTab() {
+  const { members } = useFamilyMemberSlice();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   const memories = useMemo(() => {
@@ -651,7 +656,7 @@ function MemoriesTab() {
         >
           全部家人
         </button>
-        {FAMILY_MEMBERS.map(m => {
+        {members.map(m => {
           const Icon = m.icon;
           const active = selectedMember === m.id;
           return (

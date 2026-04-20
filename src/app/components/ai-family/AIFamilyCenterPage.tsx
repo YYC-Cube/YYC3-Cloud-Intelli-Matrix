@@ -9,7 +9,7 @@
  * @tags: [component]
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Heart, Phone, MessageCircle, Music, BookOpen,
   Gamepad2, TrendingUp, Sparkles, Star, Shield,
@@ -18,10 +18,9 @@ import {
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { useNavigate } from "react-router-dom";
-import {
-  FAMILY_MEMBERS, getHourlyCare,
-  type FamilyMember,
-} from "./shared";
+import { getHourlyCare } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 
 // ═══ FadeIn (沙箱安全) ═══
 function FadeIn({ children, delay = 0, className = "", style }: {
@@ -41,9 +40,9 @@ function FadeIn({ children, delay = 0, className = "", style }: {
 
 // ═══ 家人卡片 ═══
 function FamilyMemberCard({ member, index, onCall, onChat }: {
-  member: FamilyMember; index: number;
-  onCall: (m: FamilyMember) => void;
-  onChat: (m: FamilyMember) => void;
+  member: UnifiedFamilyMember; index: number;
+  onCall: (m: UnifiedFamilyMember) => void;
+  onChat: (m: UnifiedFamilyMember) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = member.icon;
@@ -98,7 +97,7 @@ function FamilyMemberCard({ member, index, onCall, onChat }: {
             {/* 性格 */}
             <div>
               <p className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.62rem" }}>性格特质</p>
-              <p className="text-[rgba(224,240,255,0.6)] mt-0.5" style={{ fontSize: "0.78rem" }}>{member.personality}</p>
+              <p className="text-[rgba(224,240,255,0.6)] mt-0.5" style={{ fontSize: "0.78rem" }}>{typeof member.personality === 'string' ? member.personality : member.personality.description}</p>
             </div>
 
             {/* 爱好 */}
@@ -161,11 +160,12 @@ const TRUST_PRINCIPLES = [
 // ═══ 主组件 ═══
 export function AIFamilyCenterPage() {
   const nav = useNavigate();
+  const { members } = useFamilyMemberSlice();
   const care = useMemo(() => getHourlyCare(), []);
-  const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
+  const onlineCount = members.filter(m => m.status !== "idle").length;
 
-  const handleCall = useCallback((_m: FamilyMember) => nav("/ai-family/phone"), [nav]);
-  const handleChat = useCallback((_m: FamilyMember) => nav("/ai-family/chat"), [nav]);
+  const handleCall = useCallback((_m: UnifiedFamilyMember) => nav("/ai-family/phone"), [nav]);
+  const handleChat = useCallback((_m: UnifiedFamilyMember) => nav("/ai-family/chat"), [nav]);
 
   // 空间入口
   const spaces = [
@@ -255,14 +255,14 @@ export function AIFamilyCenterPage() {
               <Users className="w-4 h-4 text-[#00d4ff]" />
               <h2 className="text-[#e0f0ff]" style={{ fontSize: "0.95rem" }}>认识家人</h2>
               <span className="px-2 py-0.5 rounded-full bg-[rgba(0,255,136,0.08)] text-[#00ff88]" style={{ fontSize: "0.6rem" }}>
-                {onlineCount}/{FAMILY_MEMBERS.length} 在线
+                {onlineCount}/{members.length} 在线
               </span>
             </div>
             <p className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.62rem" }}>点击展开了解每位家人</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {FAMILY_MEMBERS.map((m, i) => (
+            {members.map((m, i) => (
               <FamilyMemberCard
                 key={m.id}
                 member={m}

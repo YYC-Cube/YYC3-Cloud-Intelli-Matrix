@@ -23,13 +23,11 @@ import type {
   SDKProviderCapabilities,
 } from "../types";
 import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
+import { useSDKSessionSlice } from "../store/slices/sdk-session-slice";
 
 // ============================================================
 // 常量
 // ============================================================
-
-const SESSIONS_KEY = "yyc3_chat_sessions";
-const STATS_KEY = "yyc3_sdk_usage_stats";
 
 /** 各提供商支持的能力 */
 export const PROVIDER_CAPABILITIES: SDKProviderCapabilities[] = [
@@ -49,25 +47,19 @@ export const PROVIDER_CAPABILITIES: SDKProviderCapabilities[] = [
 // ============================================================
 
 function loadSessions(): ChatSession[] {
-  try {
-    const raw = localStorage.getItem(SESSIONS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  return useSDKSessionSlice.getState().chatSessions;
 }
 
 function saveSessions(sessions: ChatSession[]) {
-  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); } catch { /* localStorage 不可用时忽略 */ }
+  useSDKSessionSlice.getState().setChatSessions(sessions);
 }
 
 function loadStats(): SDKUsageStats {
-  try {
-    const raw = localStorage.getItem(STATS_KEY);
-    return raw ? JSON.parse(raw) : defaultStats();
-  } catch { return defaultStats(); }
+  return useSDKSessionSlice.getState().usageStats;
 }
 
 function saveStats(stats: SDKUsageStats) {
-  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch { /* localStorage 不可用时忽略 */ }
+  useSDKSessionSlice.getState().setUsageStats(stats);
 }
 
 function defaultStats(): SDKUsageStats {

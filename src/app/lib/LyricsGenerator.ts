@@ -9,7 +9,10 @@
  * @tags: [lib]
  */
 
-import { FAMILY_MEMBERS } from "../components/ai-family/shared";
+import { FamilyDataAccessor } from "./family-data-accessor";
+
+/** 运行时从 store 或 shared.ts fallback 获取成员列表 */
+const FAMILY_MEMBERS = FamilyDataAccessor.getMembers();
 import type { EmotionType } from "./EmotionMusicBridge";
 
 export type LyricsStyle =

@@ -13,6 +13,7 @@ import type React from "react";
 import {
   Ear, Brain, Eye, Star, Network, Shield, Scale, Lightbulb,
 } from "lucide-react";
+import { useFamilyMemberSlice } from "../../store";
 
 // ═══ 色彩常量 ═══
 export const NEON_CYAN = "#00d4ff";
@@ -175,6 +176,68 @@ export const MEMBERS_MAP: Record<string, FamilyMember> = Object.fromEntries(
 
 export function getMember(id: string): FamilyMember | undefined {
   return MEMBERS_MAP[id];
+}
+
+// ═══ Store 数据回流 ═══
+
+/**
+ * 将 UnifiedFamilyMember.status 映射到 FamilyMember 兼容状态
+ */
+function mapPresenceStatus(status: string): "online" | "idle" | "speaking" {
+  if (status === "online" || status === "speaking") {return status;}
+  if (status === "busy") {return "online";}
+  return "idle";
+}
+
+/**
+ * 从 Zustand store 刷新 FAMILY_MEMBERS 数据。
+ * 在 App.tsx store hydration 完成后调用一次。
+ * 调用后所有读取 FAMILY_MEMBERS 的函数（getHourlyCare, getTodayReporter 等）自动受益。
+ */
+export function refreshFromStore(): void {
+  try {
+    const { members } = useFamilyMemberSlice.getState();
+    if (!members || members.length === 0) { return; }
+
+    const converted: FamilyMember[] = members.map((m) => ({
+      id: m.id,
+      name: m.name,
+      shortName: m.shortName,
+      enTitle: m.enTitle,
+      quote: m.quote,
+      role: m.role,
+      phone: m.phone,
+      color: m.color,
+      icon: m.icon,
+      personality: m.personality.description,
+      responsibilities: m.responsibilities,
+      coreAbility: m.coreAbility,
+      expertise: m.expertise,
+      hobbies: m.hobbies,
+      greeting: m.greeting,
+      careMessage: m.careMessage,
+      status: mapPresenceStatus(m.status),
+      contribution: m.stats.contribution,
+      growth: m.stats.growth,
+      streak: m.stats.streak,
+      mood: m.stats.mood,
+    }));
+
+    // 原地替换数组内容（保持 FAMILY_MEMBERS 引用不变）
+    FAMILY_MEMBERS.length = 0;
+    FAMILY_MEMBERS.push(...converted);
+
+    // 重建 MEMBERS_MAP
+    Object.keys(MEMBERS_MAP).forEach((k) => { delete MEMBERS_MAP[k]; });
+    converted.forEach((m) => { MEMBERS_MAP[m.id] = m; });
+  } catch {
+    // Store 未就绪时静默回退到静态数据
+  }
+}
+
+/** 动态获取成员 Map（Store-backed），比静态 MEMBERS_MAP 更准确 */
+export function getMembersMap(): Record<string, FamilyMember> {
+  return Object.fromEntries(FAMILY_MEMBERS.map((m) => [m.id, m]));
 }
 
 // ═══ 工具函数 ═══

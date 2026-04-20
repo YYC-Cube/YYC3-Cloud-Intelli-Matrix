@@ -53,7 +53,7 @@ export function useMCP(autoInit = true): UseMCPReturn {
 
   // 初始化: 注册内置 Agent + 启动 Bridge
   useEffect(() => {
-    if (!autoInit || initialized.current) return;
+    if (!autoInit || initialized.current) {return;}
     initialized.current = true;
 
     const server = getMCPServer();

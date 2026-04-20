@@ -18,6 +18,7 @@ import {
 import { GlassCard } from "./GlassCard";
 import { YYC3Logo } from "./YYC3Logo";
 import { ColorSwatch } from "./theme/ColorSwatch";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 import { hexToOklch, formatOklch, oklchToHex } from "./theme/color-utils";
 import {
   THEME_PRESETS, DEFAULT_COLORS, DEFAULT_TYPOGRAPHY, DEFAULT_SHADOW, DEFAULT_BRANDING,
@@ -133,27 +134,23 @@ export function ThemeCustomizer() {
       activePreset,
       lightness,
     };
-    localStorage.setItem('yyc3_custom_theme', JSON.stringify(themeData));
+    useUIPrefsSlice.getState().setCustomTheme(themeData);
     alert('主题已保存！');
   }, [colors, typography, shadow, branding, radius, activePreset, lightness]);
 
   // ── Load saved theme ──
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem('yyc3_custom_theme');
+    const savedTheme = useUIPrefsSlice.getState().customTheme;
     if (savedTheme) {
-      try {
-        const parsed = JSON.parse(savedTheme);
-        if (parsed.colors) {setColors(parsed.colors);}
-        if (parsed.typography) {setTypography(parsed.typography);}
-        if (parsed.shadow) {setShadow(parsed.shadow);}
-        if (parsed.branding) {setBranding(parsed.branding);}
-        if (parsed.radius !== undefined) {setRadius(parsed.radius);}
-        if (parsed.activePreset) {setActivePreset(parsed.activePreset);}
-        if (parsed.lightness !== undefined) {setLightness(parsed.lightness);}
-        if (parsed.branding?.backgroundUrl) {setBgPreview(parsed.branding.backgroundUrl);}
-      } catch (e) {
-        console.error('Failed to load saved theme:', e);
-      }
+      const parsed = savedTheme as Record<string, any>;
+      if (parsed.colors) {setColors(parsed.colors);}
+      if (parsed.typography) {setTypography(parsed.typography);}
+      if (parsed.shadow) {setShadow(parsed.shadow);}
+      if (parsed.branding) {setBranding(parsed.branding);}
+      if (parsed.radius !== undefined) {setRadius(parsed.radius);}
+      if (parsed.activePreset) {setActivePreset(parsed.activePreset);}
+      if (parsed.lightness !== undefined) {setLightness(parsed.lightness);}
+      if (parsed.branding?.backgroundUrl) {setBgPreview(parsed.branding.backgroundUrl);}
     }
   }, []);
 

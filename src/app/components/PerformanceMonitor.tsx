@@ -22,6 +22,7 @@ import {
 } from "recharts";
 import { env } from "../lib/env-config";
 import { toast } from "sonner";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 
 // ── 样式 ──
 const f = { xs: "0.62rem", sm: "0.72rem", md: "0.82rem", lg: "0.95rem" };
@@ -80,20 +81,6 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
   alertEnabled: true,
   alertCooldownSec: 30,
 };
-
-const THRESHOLDS_KEY = "yyc3_perf_alert_thresholds";
-
-function loadThresholds(): AlertThresholds {
-  try {
-    const raw = localStorage.getItem(THRESHOLDS_KEY);
-    if (raw) {return { ...DEFAULT_THRESHOLDS, ...JSON.parse(raw) };}
-  } catch { /* ignore */ }
-  return { ...DEFAULT_THRESHOLDS };
-}
-
-function saveThresholds(t: AlertThresholds) {
-  try { localStorage.setItem(THRESHOLDS_KEY, JSON.stringify(t)); } catch { /* ignore */ }
-}
 
 // ============================================================
 // 工具函数
@@ -186,7 +173,7 @@ function ThresholdEditor({ thresholds, onChange, onReset }: {
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-[#ff6633]" />
           <span className="text-[#e0f0ff]" style={{ fontSize: f.sm }}>告警阈值配置</span>
-          <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: f.xs }}>(localStorage 持久化)</span>
+          <span className="text-[rgba(0,212,255,0.25)]" style={{ fontSize: f.xs }}>(自动持久化)</span>
         </div>
         <button onClick={onReset} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(0,100,150,0.08)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] transition-all" style={{ fontSize: f.xs }}>
           <RotateCcw className="w-3 h-3" /> 重置默认
@@ -244,7 +231,13 @@ export function PerformanceMonitor() {
   const [storageUsage, setStorageUsage] = useState<{ used: number; keys: number }>({ used: 0, keys: 0 });
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showThresholds, setShowThresholds] = useState(false);
-  const [thresholds, setThresholds] = useState<AlertThresholds>(() => loadThresholds());
+  const sliceThresholds = useUIPrefsSlice((s) => s.perfAlertThresholds);
+  const setPerfAlertThresholds = useUIPrefsSlice((s) => s.setPerfAlertThresholds);
+  // Merge stored thresholds with defaults so new fields always have values
+  const thresholds: AlertThresholds = useMemo(
+    () => ({ ...DEFAULT_THRESHOLDS, ...sliceThresholds }),
+    [sliceThresholds],
+  );
   const [alertLog, setAlertLog] = useState<Array<{ time: string; msg: string; type: string }>>([]);
   const frameRef = useRef<number>(0);
   const lastFrameTimeRef = useRef<number>(0);
@@ -257,14 +250,12 @@ export function PerformanceMonitor() {
 
   // 持久化阈值
   const updateThresholds = useCallback((t: AlertThresholds) => {
-    setThresholds(t);
-    saveThresholds(t);
-  }, []);
+    setPerfAlertThresholds(t);
+  }, [setPerfAlertThresholds]);
   const resetThresholds = useCallback(() => {
-    setThresholds({ ...DEFAULT_THRESHOLDS });
-    saveThresholds(DEFAULT_THRESHOLDS);
+    setPerfAlertThresholds({ ...DEFAULT_THRESHOLDS });
     toast.info("告警阈值已重置为默认值");
-  }, []);
+  }, [setPerfAlertThresholds]);
 
   // ── 告警检查 ──
   const checkAlerts = useCallback((fps: number, mem: MemoryInfo | null, storage: { used: number }) => {

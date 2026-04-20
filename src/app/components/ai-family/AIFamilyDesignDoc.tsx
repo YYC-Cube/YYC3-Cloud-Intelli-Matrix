@@ -12,8 +12,8 @@
 import React, { useState, useEffect } from "react";
 import {
   Brain, Users, Heart, Music, Newspaper, TrendingUp,
-  Sparkles, BookOpen, Gamepad2, GraduationCap, Lightbulb,
-  Shield, Network, Eye, Star, MessageCircle, Zap,
+  Sparkles, BookOpen, Gamepad2, GraduationCap,
+  Shield, Network, MessageCircle, Zap,
   ChevronRight, ChevronDown, Play, Pause,
   Home, Headphones, Radio, Globe, Target,
   Award, Rocket, GitBranch, Layers, Code, Terminal,
@@ -23,7 +23,7 @@ import {
   Quote, Mic, Volume2, Rss,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
-import { FAMILY_MEMBERS as FAMILY_MEMBERS_FULL } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
 
 // ═══════════════════════════════════════════════
 // 安全动画 wrapper — 不依赖 IntersectionObserver
@@ -145,14 +145,6 @@ const DESIGN_SECTIONS: DesignSection[] = [
     description: "记录每位成员的成长轨迹，可视化技能提升，团队协作贡献。AI导师陪伴式指导，个性化学习路径规划，让每个人都能在Family中找到自己的成长方向。",
   },
 ];
-
-const FAMILY_MEMBERS: FamilyMemberBrief[] = FAMILY_MEMBERS_FULL.map(m => ({
-  name: m.name,
-  title: `${m.enTitle} · ${m.shortName}`,
-  role: m.responsibilities[0] ?? "",
-  color: m.color,
-  icon: m.icon,
-}));
 
 const ROADMAP: RoadmapPhase[] = [
   {
@@ -495,6 +487,15 @@ function ModuleDetailPanel({ moduleId, onClose }: { moduleId: string; onClose: (
 
 /** AI Family 成员星图 */
 function FamilyMembersSection() {
+  const { members: storeMembers } = useFamilyMemberSlice();
+  const familyMembers: FamilyMemberBrief[] = storeMembers.map(m => ({
+    name: m.name,
+    title: `${m.enTitle} · ${m.shortName}`,
+    role: m.responsibilities[0] ?? "",
+    color: m.color,
+    icon: m.icon,
+  }));
+
   return (
     <section className="px-4 md:px-8 py-12">
       <SectionHeader
@@ -505,7 +506,7 @@ function FamilyMembersSection() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 max-w-6xl mx-auto">
-        {FAMILY_MEMBERS.map((member, i) => (
+        {familyMembers.map((member, i) => (
           <FadeIn key={member.name} delay={i * 0.08}>
             <GlassCard className="p-4 group hover:scale-[1.02] transition-all">
               <div className="flex items-center gap-3 mb-3">

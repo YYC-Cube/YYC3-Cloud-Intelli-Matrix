@@ -10,16 +10,18 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useClock } from "../hooks/useClock";
 import {
   MessageCircle, ChevronRight, X, Sparkles,
   Clock, Users, Zap, Activity,
 } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
-import { FAMILY_MEMBERS, type FamilyMember } from "./ai-family/shared";
+import type { UnifiedFamilyMember } from "../types";
+import { useFamilyMemberSlice } from "../store";
 
 // ======== 时钟布局扩展 ========
 
-interface ClockMember extends FamilyMember {
+interface ClockMember extends UnifiedFamilyMember {
   angle: number;       // 在时钟环上的角度 (度)
   timeLabel: string;   // 对应时间刻度
 }
@@ -35,11 +37,6 @@ const CLOCK_SLOTS: { angle: number; timeLabel: string }[] = [
   { angle: 315, timeLabel: "16:30" },
 ];
 
-const AI_FAMILY_MEMBERS: ClockMember[] = FAMILY_MEMBERS.map((m, i) => ({
-  ...m,
-  ...CLOCK_SLOTS[i],
-}));
-
 // 兼容旧代码中对 title 字段的引用 (enTitle 映射)
 function getTitle(m: ClockMember): string {
   return `${m.enTitle} · ${m.shortName}`;
@@ -47,14 +44,6 @@ function getTitle(m: ClockMember): string {
 
 // ======== 时钟逻辑 ========
 
-function useRealTimeClock() {
-  const [time, setTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return time;
-}
 
 /** 容器自适应尺寸 hook */
 function useContainerSize(ref: React.RefObject<HTMLDivElement | null>) {
@@ -91,20 +80,27 @@ function formatDateInfo(date: Date) {
 
 export function AIFamilyPage() {
   const { t } = useI18n();
-  const time = useRealTimeClock();
+  const time = useClock();
+  const { members } = useFamilyMemberSlice();
   const [selectedMember, setSelectedMember] = useState<ClockMember | null>(null);
   const [hoveredMember, setHoveredMember] = useState<string | null>(null);
   const [activeSpeaker, setActiveSpeaker] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const { width: cW, height: cH } = useContainerSize(containerRef);
 
+  // 将 store members 映射为带时钟位置的 ClockMember
+  const clockMembers: ClockMember[] = useMemo(
+    () => members.map((m, i) => ({ ...m, ...CLOCK_SLOTS[i] })),
+    [members],
+  );
+
   // Simulated speaking rotation
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveSpeaker((prev) => (prev + 1) % AI_FAMILY_MEMBERS.length);
+      setActiveSpeaker((prev) => (prev + 1) % clockMembers.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [clockMembers.length]);
 
   // Clock hands
   const hours = time.getHours() % 12;
@@ -225,7 +221,7 @@ export function AIFamilyPage() {
           <circle cx={0} cy={0} r={4 * scale} fill="#00F0FF" />
 
           {/* Holographic connection lines from center to members */}
-          {AI_FAMILY_MEMBERS.map((member, i) => {
+          {clockMembers.map((member, i) => {
             const angle = (member.angle - 90) * (Math.PI / 180);
             const isActive = i === activeSpeaker;
             return (
@@ -308,7 +304,7 @@ export function AIFamilyPage() {
       </div>
 
       {/* ======== AI Family Members on Clock Ring ======== */}
-      {AI_FAMILY_MEMBERS.map((member, idx) => {
+      {clockMembers.map((member, idx) => {
         const angleRad = (member.angle - 90) * (Math.PI / 180);
         const x = Math.cos(angleRad) * RING_RADIUS;
         const y = Math.sin(angleRad) * RING_RADIUS;

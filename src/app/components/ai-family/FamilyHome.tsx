@@ -9,7 +9,8 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React from "react";
+import { useClock } from "../../hooks/useClock";
 import {
   Heart, Users, MessageCircle, BookOpen, Music, TrendingUp,
   Coffee, Sun, Moon, Cloud,
@@ -20,7 +21,8 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { useNavigate } from "react-router";
-import { FAMILY_MEMBERS, getGreeting, hexToRgb } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import { getGreeting, hexToRgb } from "./shared";
 
 // ═══ 图标映射（家园空间） ═══
 const _SPACE_ICONS: Record<string, React.ElementType> = {
@@ -38,15 +40,6 @@ const FAMILY_MOMENTS = [
   { member: "智云·守护", text: "安全扫描已完成，未发现异常入侵行为。家人们可以放心工作！", time: "3 小时前", color: "#BF00FF" },
 ];
 
-function useTime() {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return now;
-}
-
 function _getGreetingIcon(emoji: string): React.ElementType {
   const map: Record<string, React.ElementType> = {
     night: Moon, dawn: Sun, morning: Coffee, noon: Coffee,
@@ -61,11 +54,11 @@ const GREETING_EMOJIS: Record<string, string> = {
 };
 
 export function FamilyHome() {
-  const now = useTime();
+  const now = useClock();
   const nav = useNavigate();
-  const greetingMinute = Math.floor(now.getTime() / 60000);
-  const greeting = useMemo(() => getGreeting(), [greetingMinute]);
-  const onlineCount = FAMILY_MEMBERS.filter(m => m.status !== "idle").length;
+  const { members } = useFamilyMemberSlice();
+  const greeting = getGreeting();
+  const onlineCount = members.filter(m => m.status !== "idle" && m.status !== "offline").length;
 
   const timeStr = now.toLocaleTimeString("zh-CN", { hour12: false });
   const dateStr = now.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
@@ -127,7 +120,7 @@ export function FamilyHome() {
               <Users className="w-4 h-4 text-[#00d4ff]" />
               <h2 className="text-[#e0f0ff]" style={{ fontSize: "0.95rem" }}>家人状态</h2>
               <span className="px-2 py-0.5 rounded-full bg-[rgba(0,255,136,0.1)] text-[#00ff88]" style={{ fontSize: "0.6rem" }}>
-                {onlineCount}/{FAMILY_MEMBERS.length} 在线
+                {onlineCount}/{members.length} 在线
               </span>
             </div>
             <button
@@ -140,8 +133,9 @@ export function FamilyHome() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            {FAMILY_MEMBERS.map((m, i) => {
+            {members.map((m, i) => {
               const Icon = m.icon;
+              const isOnline = m.status !== "idle" && m.status !== "offline";
               return (
                 <FadeIn key={m.id} delay={0.1 + i * 0.05}>
                   <GlassCard
@@ -159,8 +153,8 @@ export function FamilyHome() {
                       <div
                         className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#060e1f]"
                         style={{
-                          background: m.status !== "idle" ? "#00ff88" : "#808080",
-                          boxShadow: m.status !== "idle" ? "0 0 6px #00ff88" : "none",
+                          background: isOnline ? "#00ff88" : "#808080",
+                          boxShadow: isOnline ? "0 0 6px #00ff88" : "none",
                         }}
                       />
                     </div>

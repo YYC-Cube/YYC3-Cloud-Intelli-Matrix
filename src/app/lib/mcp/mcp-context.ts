@@ -77,7 +77,7 @@ export class MCPContextManager {
   /** 获取上下文消息 (可选限制条数) */
   getMessages(agentId: string, limit?: number): MCPContextMessage[] {
     const ctx = this.contexts.get(agentId);
-    if (!ctx) return [];
+    if (!ctx) {return [];}
     if (limit && ctx.messages.length > limit) {
       // 保留 system 消息 + 最近的 limit 条
       const systemMsgs = ctx.messages.filter((m) => m.role === SYSTEM_ROLE);
@@ -193,7 +193,7 @@ export class MCPContextManager {
   private loadFromStorage(agentId: string): MCPContext | null {
     try {
       const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${agentId}`);
-      if (!raw) return null;
+      if (!raw) {return null;}
       const parsed = JSON.parse(raw);
       return {
         agentId: parsed.agentId,

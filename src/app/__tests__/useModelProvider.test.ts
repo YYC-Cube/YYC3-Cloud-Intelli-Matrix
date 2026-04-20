@@ -1,10 +1,10 @@
 /**
  * @file: useModelProvider.test.ts
- * @description: useModelProvider Hook单元测试
+ * @description: useModelProvider Hook unit test — Zustand slice integration
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-05
- * @updated: 2026-04-08
+ * @updated: 2026-04-19
  * @status: active
  * @tags: [module]
  */
@@ -12,18 +12,39 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, cleanup } from "@testing-library/react";
-import { useModelProvider } from "../hooks/useModelProvider";
+
+// ── Mock dependencies before imports ──────────────────────────
 
 vi.mock("../lib/ollama-url", () => ({
   getOllamaTagsUrl: vi.fn(() => "http://localhost:11434/api/tags"),
 }));
 
+vi.mock("../lib/connection-test-engine", () => ({
+  testAIConnection: vi.fn(async () => ({
+    overallStatus: "pass",
+    steps: [],
+    totalLatencyMs: 50,
+  })),
+}));
+
 global.fetch = vi.fn();
+
+// ── Import store and hook after mocks ─────────────────────────
+
+import { useProviderSlice, BUILTIN_PROVIDERS as SLICE_BUILTIN } from "../store/slices/provider-slice";
+import { useModelProvider } from "../hooks/useModelProvider";
 
 describe("useModelProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    // Reset Zustand store to clean state with fresh builtin providers
+    useProviderSlice.setState({
+      providers: SLICE_BUILTIN.map((p) => ({ ...p })),
+      configuredModels: [],
+      ollamaModels: [],
+      ollamaLoading: false,
+      ollamaError: null,
+    });
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ models: [] }),
@@ -96,7 +117,6 @@ describe("useModelProvider", () => {
       result.current.removeProvider("zhipu");
     });
 
-    // 所有服务商都可以删除（包括内置的）
     expect(result.current.providers.length).toBe(initialLength - 1);
     expect(result.current.providers.find((p) => p.id === "zhipu")).toBeUndefined();
   });

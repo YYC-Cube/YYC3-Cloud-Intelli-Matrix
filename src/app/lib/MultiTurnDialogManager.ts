@@ -9,7 +9,11 @@
  * @tags: [lib]
  */
 
-import { FAMILY_MEMBERS, type FamilyMember } from "../components/ai-family/shared";
+import { FamilyDataAccessor } from "./family-data-accessor";
+import type { FamilyMember } from "../components/ai-family/shared";
+
+/** 运行时从 store 或 shared.ts fallback 获取成员列表 */
+const FAMILY_MEMBERS = FamilyDataAccessor.getMembers();
 import { familyPersonalizedRecommender } from "./FamilyPersonalizedRecommender";
 import type { EmotionType } from "./EmotionMusicBridge";
 

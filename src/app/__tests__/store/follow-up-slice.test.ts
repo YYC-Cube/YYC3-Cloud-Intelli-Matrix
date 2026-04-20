@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useFollowUpSlice } from '../../store/slices/follow-up-slice';
-import type { FollowUpRecord } from '../../stores/dashboard-stores';
+import type { FollowUpRecord } from '../../types';
 
 describe('useFollowUpSlice', () => {
   beforeEach(() => {

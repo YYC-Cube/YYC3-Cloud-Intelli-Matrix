@@ -245,16 +245,6 @@ export function useSettingsStore() {
         toggles: { ...prev.toggles, [key]: !prev.toggles[key] },
       };
       broadcast(next);
-
-      // SSOT 桥接: darkMode 变更同步到 GlobalStore.theme
-      if (key === "darkMode") {
-        try {
-          const { useGlobalStore } = require("../stores/global-store");
-          const newTheme = next.toggles.darkMode ? "dark" : "light";
-          useGlobalStore.getState().setTheme(newTheme);
-        } catch { /* GlobalStore unavailable */ }
-      }
-
       return next;
     });
   }, [broadcast]);

@@ -9,7 +9,7 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Server, Cloud, Shield, Cpu, Globe, Zap,
   Search, Check, ChevronDown, ChevronRight,
@@ -19,11 +19,10 @@ import {
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
-import {
-  FAMILY_MEMBERS, hexToRgb,
-  DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES,
-  type FamilyMember, type MemberModelAssignment, type VoiceProfile,
-} from "./shared";
+import { hexToRgb, DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES, type MemberModelAssignment, type VoiceProfile } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
+import type { UnifiedFamilyMember } from "../../types";
 
 // ═══ Provider 定义（自包含） ═══
 
@@ -100,26 +99,6 @@ const PROVIDERS: ProviderDef[] = [
 
 const PROVIDERS_MAP = Object.fromEntries(PROVIDERS.map(p => [p.id, p]));
 
-// ═══ localStorage 工具 ═══
-
-const STORAGE = {
-  apiKeys: "yyc3-family-provider-keys",
-  assignments: "yyc3-family-model-assignments",
-  voiceProfiles: "yyc3-family-voice-profiles",
-  diagnostics: "yyc3-family-diagnostics",
-};
-
-function loadJSON<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch { return fallback; }
-}
-
-function saveJSON(key: string, value: unknown) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* noop */ }
-}
-
 // ═══ 诊断状态 ═══
 
 interface DiagResult {
@@ -195,7 +174,7 @@ function MemberModelCard({
   onTestConnection,
   onSpeak,
 }: {
-  member: FamilyMember;
+  member: UnifiedFamilyMember;
   assignment: MemberModelAssignment;
   voiceProfile: VoiceProfile;
   apiKeys: Record<string, string>;
@@ -450,38 +429,22 @@ function ApiKeyPanel({
 // ═══ 主组件 ═══
 
 export function FamilyModelSettings() {
+  const { members } = useFamilyMemberSlice();
+  const apiKeys = useFamilySettingsSlice((s) => s.providerKeys);
+  const assignments = useFamilySettingsSlice((s) => s.modelAssignments);
+  const voiceProfiles = useFamilySettingsSlice((s) => s.voiceProfiles);
   // State
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
-  const [assignments, setAssignments] = useState<MemberModelAssignment[]>(DEFAULT_MODEL_ASSIGNMENTS);
-  const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>(DEFAULT_VOICE_PROFILES);
   const [diagnostics, setDiagnostics] = useState<Record<string, DiagResult>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"members" | "keys" | "overview">("members");
 
-  // Load from localStorage
-  useEffect(() => {
-    setApiKeys(loadJSON(STORAGE.apiKeys, {}));
-    setAssignments(loadJSON(STORAGE.assignments, DEFAULT_MODEL_ASSIGNMENTS));
-    setVoiceProfiles(loadJSON(STORAGE.voiceProfiles, DEFAULT_VOICE_PROFILES));
-  }, []);
-
   // Handlers
   const handleKeyChange = useCallback((providerId: string, key: string) => {
-    setApiKeys(prev => {
-      const next = { ...prev, [providerId]: key };
-      saveJSON(STORAGE.apiKeys, next);
-      return next;
-    });
+    useFamilySettingsSlice.getState().updateProviderKey(providerId, key);
   }, []);
 
   const handleChangeModel = useCallback((memberId: string, providerId: string, modelId: string) => {
-    setAssignments(prev => {
-      const next = prev.map(a =>
-        a.memberId === memberId ? { ...a, providerId, modelId } : a
-      );
-      saveJSON(STORAGE.assignments, next);
-      return next;
-    });
+    useFamilySettingsSlice.getState().updateModelAssignment(memberId, { providerId, modelId });
   }, []);
 
   const handleTestConnection = useCallback(async (memberId: string) => {
@@ -543,7 +506,7 @@ export function FamilyModelSettings() {
     }));
   }, [assignments, apiKeys]);
 
-  const handleSpeak = useCallback((member: FamilyMember, profile: VoiceProfile) => {
+  const handleSpeak = useCallback((member: UnifiedFamilyMember, profile: VoiceProfile) => {
     if (!("speechSynthesis" in window)) {return;}
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(member.greeting);
@@ -559,7 +522,13 @@ export function FamilyModelSettings() {
   }, []);
 
   const handleExportConfig = useCallback(() => {
-    const data = { apiKeys, assignments, voiceProfiles, exportDate: new Date().toISOString() };
+    const sliceState = useFamilySettingsSlice.getState();
+    const data = {
+      apiKeys: sliceState.providerKeys,
+      assignments: sliceState.modelAssignments,
+      voiceProfiles: sliceState.voiceProfiles,
+      exportDate: new Date().toISOString(),
+    };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -569,18 +538,18 @@ export function FamilyModelSettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [apiKeys, assignments, voiceProfiles]);
+  }, []);
 
   // Filter members
   const filteredMembers = useMemo(() => {
-    if (!searchQuery) { return FAMILY_MEMBERS; }
+    if (!searchQuery) { return members; }
     const q = searchQuery.toLowerCase();
-    return FAMILY_MEMBERS.filter(m =>
+    return members.filter(m =>
       m.name.toLowerCase().includes(q) ||
       m.shortName.toLowerCase().includes(q) ||
       m.enTitle.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [searchQuery, members]);
 
   // Stats
   const connectedCount = PROVIDERS.filter(p => p.id === "ollama" || !!apiKeys[p.id]).length;
@@ -719,7 +688,7 @@ export function FamilyModelSettings() {
               <GlassCard className="p-4">
                 <div className="text-white/60 mb-3" style={{ fontSize: "0.8rem" }}>家人 <ArrowRight className="w-3 h-3 inline" /> 模型分配一览</div>
                 <div className="space-y-2">
-                  {FAMILY_MEMBERS.map(member => {
+                  {members.map(member => {
                     const assignment = assignments.find(a => a.memberId === member.id) || DEFAULT_MODEL_ASSIGNMENTS.find(a => a.memberId === member.id)!;
                     const provider = PROVIDERS_MAP[assignment.providerId];
                     const model = provider?.models.find(m => m.id === assignment.modelId);
@@ -760,7 +729,7 @@ export function FamilyModelSettings() {
               <div className="flex justify-center">
                 <button
                   onClick={async () => {
-                    for (const m of FAMILY_MEMBERS) {
+                    for (const m of members) {
                       handleTestConnection(m.id);
                       await new Promise(r => setTimeout(r, 200));
                     }

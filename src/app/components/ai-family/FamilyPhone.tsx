@@ -17,7 +17,8 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
-import { FAMILY_MEMBERS, type FamilyMember } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 
 type CallState = "idle" | "dialing" | "ringing" | "connected" | "ended";
 
@@ -39,8 +40,9 @@ const MOCK_CALL_LOGS: CallLog[] = [
 ];
 
 export function FamilyPhone() {
+  const { members } = useFamilyMemberSlice();
   const [callState, setCallState] = useState<CallState>("idle");
-  const [callingMember, setCallingMember] = useState<FamilyMember | null>(null);
+  const [callingMember, setCallingMember] = useState<UnifiedFamilyMember | null>(null);
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(false);
@@ -66,7 +68,7 @@ export function FamilyPhone() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const startCall = useCallback((member: FamilyMember) => {
+  const startCall = useCallback((member: UnifiedFamilyMember) => {
     setCallingMember(member);
     setCallState("dialing");
     setChatMessages([]);
@@ -89,11 +91,11 @@ export function FamilyPhone() {
   }, []);
 
   const dialNumber = useCallback(() => {
-    const member = FAMILY_MEMBERS.find(m => m.phone === dialInput.toUpperCase());
+    const member = members.find(m => m.phone === dialInput.toUpperCase());
     if (member) {
       startCall(member);
     }
-  }, [dialInput, startCall]);
+  }, [dialInput, startCall, members]);
 
   // 通话中家人会说话
   useEffect(() => {
@@ -278,7 +280,7 @@ export function FamilyPhone() {
         {/* ═══ 通讯录 ═══ */}
         {activeTab === "contacts" && (
           <div className="space-y-2">
-            {FAMILY_MEMBERS.map((m, i) => {
+            {members.map((m, i) => {
               const Icon = m.icon;
               return (
                 <FadeIn key={m.id} delay={i * 0.04}>
@@ -303,7 +305,7 @@ export function FamilyPhone() {
                           <span className="text-[rgba(224,240,255,0.25)]" style={{ fontSize: "0.62rem" }}>{m.enTitle}</span>
                         </div>
                         <p className="text-[rgba(224,240,255,0.4)] mt-0.5 font-mono" style={{ fontSize: "0.7rem" }}>{m.phone}</p>
-                        <p className="text-[rgba(224,240,255,0.3)] mt-0.5 truncate" style={{ fontSize: "0.62rem" }}>{m.personality}</p>
+                        <p className="text-[rgba(224,240,255,0.3)] mt-0.5 truncate" style={{ fontSize: "0.62rem" }}>{typeof m.personality === 'string' ? m.personality : m.personality.description}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <button
@@ -340,7 +342,7 @@ export function FamilyPhone() {
 
               {/* 快捷号码 */}
               <div className="grid grid-cols-4 gap-2 mb-6">
-                {FAMILY_MEMBERS.map(m => {
+                {members.map(m => {
                   const Icon = m.icon;
                   return (
                     <button
@@ -378,7 +380,7 @@ export function FamilyPhone() {
         {activeTab === "logs" && (
           <div className="space-y-2">
             {MOCK_CALL_LOGS.map((log, i) => {
-              const m = FAMILY_MEMBERS.find(f => f.id === log.memberId);
+              const m = members.find(f => f.id === log.memberId);
               if (!m) {return null;}
               const Icon = m.icon;
               return (

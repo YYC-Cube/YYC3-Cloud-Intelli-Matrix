@@ -162,6 +162,8 @@ describe("supabaseClientReal", () => {
   describe("ghostSignIn", () => {
     it("should create ghost session", () => {
       const session = ghostSignIn();
+      expect(session).not.toBeNull();
+      if (!session) { return; }
 
       expect(session.user.id).toBe("ghost-000");
       expect(session.user.email).toBe("ghost@yyc3.local");

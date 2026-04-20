@@ -52,7 +52,7 @@ describe("DataFlowDiagram", () => {
 
     it("应渲染子标签", () => {
       render(<DataFlowDiagram nodes={DATA_FLOW_NODES} edges={DATA_FLOW_EDGES} />);
-      expect(screen.getAllByText("192.168.3.x")[0]).toBeInTheDocument();
+      expect(screen.getAllByText("localhost")[0]).toBeInTheDocument();
       expect(screen.getAllByText("PostgreSQL + NAS")[0]).toBeInTheDocument();
     });
   });

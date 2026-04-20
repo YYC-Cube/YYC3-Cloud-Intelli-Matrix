@@ -23,63 +23,10 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import { useNavigate } from "react-router";
-import { FAMILY_MEMBERS, hexToRgb } from "./shared";
-
-// ═══ Settings Types ═══
-
-interface FamilyUIConfig {
-  animationSpeed: "fast" | "normal" | "slow" | "none";
-  infoDensity: "compact" | "normal" | "expanded";
-  showOfflineMembers: boolean;
-  memberOrder: string[]; // ordered member ids
-  defaultExpandCards: boolean;
-  notificationsEnabled: boolean;
-  hourlyCareEnabled: boolean;
-  dailyBroadcastEnabled: boolean;
-  soundEnabled: boolean;
-  autoMarkRead: boolean;
-  messageRetentionDays: number;
-  locale: "zh-CN" | "en-US";
-}
-
-const DEFAULT_CONFIG: FamilyUIConfig = {
-  animationSpeed: "normal",
-  infoDensity: "normal",
-  showOfflineMembers: true,
-  memberOrder: FAMILY_MEMBERS.map(m => m.id),
-  defaultExpandCards: false,
-  notificationsEnabled: true,
-  hourlyCareEnabled: true,
-  dailyBroadcastEnabled: true,
-  soundEnabled: true,
-  autoMarkRead: false,
-  messageRetentionDays: 30,
-  locale: "zh-CN",
-};
-
-const CONFIG_KEY = "yyc3-family-ui-config";
-
-const ALL_STORAGE_KEYS = [
-  "yyc3-family-comm-messages",
-  "yyc3-family-voice-profiles",
-  "yyc3-family-voice-conversations",
-  "yyc3-family-model-assignments",
-  "yyc3-family-provider-keys",
-  "yyc3-family-diagnostics",
-  "yyc3-family-ui-config",
-  "yyc3-family-activities",
-];
-
-function loadConfig(): FamilyUIConfig {
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    return raw ? { ...DEFAULT_CONFIG, ...JSON.parse(raw) } : DEFAULT_CONFIG;
-  } catch { return DEFAULT_CONFIG; }
-}
-
-function saveConfig(cfg: FamilyUIConfig) {
-  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch { /* noop */ }
-}
+import { useFamilyMemberSlice } from "../../store";
+import { useFamilySettingsSlice, migrateLegacyUIConfig } from "../../store/slices/family-settings-slice";
+import type { FamilyUIConfig } from "../../store/slices/family-settings-slice";
+import { hexToRgb } from "./shared";
 
 // ═══ Link Health Types ═══
 
@@ -270,15 +217,16 @@ function LinkNodeCard({
 // ═══ 主组件 ═══
 
 export function FamilyUISettings() {
+  const { members } = useFamilyMemberSlice();
   const nav = useNavigate();
-  const [config, setConfig] = useState<FamilyUIConfig>(DEFAULT_CONFIG);
+  const config = useFamilySettingsSlice((s) => s.uiConfig);
   const [linkStatuses, setLinkStatuses] = useState<Record<string, LinkStatus>>({});
   const [activeTab, setActiveTab] = useState<"appearance" | "notifications" | "ecosystem" | "data">("ecosystem");
   const [batchTesting, setBatchTesting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    setConfig(loadConfig());
+    migrateLegacyUIConfig();
     // Init link statuses
     const initial: Record<string, LinkStatus> = {};
     ECOSYSTEM_LINKS.forEach(link => {
@@ -288,11 +236,7 @@ export function FamilyUISettings() {
   }, []);
 
   const updateConfig = useCallback((updates: Partial<FamilyUIConfig>) => {
-    setConfig(prev => {
-      const next = { ...prev, ...updates };
-      saveConfig(next);
-      return next;
-    });
+    useFamilySettingsSlice.getState().setUIConfig(updates);
   }, []);
 
   // ═══ 链路测试 ═══
@@ -383,34 +327,26 @@ export function FamilyUISettings() {
   // ═══ 数据管理 ═══
 
   const storageStats = useMemo(() => {
-    let totalSize = 0;
-    const items: { key: string; size: number }[] = [];
-    for (const key of ALL_STORAGE_KEYS) {
-      try {
-        const data = localStorage.getItem(key);
-        if (data) {
-          const size = new Blob([data]).size;
-          totalSize += size;
-          items.push({ key, size });
-        }
-      } catch { /* noop */ }
-    }
-    return { totalSize, items };
+    return useFamilySettingsSlice.getState().getStorageStats();
   }, []);
 
   const handleExportAll = useCallback(() => {
-    const allData: Record<string, unknown> = {};
-    for (const key of ALL_STORAGE_KEYS) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (raw) {allData[key] = JSON.parse(raw);}
-      } catch { /* noop */ }
-    }
+    const sliceState = useFamilySettingsSlice.getState();
+    const data: Record<string, unknown> = {
+      'yyc3-family-comm-messages': sliceState.commMessages,
+      'yyc3-family-voice-profiles': sliceState.voiceProfiles,
+      'yyc3-family-voice-conversations': sliceState.voiceConversations,
+      'yyc3-family-model-assignments': sliceState.modelAssignments,
+      'yyc3-family-provider-keys': sliceState.providerKeys,
+      'yyc3-family-diagnostics': [],
+      'yyc3-family-ui-config': sliceState.uiConfig,
+      'yyc3-family-activities': [],
+    };
     const blob = new Blob([JSON.stringify({
       exportDate: new Date().toISOString(),
       version: "2.0",
       platform: "YYC3 AI Family",
-      data: allData,
+      data,
     }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -420,7 +356,6 @@ export function FamilyUISettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleImportAll = useCallback(() => {
@@ -433,17 +368,9 @@ export function FamilyUISettings() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          const parsed = JSON.parse(ev.target?.result as string);
-          const data = parsed.data || parsed;
-          let count = 0;
-          for (const [key, value] of Object.entries(data)) {
-            if (ALL_STORAGE_KEYS.includes(key)) {
-              localStorage.setItem(key, JSON.stringify(value));
-              count++;
-            }
-          }
-          setImportStatus(`成功导入 ${count} 项数据`);
-          setConfig(loadConfig()); // reload
+          const raw = ev.target?.result as string;
+          const success = useFamilySettingsSlice.getState().importAllData(raw);
+          setImportStatus(success ? "成功导入数据" : "导入失败: 文件格式错误");
           setTimeout(() => setImportStatus(null), 3000);
         } catch {
           setImportStatus("导入失败: 文件格式错误");
@@ -456,10 +383,7 @@ export function FamilyUISettings() {
   }, []);
 
   const handleClearAll = useCallback(() => {
-    for (const key of ALL_STORAGE_KEYS) {
-      try { localStorage.removeItem(key); } catch { /* noop */ }
-    }
-    setConfig(DEFAULT_CONFIG);
+    useFamilySettingsSlice.getState().clearAllFamilyData();
     setImportStatus("已清除所有 AI Family 数据");
     setTimeout(() => setImportStatus(null), 3000);
   }, []);
@@ -687,7 +611,7 @@ export function FamilyUISettings() {
                 <div>
                   <div className="text-white/40 mb-2" style={{ fontSize: "0.65rem" }}>家人排序</div>
                   <div className="flex flex-wrap gap-1.5">
-                    {FAMILY_MEMBERS.map(m => {
+                    {members.map(m => {
                       const _rgb = hexToRgb(m.color);
                       return (
                         <div
@@ -837,8 +761,7 @@ export function FamilyUISettings() {
                 </p>
                 <button
                   onClick={() => {
-                    setConfig(DEFAULT_CONFIG);
-                    saveConfig(DEFAULT_CONFIG);
+                    useFamilySettingsSlice.getState().resetUIConfig();
                     setImportStatus("UI 偏好已恢复默认");
                     setTimeout(() => setImportStatus(null), 3000);
                   }}

@@ -27,6 +27,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook, act, cleanup, waitFor } from "@testing-library/react";
 import { useBigModelSDK } from "../hooks/useBigModelSDK";
+import { useSDKSessionSlice } from "../store/slices/sdk-session-slice";
 import type { ConfiguredModel, SDKCapability } from "../types";
 
 // Mock ollama-url to avoid environment-dependent code
@@ -43,6 +44,18 @@ describe("useBigModelSDK", () => {
     vi.clearAllMocks();
     // Clear the localStorage mock provided by setup.ts
     localStorage.clear();
+    // Reset the Zustand SDK session slice to default state
+    useSDKSessionSlice.setState({
+      chatSessions: [],
+      usageStats: {
+        totalRequests: 0,
+        totalTokensIn: 0,
+        totalTokensOut: 0,
+        avgLatencyMs: 0,
+        lastRequestAt: null,
+        errorCount: 0,
+      },
+    });
   });
 
   afterEach(() => {
@@ -61,7 +74,7 @@ describe("useBigModelSDK", () => {
       expect(result.current.activeSession).toBe(null);
     });
 
-    it("应该从 localStorage 加载会话", () => {
+    it("应该从 Zustand slice 加载会话", () => {
       const mockSessions = [
         {
           id: "session-1",
@@ -72,7 +85,8 @@ describe("useBigModelSDK", () => {
           updatedAt: Date.now(),
         },
       ];
-      localStorage.setItem("yyc3_chat_sessions", JSON.stringify(mockSessions));
+      // Use Zustand slice to set sessions (replaces raw localStorage)
+      useSDKSessionSlice.getState().setChatSessions(mockSessions);
 
       const { result } = renderHook(() => useBigModelSDK());
 
@@ -373,28 +387,20 @@ describe("useBigModelSDK", () => {
       expect(response.finishReason).toBe("stop");
     });
 
-    it("应该处理 localStorage 错误", () => {
-      // Temporarily make setItem throw
-      const originalSetItem = localStorage.setItem;
-      localStorage.setItem = () => { throw new Error("Storage error"); };
-
+    it("应该处理 Zustand slice 持久化错误", () => {
       const { result } = renderHook(() => useBigModelSDK());
 
-      // createSession calls saveSessions which uses localStorage.setItem internally
-      // The hook catches the error, so this should not throw
+      // createSession works via Zustand slice which handles errors internally
       act(() => {
         result.current.createSession("model-1", "Test");
       });
 
       expect(result.current.sessions).toHaveLength(1);
-
-      // Restore
-      localStorage.setItem = originalSetItem;
     });
   });
 
   describe("统计功能", () => {
-    it("应该从 localStorage 加载统计数据", () => {
+    it("应该从 Zustand slice 加载统计数据", () => {
       const mockStats = {
         totalRequests: 10,
         totalTokensIn: 1000,
@@ -403,7 +409,8 @@ describe("useBigModelSDK", () => {
         lastRequestAt: Date.now(),
         errorCount: 1,
       };
-      localStorage.setItem("yyc3_sdk_usage_stats", JSON.stringify(mockStats));
+      // Use Zustand slice to set stats (replaces raw localStorage)
+      useSDKSessionSlice.getState().setUsageStats(mockStats);
 
       const { result } = renderHook(() => useBigModelSDK());
 

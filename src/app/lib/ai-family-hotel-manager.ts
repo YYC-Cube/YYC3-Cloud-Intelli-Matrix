@@ -51,8 +51,12 @@ export interface ModelPerformanceStats {
 
 // ============================================================
 // 预定义酒店人团队（AI Family 成员）
+// ⚠️ DEPRECATED: 此 8 人团队与 AI Family 8 位家人不一致，仅 HotelDashboard 消费。
+//    FamilyHotel.tsx 已通过 hotel-bridge.ts + useFamilyMemberSlice 展示真正家人。
+//    未来 HotelDashboard 重构后应删除此常量。
 // ============================================================
 
+/** @deprecated 孤立酒店员工数据，不对应 AI Family 8 位家人 */
 export const HOTEL_TEAM_MEMBERS: Omit<HotelStaffMember, 'status' | 'currentTask' | 'performanceMetrics' | 'createdAt' | 'lastActiveAt'>[] = [
   // 🎫 前台接待 - 小悦
   {

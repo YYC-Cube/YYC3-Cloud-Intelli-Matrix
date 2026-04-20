@@ -95,7 +95,7 @@ export const useNodeSlice = create<NodeSlice>()(
   devtools(
     persist(
       immer(
-        (set, get) => ({
+        (set, _get) => ({
           nodes: DEFAULT_NODES,
           lastSource: null,
           lastUpdateAt: null,

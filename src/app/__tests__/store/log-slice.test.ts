@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useLogSlice } from '../../store/slices/log-slice';
-import type { StoredLogEntry } from '../../stores/dashboard-stores';
+import type { StoredLogEntry } from '../../types';
 
 const DEFAULT_LOGS: StoredLogEntry[] = [
   { id: "log-001", timestamp: Date.now() - 120000, level: "info", source: "GPU-A100-01", message: "推理任务完成 #12847, 延迟 820ms" },

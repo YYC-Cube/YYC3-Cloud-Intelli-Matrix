@@ -126,10 +126,6 @@ export function FamilyCluster() {
   const [tasks, setTasks] = useState<DistributedTask[]>([]);
   const [sessions, setSessions] = useState<SSHSession[]>([]);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
   const loadInitialData = useCallback(() => {
     const allNodes = manager.getAllNodes();
     const cards: NodeCardData[] = allNodes.map((node: YYC3ClusterNode) => ({
@@ -150,6 +146,10 @@ export function FamilyCluster() {
     setTasks(manager.getTaskQueue());
     setSessions(manager.getActiveSessions());
   }, [manager]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const _selectedNode = nodeList.find((n) => n.deviceId === selectedNodeId);
   const onlineNodes = nodeList.filter((n) => n.status === "online");

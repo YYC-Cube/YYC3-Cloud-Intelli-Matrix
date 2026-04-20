@@ -20,11 +20,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   getInferenceEngine,
-  resetInferenceEngine,
   detectGPU,
   WEBGPU_PRESETS,
-  type OllamaBackend,
-  type WebGPUBackend,
 } from "../lib/inference-engine";
 import type {
   InferenceBackendType,

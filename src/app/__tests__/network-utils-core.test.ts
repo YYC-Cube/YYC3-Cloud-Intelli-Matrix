@@ -43,7 +43,7 @@ describe("network-utils", () => {
 
   describe("DEFAULT_NETWORK_CONFIG", () => {
     it("should have default server address", () => {
-      expect(DEFAULT_NETWORK_CONFIG.serverAddress).toBe("192.168.3.45");
+      expect(DEFAULT_NETWORK_CONFIG.serverAddress).toBe("localhost");
     });
 
     it("should have default port", () => {
@@ -55,14 +55,14 @@ describe("network-utils", () => {
     });
 
     it("should have generated wsUrl", () => {
-      expect(DEFAULT_NETWORK_CONFIG.wsUrl).toBe("ws://192.168.3.45:3113/ws");
+      expect(DEFAULT_NETWORK_CONFIG.wsUrl).toBe("ws://localhost:3113/ws");
     });
   });
 
   describe("loadNetworkConfig", () => {
     it("should return default config when nothing stored", () => {
       const config = loadNetworkConfig();
-      expect(config.serverAddress).toBe("192.168.3.45");
+      expect(config.serverAddress).toBe("localhost");
     });
 
     it("should load config from localStorage", () => {
@@ -96,7 +96,7 @@ describe("network-utils", () => {
       localStorage.setItem("network_config", "invalid json");
 
       const config = loadNetworkConfig();
-      expect(config.serverAddress).toBe("192.168.3.45");
+      expect(config.serverAddress).toBe("localhost");
     });
   });
 
@@ -125,7 +125,7 @@ describe("network-utils", () => {
 
       const config = resetNetworkConfig();
 
-      expect(config.serverAddress).toBe("192.168.3.45");
+      expect(config.serverAddress).toBe("localhost");
       expect(localStorage.getItem("network_config")).toBeNull();
     });
 

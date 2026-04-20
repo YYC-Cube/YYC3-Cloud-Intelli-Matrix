@@ -3,10 +3,10 @@
  * @description: 本地实现 — 替代缺失的 @yyc3/ai-family 外部包
  * @author: YanYuCloudCube Team
  * @version: v1.0.0
- * @created: 2026-04-16
- * @updated: 2026-04-16
+ * @created: 2026-04-15
+ * @updated: 2026-04-20
  * @status: active
- * @tags: [auto-generated]
+ * @tags: [ai-family, local, fallback]
  */
 
 import React, { useState, useEffect } from "react";
@@ -99,14 +99,14 @@ export function FamilyAnthemPlayer({ showLyrics, autoScroll, onPlay, onPause, on
       });
     }, 3000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, autoScroll]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (lyrics[currentLine]) {
       onLyricHighlight(lyrics[currentLine]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLine]);
 
   return (

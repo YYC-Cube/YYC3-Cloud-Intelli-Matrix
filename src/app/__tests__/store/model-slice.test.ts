@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useModelSlice } from '../../store/slices/model-slice';
-import type { DeployedModel } from '../../stores/dashboard-stores';
+import type { DeployedModel } from '../../types';
 
 const DEFAULT_MODELS: DeployedModel[] = [
   { id: "dm-1", name: "LLaMA-70B",    version: "v2.1", size: "140GB", status: "deployed" as any,  gpu: "GPU-A100-01" },

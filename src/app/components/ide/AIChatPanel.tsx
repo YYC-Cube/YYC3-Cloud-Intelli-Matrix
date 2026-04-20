@@ -11,6 +11,7 @@
 
 import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 import {
   Bot, User, Send, Image as ImageIcon,
   FileCode, Link, Sigma, Clipboard, Plus,
@@ -67,14 +68,14 @@ export function AIChatPanel() {
   const [input, setInput] = useState("");
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedId, handleCopyMessage] = useCopyFeedback<string>();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = (content?: string) => {
+  const handleSend = useCallback((content?: string) => {
     const text = content || input.trim();
     if (!text) {return;}
 
@@ -99,17 +100,11 @@ export function AIChatPanel() {
       setMessages((prev) => [...prev, aiMsg]);
       setIsTyping(false);
     }, 800 + Math.random() * 1200);
-  };
+  }, [input]);
 
   const handleQuickAction = useCallback((action: typeof AI_QUICK_ACTIONS[0]) => {
     handleSend(action.prompt);
   }, [handleSend]);
-
-  const handleCopyMessage = (id: string, content: string) => {
-    navigator.clipboard?.writeText(content).catch(() => {});
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   const attachOptions = [
     { icon: ImageIcon, label: t("ide.uploadImage"), color: "#ff6b9d" },
@@ -188,7 +183,7 @@ export function AIChatPanel() {
                 </p>
                 {msg.role === "assistant" && (
                   <button
-                    onClick={() => handleCopyMessage(msg.id, msg.content)}
+                    onClick={() => handleCopyMessage(msg.content, msg.id)}
                     className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[rgba(0,212,255,0.3)] hover:text-[#00d4ff] transition-all"
                     title="Copy"
                   >

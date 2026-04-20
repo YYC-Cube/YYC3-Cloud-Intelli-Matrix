@@ -12,7 +12,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { FollowUpRecord } from '../../types';
-import { bridgeFollowUpsToGlobal } from '../../stores/global-store';
 
 const DEFAULT_FOLLOWUPS: FollowUpRecord[] = [
   { id: "fu-001", taskId: "TASK-042", taskName: "GPU-A100-03 温度告警处理", assignee: "ops_li", assigneeName: "李运维", priority: "high", status: "in_progress", dueDate: Date.now() + 86400000, notes: "需要检查散热系统", createdAt: Date.now() - 3600000, updatedAt: Date.now(), category: "maintenance" },
@@ -27,35 +26,22 @@ export interface FollowUpSlice {
   completeFollowUp: (id: string) => void;
 }
 
-/** 将当前跟进任务状态同步到 GlobalStore (SSOT 桥接) */
-function syncToGlobal(followUps: FollowUpRecord[]) {
-  try { bridgeFollowUpsToGlobal(followUps); } catch { /* ignore */ }
-}
-
 export const useFollowUpSlice = create<FollowUpSlice>()(
   persist(
     (set) => ({
       followUps: DEFAULT_FOLLOWUPS,
-      addFollowUp: (fu) => set((s) => {
-        const followUps = [...s.followUps, { ...fu, id: `fu-${Date.now()}`, createdAt: Date.now(), updatedAt: Date.now() }];
-        syncToGlobal(followUps);
-        return { followUps };
-      }),
-      updateFollowUp: (id, updates) => set((s) => {
-        const followUps = s.followUps.map((f) => f.id === id ? { ...f, ...updates } : f);
-        syncToGlobal(followUps);
-        return { followUps };
-      }),
-      removeFollowUp: (id) => set((s) => {
-        const followUps = s.followUps.filter((f) => f.id !== id);
-        syncToGlobal(followUps);
-        return { followUps };
-      }),
-      completeFollowUp: (id) => set((s) => {
-        const followUps = s.followUps.map((f) => f.id === id ? { ...f, status: "completed" as const, completedAt: Date.now() } : f);
-        syncToGlobal(followUps);
-        return { followUps };
-      }),
+      addFollowUp: (fu) => set((s) => ({
+        followUps: [...s.followUps, { ...fu, id: `fu-${Date.now()}`, createdAt: Date.now(), updatedAt: Date.now() }],
+      })),
+      updateFollowUp: (id, updates) => set((s) => ({
+        followUps: s.followUps.map((f) => f.id === id ? { ...f, ...updates } : f),
+      })),
+      removeFollowUp: (id) => set((s) => ({
+        followUps: s.followUps.filter((f) => f.id !== id),
+      })),
+      completeFollowUp: (id) => set((s) => ({
+        followUps: s.followUps.map((f) => f.id === id ? { ...f, status: "completed" as const, completedAt: Date.now() } : f),
+      })),
     }),
     {
       name: 'yyc3-follow-up-slice',

@@ -18,6 +18,7 @@
  */
 
 import { exportStoreData, importStoreData } from "../stores/global-store";
+import { exportAllData, importAllData } from "./yyc3-storage";
 
 // ============================================================
 // 类型定义
@@ -52,44 +53,12 @@ function shouldBackup(key: string): boolean {
 // ============================================================
 
 async function readIndexedDBData(): Promise<Record<string, unknown[]>> {
-  const result: Record<string, unknown[]> = {};
-
   try {
-    const db = await openBackupDB();
-    if (!db) { return result; }
-
-    const storeNames = Array.from(db.objectStoreNames);
-    const tx = db.transaction(storeNames, "readonly");
-
-    for (const name of storeNames) {
-      const store = tx.objectStore(name);
-      const all = await new Promise<unknown[]>((resolve, reject) => {
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-      result[name] = all;
-    }
-
-    db.close();
+    return await exportAllData();
   } catch (e) {
     console.warn("[FullBackup] IndexedDB read failed:", e);
+    return {};
   }
-
-  return result;
-}
-
-function openBackupDB(): Promise<IDBDatabase | null> {
-  return new Promise((resolve) => {
-    try {
-      const req = indexedDB.open("yyc3_matrix", 3);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => resolve(null);
-      req.onblocked = () => resolve(null);
-    } catch {
-      resolve(null);
-    }
-  });
 }
 
 // ============================================================
@@ -196,40 +165,12 @@ export async function importFullBackup(json: string): Promise<{ success: boolean
 }
 
 async function restoreIndexedDBData(data: Record<string, unknown[]>): Promise<void> {
-  const db = await openBackupDB();
-  if (!db) { return; }
-
-  const storeNames = Object.keys(data).filter((n) =>
-    Array.from(db.objectStoreNames).includes(n)
-  );
-
-  if (storeNames.length === 0) {
-    db.close();
-    return;
+  try {
+    await importAllData(data as Parameters<typeof importAllData>[0]);
+  } catch (e) {
+    console.warn("[FullBackup] IndexedDB restore failed:", e);
+    throw e;
   }
-
-  const tx = db.transaction(storeNames, "readwrite");
-
-  for (const name of storeNames) {
-    const store = tx.objectStore(name);
-    // 清空后批量写入
-    await new Promise<void>((resolve, reject) => {
-      const clearReq = store.clear();
-      clearReq.onsuccess = () => {
-        const items = data[name];
-        let pending = items.length;
-        if (pending === 0) { resolve(); return; }
-        for (const item of items) {
-          const putReq = store.put(item);
-          putReq.onsuccess = () => { pending--; if (pending === 0) resolve(); };
-          putReq.onerror = () => reject(putReq.error);
-        }
-      };
-      clearReq.onerror = () => reject(clearReq.error);
-    });
-  }
-
-  db.close();
 }
 
 /**

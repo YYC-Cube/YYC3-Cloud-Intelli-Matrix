@@ -4,12 +4,12 @@
  * @author: YanYuCloudCube Team
  * @version: v1.0.0
  * @created: 2026-04-15
- * @updated: 2026-04-16
+ * @updated: 2026-04-20
  * @status: active
  * @tags: [ai-family, hotel, dashboard]
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Building2, Users, MessageCircle, BarChart3, Mic, BookOpen,
   GraduationCap, ChevronRight, Activity, Zap, Shield, Star,
@@ -24,18 +24,23 @@ import { AIFamilyHotelManager } from "../../lib/ai-family-hotel-manager";
 import { getHotelVoiceService } from "../../lib/hotel-voice-service";
 import { getHotelKnowledgeBase } from "../../lib/hotel-knowledge-base";
 import {
-  HOTEL_ROLES,
-  type HotelStaffMember,
   type MultiModelConversation,
-  type HotelRole,
-  type PersonalityTraits,
 } from "../../lib/ai-family-hotel.types";
+import { useFamilyMemberSlice } from "../../store";
+import {
+  toHotelStaffCard,
+  HOTEL_ROLE_LABELS,
+  FAMILY_TO_HOTEL_ROLE,
+} from "../../lib/hotel-bridge";
 
 type DashboardTab = "overview" | "staff" | "conversations" | "analytics" | "voice" | "knowledge";
 
 interface StaffCardData {
   id: string;
   name: string;
+  shortName: string;
+  color: string;
+  icon: React.ElementType;
   roleKey: string;
   roleLabel: string;
   emoji: string;
@@ -68,18 +73,20 @@ const ROLE_ICON_MAP: Record<string, React.ElementType> = {
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
   online: { bg: "rgba(0,255,136,0.1)", text: "#00FF88", dot: "#00FF88" },
   busy: { bg: "rgba(255,180,0,0.1)", text: "#FFB400", dot: "#FFB400" },
+  speaking: { bg: "rgba(255,180,0,0.1)", text: "#FFB400", dot: "#FFB400" },
+  idle: { bg: "rgba(128,128,128,0.1)", text: "#808080", dot: "#808080" },
   offline: { bg: "rgba(128,128,128,0.1)", text: "#808080", dot: "#808080" },
 };
 
-function formatPersonality(p: PersonalityTraits): string {
-  const labels: (keyof PersonalityTraits)[] = [
-    "friendliness", "professionalism", "creativity", "efficiency",
-  ];
-  return labels.map((k) => `${p[k]}`).join(" · ");
-}
+const HOTEL_ROLE_EMOJI: Record<string, string> = {
+  "front-desk": "🎫", "finance": "💰", "sales": "📊",
+  "guest-relations": "🤝", "manager": "⭐", "security": "🛡️",
+  "it-support": "💻", "event-coordinator": "🎉",
+};
 
 export function FamilyHotel() {
   const { t } = useI18n();
+  const { members } = useFamilyMemberSlice();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -89,16 +96,12 @@ export function FamilyHotel() {
   const [voiceService] = useState(() => getHotelVoiceService());
   const [knowledgeBase] = useState(() => getHotelKnowledgeBase());
 
-  const [staffList, setStaffList] = useState<StaffCardData[]>([]);
   const [conversations, setConversations] = useState<MultiModelConversation[]>([]);
-  const [stats, setStats] = useState({
-    totalInteractions: 0,
-    avgSatisfaction: 85,
-    activeStaff: 8,
-    modelUsage: {} as Record<string, number>,
-  });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadInitialData = useCallback(() => {
+    setConversations(manager.getAllConversations());
+  }, [manager]);
+
   useEffect(() => {
     loadInitialData();
     const unsub = voiceService.on("result", (event) => {
@@ -107,37 +110,38 @@ export function FamilyHotel() {
       }
     });
     return () => unsub();
-  }, []);
+  }, [loadInitialData, voiceService]);
 
-  const loadInitialData = useCallback(() => {
-    const allStaff = manager.getAllStaffMembers();
-    const cards: StaffCardData[] = allStaff.map((staff: HotelStaffMember) => {
-      const roleInfo = HOTEL_ROLES[staff.role as HotelRole];
-      return {
-        id: staff.id,
-        name: staff.name,
-        roleKey: staff.role,
-        roleLabel: roleInfo?.label || staff.role,
-        emoji: roleInfo?.emoji || "👤",
-        status: staff.status,
-        model: staff.primaryModel.modelName,
-        satisfaction: staff.performanceMetrics.satisfactionScore,
-        interactions: staff.performanceMetrics.totalInteractions,
-        personality: formatPersonality(staff.personality),
-      };
-    });
-    setStaffList(cards);
-    setConversations(manager.getAllConversations());
-    setStats({
-      totalInteractions: cards.reduce((s, c) => s + c.interactions, 0),
-      avgSatisfaction: Math.round(cards.reduce((s, c) => s + c.satisfaction, 0) / Math.max(cards.length, 1)),
-      activeStaff: cards.filter((c) => c.status === "online").length,
-      modelUsage: cards.reduce((acc, c) => {
-        acc[c.model] = (acc[c.model] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
-    });
-  }, [manager]);
+  // Derive staff cards from unified family members
+  const staffList: StaffCardData[] = useMemo(() => members.map(m => {
+    const hotelRole = FAMILY_TO_HOTEL_ROLE[m.id] || "front-desk";
+    const hotelCard = toHotelStaffCard(m);
+    return {
+      id: m.id,
+      name: m.name,
+      shortName: m.shortName,
+      color: m.color,
+      icon: m.icon,
+      roleKey: hotelRole,
+      roleLabel: HOTEL_ROLE_LABELS[hotelRole] || hotelRole,
+      emoji: HOTEL_ROLE_EMOJI[hotelRole] || "👤",
+      status: m.status,
+      model: m.modelAssignment.modelId,
+      satisfaction: hotelCard.satisfactionScore,
+      interactions: hotelCard.interactionCount,
+      personality: hotelCard.personality,
+    };
+  }), [members]);
+
+  const stats = useMemo(() => ({
+    totalInteractions: staffList.reduce((s, c) => s + c.interactions, 0),
+    avgSatisfaction: Math.round(staffList.reduce((s, c) => s + c.satisfaction, 0) / Math.max(staffList.length, 1)),
+    activeStaff: staffList.filter(c => c.status === "online" || c.status === "busy" || c.status === "speaking").length,
+    modelUsage: staffList.reduce((acc, c) => {
+      acc[c.model] = (acc[c.model] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+  }), [staffList]);
 
   const _selectedStaff = staffList.find((s) => s.id === selectedStaffId);
 

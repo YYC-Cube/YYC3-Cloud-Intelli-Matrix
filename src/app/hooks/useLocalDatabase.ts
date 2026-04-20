@@ -314,17 +314,63 @@ function mockQueryResult(sql: string): QueryResult {
 }
 
 // ============================================================
-//  Password encoding (simple obfuscation, NOT real encryption)
+//  Password encryption (AES-GCM via Web Crypto API)
+//  Backward-compatible: falls back to base64 decode for legacy data
 // ============================================================
 
-function encodePassword(pw: string): string {
-  if (!pw) {return "";}
-  try { return btoa(pw); } catch { return pw; }
+const ENC_SALT = new TextEncoder().encode('yyc3-db-enc-salt-v1');
+const _ENC_KEY_INFO = new TextEncoder().encode('yyc3-db-enc-key-v1');
+
+async function deriveKey(): Promise<CryptoKey> {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode('yyc3-local-db-encryption-key'),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: ENC_SALT, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
 }
 
-function decodePassword(encoded: string): string {
-  if (!encoded) {return "";}
-  try { return atob(encoded); } catch { return encoded; }
+async function encodePassword(pw: string): Promise<string> {
+  if (!pw) { return ""; }
+  try {
+    const key = await deriveKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      new TextEncoder().encode(pw),
+    );
+    const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
+    combined.set(iv);
+    combined.set(new Uint8Array(encrypted), iv.length);
+    return btoa(String.fromCharCode(...combined));
+  } catch {
+    return btoa(pw); // fallback to base64
+  }
+}
+
+async function decodePassword(encoded: string): Promise<string> {
+  if (!encoded) { return ""; }
+  try {
+    const key = await deriveKey();
+    const combined = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+    if (combined.length < 13) { throw new Error('too short'); }
+    const iv = combined.slice(0, 12);
+    const data = combined.slice(12);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    // Backward compat: try legacy base64 decode
+    try { return atob(encoded); } catch { return encoded; }
+  }
 }
 
 // ============================================================
@@ -353,13 +399,14 @@ export function useLocalDatabase() {
     initializedRef.current = true;
 
     // 加载连接 (解码密码)
-    idbGetAll<DBConnection>("dbConnections").then((saved) => {
+    idbGetAll<DBConnection>("dbConnections").then(async (saved) => {
       if (saved.length > 0) {
-        setConnections(saved.map(c => ({
+        const decoded = await Promise.all(saved.map(async (c) => ({
           ...c,
-          password: decodePassword(c.password),
-          status: "disconnected" as DBConnectionStatus, // 重启后重置状态
+          password: await decodePassword(c.password),
+          status: "disconnected" as DBConnectionStatus,
         })));
+        setConnections(decoded);
       }
     });
 
@@ -375,18 +422,19 @@ export function useLocalDatabase() {
   const persistConnection = useCallback(async (conn: DBConnection) => {
     await idbPut("dbConnections", {
       ...conn,
-      password: encodePassword(conn.password),
-      status: "disconnected", // 不持久化运行时状态
+      password: await encodePassword(conn.password),
+      status: "disconnected",
     });
   }, []);
 
   const persistAllConnections = useCallback(async (conns: DBConnection[]) => {
     await idbClear("dbConnections");
-    await idbPutMany("dbConnections", conns.map(c => ({
+    const encoded = await Promise.all(conns.map(async (c) => ({
       ...c,
-      password: encodePassword(c.password),
+      password: await encodePassword(c.password),
       status: "disconnected" as DBConnectionStatus,
     })));
+    await idbPutMany("dbConnections", encoded);
   }, []);
 
   // ── 自动检测本地数据库 ──

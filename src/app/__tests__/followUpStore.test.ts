@@ -16,8 +16,8 @@ import {
   getOverdueFollowUps,
   getFollowUpsByPriority,
   getFollowUpsByAssignee,
-  type FollowUpRecord,
 } from "../stores/dashboard-stores";
+import type { FollowUpRecord } from "../types";
 
 describe("followUpStore", () => {
   beforeEach(() => {

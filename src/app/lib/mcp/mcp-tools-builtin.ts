@@ -21,7 +21,7 @@
  * - Creative: 创意生成、设计建议
  */
 
-import type { MCPTool, MCPToolResult, MCPContext } from "./mcp-types";
+import type { MCPTool } from "./mcp-types";
 import type { MCPAgentConfig } from "./mcp-types";
 
 // ============================================================

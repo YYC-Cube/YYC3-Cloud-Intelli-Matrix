@@ -19,6 +19,8 @@ import { cn } from "./utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
+const SAFE_COLOR_RE = /^#[0-9a-fA-F]{3,8}$|^rgb[a]?\(\s*\d+%?\s*,\s*\d+%?\s*,\s*\d+%?\s*(?:,\s*[\d.]+\s*)?\)$/;
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -98,9 +100,10 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color =
+    const rawColor =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color;
+    const color = rawColor && SAFE_COLOR_RE.test(rawColor) ? rawColor : '';
     return color ? `  --color-${key}: ${color};` : null;
   })
   .join("\n")}

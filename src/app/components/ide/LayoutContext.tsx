@@ -11,6 +11,7 @@
 
 import * as React from 'react';
 import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react';
+import { useIDESettingsSlice } from '../../store/slices/ide-settings-slice';
 import type {
   Panel,
   LayoutConfig,
@@ -559,7 +560,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 
   const saveLayout = useCallback(() => {
     try {
-      localStorage.setItem('ide-layout', JSON.stringify(state.layout));
+      useIDESettingsSlice.getState().setLayoutConfig(state.layout);
     } catch (error) {
       console.error('Failed to save layout:', error);
     }
@@ -567,10 +568,9 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 
   const loadLayout = useCallback(() => {
     try {
-      const saved = localStorage.getItem('ide-layout');
+      const saved = useIDESettingsSlice.getState().layoutConfig;
       if (saved) {
-        const layoutData = JSON.parse(saved) as LayoutConfig;
-        dispatch({ type: 'LOAD_LAYOUT', payload: layoutData });
+        dispatch({ type: 'LOAD_LAYOUT', payload: saved });
       }
     } catch (error) {
       console.error('Failed to load layout:', error);

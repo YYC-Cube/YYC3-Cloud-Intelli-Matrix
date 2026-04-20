@@ -19,35 +19,12 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, SAMPLE_MESSAGES, AI_RESPONSES, hexToRgb,
-  type FamilyMember, type FamilyMessage,
+  SAMPLE_MESSAGES, AI_RESPONSES, hexToRgb,
+  type FamilyMessage,
 } from "./shared";
-
-// ═══ localStorage 持久化 ═══
-
-const COMM_STORAGE_KEY = "yyc3-family-comm-messages";
-const COMM_PAGE_SIZE = 30;
-
-function loadMessages(): FamilyMessage[] {
-  try {
-    const raw = localStorage.getItem(COMM_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) { return parsed; }
-    }
-  } catch { /* noop */ }
-  // First load → seed with sample data and persist
-  saveMessages(SAMPLE_MESSAGES);
-  return [...SAMPLE_MESSAGES];
-}
-
-function saveMessages(msgs: FamilyMessage[]) {
-  try {
-    // Keep max 500 messages
-    const trimmed = msgs.slice(-500);
-    localStorage.setItem(COMM_STORAGE_KEY, JSON.stringify(trimmed));
-  } catch { /* noop */ }
-}
+import { useFamilyMemberSlice } from "../../store";
+import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
+import type { UnifiedFamilyMember } from "../../types";
 
 // ═══ 消息类型配置 ═══
 
@@ -73,9 +50,10 @@ function formatDateGroup(dateStr: string): string {
 
 // ═══ 子组件：家人状态栏 ═══
 
-function MemberStatusBar({ selectedMember, onSelect }: {
+function MemberStatusBar({ selectedMember, onSelect, members }: {
   selectedMember: string | "all";
   onSelect: (id: string | "all") => void;
+  members: UnifiedFamilyMember[];
 }) {
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -91,7 +69,7 @@ function MemberStatusBar({ selectedMember, onSelect }: {
         <Users className="w-3 h-3" />
         全部
       </button>
-      {FAMILY_MEMBERS.map(m => {
+      {members.map(m => {
         const rgb = hexToRgb(m.color);
         const active = selectedMember === m.id;
         return (
@@ -130,9 +108,9 @@ function MemberStatusBar({ selectedMember, onSelect }: {
 
 // ═══ 子组件：消息气泡 ═══
 
-function MessageBubble({ msg, onDelete }: { msg: FamilyMessage; onDelete?: (id: string) => void }) {
-  const from = FAMILY_MEMBERS.find(m => m.id === msg.from);
-  const to = msg.to === "all" ? null : FAMILY_MEMBERS.find(m => m.id === msg.to);
+function MessageBubble({ msg, onDelete, members }: { msg: FamilyMessage; onDelete?: (id: string) => void; members: UnifiedFamilyMember[] }) {
+  const from = members.find(m => m.id === msg.from);
+  const to = msg.to === "all" ? null : members.find(m => m.id === msg.to);
   if (!from) { return null; }
   const rgb = hexToRgb(from.color);
   const typeConfig = MSG_TYPE_CONFIG[msg.type] || MSG_TYPE_CONFIG.text;
@@ -209,8 +187,11 @@ function DateSeparator({ label }: { label: string }) {
 
 // ═══ 主组件 ═══
 
+const COMM_PAGE_SIZE = 30;
+
 export function FamilyCommCenter() {
-  const [messages, setMessages] = useState<FamilyMessage[]>(() => loadMessages());
+  const { members } = useFamilyMemberSlice();
+  const messages = useFamilySettingsSlice((s) => s.commMessages);
   const [filterMember, setFilterMember] = useState<string | "all">("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [inputText, setInputText] = useState("");
@@ -222,10 +203,12 @@ export function FamilyCommCenter() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Persist on every change
+  // Seed sample messages on first load
   useEffect(() => {
-    saveMessages(messages);
-  }, [messages]);
+    if (useFamilySettingsSlice.getState().commMessages.length === 0) {
+      useFamilySettingsSlice.getState().setCommMessages([...SAMPLE_MESSAGES]);
+    }
+  }, []);
 
   // Filter & search messages
   const filteredMessages = useMemo(() => {
@@ -236,7 +219,7 @@ export function FamilyCommCenter() {
       if (filterType !== "all" && msg.type !== filterType) { return false; }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const from = FAMILY_MEMBERS.find(m => m.id === msg.from);
+        const from = members.find(m => m.id === msg.from);
         if (
           !msg.content.toLowerCase().includes(q) &&
           !(from?.shortName.toLowerCase().includes(q)) &&
@@ -246,7 +229,7 @@ export function FamilyCommCenter() {
       return true;
     });
     return result.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  }, [messages, filterMember, filterType, searchQuery]);
+  }, [messages, filterMember, filterType, searchQuery, members]);
 
   // Messages to display (paginated)
   const displayMessages = useMemo(() => {
@@ -288,14 +271,14 @@ export function FamilyCommCenter() {
       type: "text",
       read: false,
     };
-    setMessages(prev => [...prev, newMsg]);
+    useFamilySettingsSlice.getState().addCommMessage(newMsg);
     setInputText("");
 
     // Auto-reply after delay
     setTimeout(() => {
       const responders = sendTo === "all"
-        ? FAMILY_MEMBERS.filter(m => m.id !== sendAs).slice(0, 2)
-        : [FAMILY_MEMBERS.find(m => m.id === sendTo)].filter(Boolean) as FamilyMember[];
+        ? members.filter(m => m.id !== sendAs).slice(0, 2)
+        : [members.find(m => m.id === sendTo)].filter(Boolean) as typeof members;
 
       responders.forEach((responder, i) => {
         setTimeout(() => {
@@ -309,32 +292,33 @@ export function FamilyCommCenter() {
             type: "text",
             read: false,
           };
-          setMessages(prev => [...prev, response]);
+          useFamilySettingsSlice.getState().addCommMessage(response);
         }, 800 + i * 600);
       });
     }, 500);
-  }, [inputText, sendAs, sendTo]);
+  }, [inputText, sendAs, sendTo, members]);
 
   // Delete message
   const handleDelete = useCallback((id: string) => {
-    setMessages(prev => prev.filter(m => m.id !== id));
+    useFamilySettingsSlice.getState().deleteCommMessage(id);
   }, []);
 
   // Clear all
   const handleClearAll = useCallback(() => {
-    setMessages([]);
+    useFamilySettingsSlice.getState().clearCommMessages();
     setDisplayCount(COMM_PAGE_SIZE);
   }, []);
 
   // Export
   const handleExport = useCallback(() => {
+    const currentMessages = useFamilySettingsSlice.getState().commMessages;
     const data = {
       exportDate: new Date().toISOString(),
-      messageCount: messages.length,
-      messages: messages.map(m => ({
+      messageCount: currentMessages.length,
+      messages: currentMessages.map(m => ({
         ...m,
-        fromName: FAMILY_MEMBERS.find(f => f.id === m.from)?.shortName || m.from,
-        toName: m.to === "all" ? "全家" : FAMILY_MEMBERS.find(f => f.id === m.to)?.shortName || m.to,
+        fromName: members.find(f => f.id === m.from)?.shortName || m.from,
+        toName: m.to === "all" ? "全家" : members.find(f => f.id === m.to)?.shortName || m.to,
       })),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -346,7 +330,7 @@ export function FamilyCommCenter() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [messages]);
+  }, [members]);
 
   // Load more history
   const handleLoadMore = useCallback(() => {
@@ -358,7 +342,7 @@ export function FamilyCommCenter() {
 
   // Mark all as read
   const handleMarkAllRead = useCallback(() => {
-    setMessages(prev => prev.map(m => ({ ...m, read: true })));
+    useFamilySettingsSlice.getState().markAllMessagesRead();
   }, []);
 
   return (
@@ -374,7 +358,7 @@ export function FamilyCommCenter() {
               <div>
                 <h1 className="text-white/90" style={{ fontSize: "1.25rem" }}>Family 通信中心</h1>
                 <p className="text-white/40" style={{ fontSize: "0.7rem" }}>
-                  {totalCount} 条消息 · {unreadCount} 条未读 · {FAMILY_MEMBERS.filter(m => m.status === "online").length} 人在线 · 本地持久化
+                  {totalCount} 条消息 · {unreadCount} 条未读 · {members.filter(m => m.status === "online").length} 人在线 · 本地持久化
                 </p>
               </div>
             </div>
@@ -445,7 +429,7 @@ export function FamilyCommCenter() {
 
         {/* Member filter bar */}
         <FadeIn delay={0.05}>
-          <MemberStatusBar selectedMember={filterMember} onSelect={setFilterMember} />
+          <MemberStatusBar selectedMember={filterMember} onSelect={setFilterMember} members={members} />
         </FadeIn>
 
         {/* Type filter */}
@@ -496,7 +480,7 @@ export function FamilyCommCenter() {
                 <React.Fragment key={group.date}>
                   <DateSeparator label={formatDateGroup(group.date)} />
                   {group.msgs.map(msg => (
-                    <MessageBubble key={msg.id} msg={msg} onDelete={handleDelete} />
+                    <MessageBubble key={msg.id} msg={msg} onDelete={handleDelete} members={members} />
                   ))}
                 </React.Fragment>
               ))
@@ -516,7 +500,7 @@ export function FamilyCommCenter() {
                 className="appearance-none bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-2 text-white/60 focus:outline-none focus:border-cyan-500/30 pr-6 cursor-pointer"
                 style={{ fontSize: "0.7rem" }}
               >
-                {FAMILY_MEMBERS.map(m => (
+                {members.map(m => (
                   <option key={m.id} value={m.id}>{m.shortName}</option>
                 ))}
               </select>
@@ -532,7 +516,7 @@ export function FamilyCommCenter() {
                 style={{ fontSize: "0.7rem" }}
               >
                 <option value="all">@全家</option>
-                {FAMILY_MEMBERS.map(m => (
+                {members.map(m => (
                   <option key={m.id} value={m.id}>@{m.shortName}</option>
                 ))}
               </select>

@@ -27,33 +27,109 @@ language: zh-CN
 
 ---
 
-## [未发布]
+## [3.4.1] - 2026-04-20
+
+### Added
+
+- 五维审计报告修复: 58 项问题核心项全部解决
+- Phase 2.1: types/index.ts 1999行 → 31 领域类型文件 + barrel re-export
+- Phase 2.2: migrate-storage.ts 工具集 + 8 slice localStorage 迁移重构
+- Phase 2.3: useCopyFeedback (7处) + useClock (2处) 共享 Hook 提取
+- Phase 3: HotelDashboard / SDKChatPanel / Dashboard React.memo + useMemo 优化
+- config/colors.ts 快捷颜色常量导出 + C.alpha() 工具函数
+- 三份闭环文档: 审核分析总结 / API架构功能模块 / 教科书式功能模块
+
+### Changed
+
+- 27 个 ESLint warning 修复 (34 → 7): exhaustive-deps / unused-vars / useMemo
+- FamilyHome.tsx: 移除不必要的 useMemo，清理未使用导入
+- HotelDashboard / FamilyCluster / FamilyHotel: loadInitialData useCallback 提升到 useEffect 之前
+- AIChatPanel: handleSend 包裹 useCallback 防止无限重渲染
+- 5 个文件 header 规范修复 (check-headers 683 文件全通过)
+
+### Fixed
+
+- TypeScript TDZ 错误: 3 个文件 loadInitialData 声明前使用 → 调整声明顺序
+- create-local-store.ts: maxCacheSize 属性访问保持原名 + eslint-disable
+- ai-family-local.tsx: lyrics 渲染时数组加 eslint-disable 防无限循环
+- react-hooks/exhaustive-deps: 20 处 Zustand setter 补充到依赖数组
+
+---
+
+## [3.4.0] - 2026-04-19
+
+### Added
+
+- Phase 2E: IndexedDB v4 + AI-Family object stores
+- Phase 2D: CRDT 工具 + BroadcastChannel Agent 状态同步
+- Phase 2C: Agent 编排系统 (think→act→report 生命周期)
+- Phase 2B: MCP 上下文管理 + DataBus 桥接 + React Hook
+- Phase 2B: MCP 协议核心 (类型 + 服务 + 内置工具集)
+- Phase 2A: WebGPU 推理引擎 (@mlc-ai/web-llm)
+- 安全加固: AES-GCM 密码加密替代 Base64 编码
+- 安全加固: Electron CSP 条件化 (生产环境移除 unsafe-eval)
+- 安全加固: shell.execute 命令白名单
+- 安全加固: Ghost Mode 生产环境门控
+- 安全加固: chart.tsx CSS 注入防护
+
+### Changed
+
+- 数据统一重构: 22 个 Zustand Store Slices 替代 ~65 个独立 localStorage 键
+- 路由懒加载: 95.3% 路由使用 React.lazy() (41/43)
+- ESLint 全面清零: 35 个错误 + 45 个警告 → 0 错误
+- 测试通过率提升: 55 个失败用例修复 → 493+ 测试全通过
+
+### Fixed
+
+- Electron CSP: 生产环境移除 unsafe-inline/unsafe-eval
+- useLocalDatabase: btoa/atob 替换为 Web Crypto API AES-GCM
+- Ghost Mode: 生产构建自动禁用 (import.meta.env.PROD 门控)
+- shell.execute: 仅允许白名单命令 (open/ping/echo 等)
+- chart.tsx: 添加 CSS 颜色值正则验证
+- 测试: 13 个默认值断言同步更新
+- 测试: 22 个 Zustand 迁移测试重写
+- ESLint: 6 处 curly 规则 + 5 处未使用导入 + 6 处未使用变量修复
+
+---
+
+## [3.3.0] - 2026-04-09
 
 ### Added
 
 - 完整的 CI/CD 自动化流程
 - GitHub Actions 工作流（质量门禁、安全审计、性能基准测试）
 - Docker 多阶段构建支持
-- 自动化部署到 Staging/Production 环境
-- 健康检查和自动回滚机制
 - 安全扫描（Trivy、pnpm audit）
-- 测试覆盖率报告（Codecov）
-- 开源文档（CONTRIBUTING.md、CODE_OF_CONDUCT.md）
+- 测试覆盖率报告
 
 ### Changed
 
 - 优化 README.md，添加更多徽章和开源元素
-- 改进测试文件结构，修复 51 个失败的测试
-- 重构 layoutContext，统一上下文类型
-- 优化 CI 工作流，添加并行测试分片
+- 数据统一重构 (9 阶段 SSOT)
+- React 19 + TypeScript 5.9.3 升级
 
 ### Fixed
 
-- 修复所有 TypeScript 编译错误（51 个）
-- 修复测试中的上下文导入路径问题
-- 修复多元素匹配导致的测试失败
-- 修复 Dashboard 移动端时间段按钮显示问题
-- 修复 Sidebar 路由高亮显示问题
+- 修复所有 TypeScript 编译错误
+- IndexedDB 版本不匹配修复
+- Store 双重写入消除
+
+---
+
+## [3.2.0] - 2026-03-15
+
+### Added
+
+- AI Family 系统 (9 个 Agent + Hotel + Music + Voice)
+- IDE 面板 (终端 + 文件管理 + AI Chat)
+- 主题定制系统 + 自定义颜色
+- 国际化 (中文/英文)
+
+### Changed
+
+- 路由架构: 35+ 路由全部懒加载
+- 设计系统: 赛博朋克主题 (#060e1f + #00d4ff)
+- 状态管理: Zustand 统一 store 架构
 
 ---
 

@@ -15,7 +15,8 @@ import {
   Sparkles, Search,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { FAMILY_MEMBERS, AI_RESPONSES, hexToRgb, getMember } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import { AI_RESPONSES, hexToRgb } from "./shared";
 
 // ═══ Types ═══
 interface ChatMessage {
@@ -42,6 +43,7 @@ type ChannelType = "family-group" | string;
 
 export function FamilyChat() {
   const nav = useNavigate();
+  const { members } = useFamilyMemberSlice();
   const [activeChannel, setActiveChannel] = useState<ChannelType>("family-group");
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
@@ -72,7 +74,7 @@ export function FamilyChat() {
     // AI 回复
     setTimeout(() => {
       const responderId = activeChannel === "family-group"
-        ? FAMILY_MEMBERS[Math.floor(Math.random() * FAMILY_MEMBERS.length)].id
+        ? members[Math.floor(Math.random() * members.length)].id
         : activeChannel;
       const responses = AI_RESPONSES[responderId] || AI_RESPONSES["meta-oracle"];
       const responseText = responses[Math.floor(Math.random() * responses.length)];
@@ -87,11 +89,11 @@ export function FamilyChat() {
         type: "text",
       }]);
     }, 800 + Math.random() * 1200);
-  }, [input, activeChannel]);
+  }, [input, activeChannel, members]);
 
   const channels = [
     { id: "family-group" as const, label: "家庭群聊", icon: Users, desc: "全体家人", color: "#00d4ff" },
-    ...FAMILY_MEMBERS.map(m => ({ id: m.id, label: m.shortName, icon: m.icon, desc: m.name, color: m.color })),
+    ...members.map(m => ({ id: m.id, label: m.shortName, icon: m.icon, desc: m.name, color: m.color })),
   ];
   const activeChannelInfo = channels.find(c => c.id === activeChannel)!;
 
@@ -194,7 +196,7 @@ export function FamilyChat() {
             }
 
             const isUser = msg.sender === "user";
-            const member = !isUser ? getMember(msg.sender) : null;
+            const member = !isUser ? members.find(m => m.id === msg.sender) : null;
             const avatarColor = member?.color || "#00d4ff";
             const AvatarIcon = member?.icon || Sparkles;
 

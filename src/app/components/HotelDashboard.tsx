@@ -15,7 +15,7 @@
  * - 语音交互控制
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AIFamilyHotelManager } from '../lib/ai-family-hotel-manager';
 import { HotelVoiceService, getHotelVoiceService } from '../lib/hotel-voice-service';
 import { getHotelKnowledgeBase } from '../lib/hotel-knowledge-base';
@@ -46,6 +46,16 @@ interface StaffCardData {
   interactions: number;
 }
 
+const HOTEL_TABS: { id: string; label: string }[] = [
+  { id: 'overview', label: '📊 总览面板' },
+  { id: 'staff', label: '👥 团队成员' },
+  { id: 'conversations', label: '💬 对话中心' },
+  { id: 'analytics', label: '📈 数据分析' },
+  { id: 'voice', label: '🎤 语音交互' },
+  { id: 'knowledge', label: '📚 知识库' },
+  { id: 'learning', label: '🧠 AI学习' },
+];
+
 // ============================================================
 // 主组件
 // ============================================================
@@ -75,24 +85,7 @@ export const HotelDashboard: React.FC = () => {
     modelUsage: {} as Record<string, number>,
   });
 
-  // 初始化数据
-  useEffect(() => {
-    loadInitialData();
-    
-    // 监听语音事件
-    const unsubscribe = voiceService.on('result', (event) => {
-      if (event.data && typeof event.data === 'object' && 'transcript' in event.data) {
-        const voiceResult = event.data as { transcript: string; confidence?: number };
-        setState(prev => ({
-          ...prev,
-          currentTranscript: voiceResult.transcript,
-        }));
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+  // 加载初始数据
   const loadInitialData = useCallback(() => {
     // 加载员工数据
     const allStaff = manager.getAllStaffMembers();
@@ -125,6 +118,23 @@ export const HotelDashboard: React.FC = () => {
     });
   }, [manager]);
 
+  // 初始化数据 + 监听语音事件
+  useEffect(() => {
+    loadInitialData();
+
+    const unsubscribe = voiceService.on('result', (event) => {
+      if (event.data && typeof event.data === 'object' && 'transcript' in event.data) {
+        const voiceResult = event.data as { transcript: string; confidence?: number };
+        setState(prev => ({
+          ...prev,
+          currentTranscript: voiceResult.transcript,
+        }));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [loadInitialData, voiceService]);
+
   const calculateModelUsage = (staff: HotelStaffMember[]): Record<string, number> => {
     const usage: Record<string, number> = {};
     staff.forEach(s => {
@@ -135,13 +145,13 @@ export const HotelDashboard: React.FC = () => {
 
   // ========== 事件处理函数 ==========
 
-  const handleTabChange = (tab: DashboardState['activeTab']) => {
+  const handleTabChange = useCallback((tab: DashboardState['activeTab']) => {
     setState(prev => ({ ...prev, activeTab: tab }));
-  };
+  }, []);
 
-  const handleStaffSelect = (staffId: string) => {
+  const handleStaffSelect = useCallback((staffId: string) => {
     setState(prev => ({ ...prev, selectedStaffId: staffId }));
-  };
+  }, []);
 
   const handleVoiceToggle = async () => {
     if (state.isListening) {
@@ -165,12 +175,18 @@ export const HotelDashboard: React.FC = () => {
     }
   };
 
-  const showNotification = (message: string) => {
+  const showNotification = useCallback((message: string) => {
     setState(prev => ({ ...prev, notification: message }));
     setTimeout(() => {
       setState(prev => ({ ...prev, notification: null }));
     }, 3000);
-  };
+  }, []);
+
+  const kbCategories = useMemo(() => knowledgeBase.getCategories(), [knowledgeBase]);
+  const kbStats = useMemo(() => knowledgeBase.getStats(), [knowledgeBase]);
+  const learningSummary = useMemo(() => learningEngine.getLearningSummary(), [learningEngine]);
+  const learningInsights = useMemo(() => learningEngine.getInsights({ limit: 5 }), [learningEngine]);
+  const staffMap = useMemo(() => new Map(staffList.map(s => [s.id, s])), [staffList]);
 
   // ========== 渲染函数 ==========
 
@@ -266,15 +282,7 @@ export const HotelDashboard: React.FC = () => {
           borderRight: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '20px 0',
         }}>
-          {[
-            { id: 'overview', label: '📊 总览面板', icon: '📊' },
-            { id: 'staff', label: '👥 团队成员', icon: '👥' },
-            { id: 'conversations', label: '💬 对话中心', icon: '💬' },
-            { id: 'analytics', label: '📈 数据分析', icon: '📈' },
-            { id: 'voice', label: '🎤 语音交互', icon: '🎤' },
-            { id: 'knowledge', label: '📚 知识库', icon: '📚' },
-            { id: 'learning', label: '🧠 AI学习', icon: '🧠' },
-          ].map(tab => (
+          {HOTEL_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id as DashboardState['activeTab'])}
@@ -801,8 +809,6 @@ export const HotelDashboard: React.FC = () => {
   }
 
   function renderKnowledgeBase() {
-    const categories = knowledgeBase.getCategories();
-
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>📚 酒店知识库</h2>
@@ -815,12 +821,11 @@ export const HotelDashboard: React.FC = () => {
           marginBottom: '30px'
         }}>
           {(() => {
-            const stats = knowledgeBase.getStats();
             return [
-              { label: '总文章数', value: stats.totalArticles, icon: '📄' },
-              { label: '分类数量', value: stats.categories, icon: '📁' },
-              { label: '平均版本', value: stats.averageVersion.toFixed(1), icon: '🔄' },
-              { label: '最后更新', value: stats.lastUpdate, icon: '📅' },
+              { label: '总文章数', value: kbStats.totalArticles, icon: '📄' },
+              { label: '分类数量', value: kbStats.categories, icon: '📁' },
+              { label: '平均版本', value: kbStats.averageVersion.toFixed(1), icon: '🔄' },
+              { label: '最后更新', value: kbStats.lastUpdate, icon: '📅' },
             ].map(item => (
               <div key={item.label} className="stat-card">
                 <div style={{ fontSize: '24px' }}>{item.icon}</div>
@@ -835,7 +840,7 @@ export const HotelDashboard: React.FC = () => {
         <div className="glass-card">
           <h3 style={{ marginBottom: '20px' }}>📂 知识分类</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-            {categories.map(cat => (
+            {kbCategories.map(cat => (
               <div key={cat.id} style={{
                 padding: '16px',
                 background: 'rgba(0, 217, 255, 0.05)',
@@ -876,9 +881,6 @@ export const HotelDashboard: React.FC = () => {
   }
 
   function renderLearningPanel() {
-    const summary = learningEngine.getLearningSummary();
-    const insights = learningEngine.getInsights({ limit: 5 });
-
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>🧠 AI 学习与优化</h2>
@@ -891,10 +893,10 @@ export const HotelDashboard: React.FC = () => {
           marginBottom: '30px'
         }}>
           {[
-            { label: '反馈记录总数', value: summary.totalFeedbackRecords, icon: '📝' },
-            { label: '追踪员工数', value: summary.totalStaffTracked, icon: '👥' },
-            { label: '生成洞察数', value: summary.totalInsightsGenerated, icon: '💡' },
-            { label: '平均满意度', value: `${summary.averageSatisfactionAcrossAllStaff}%`, icon: '⭐' },
+            { label: '反馈记录总数', value: learningSummary.totalFeedbackRecords, icon: '📝' },
+            { label: '追踪员工数', value: learningSummary.totalStaffTracked, icon: '👥' },
+            { label: '生成洞察数', value: learningSummary.totalInsightsGenerated, icon: '💡' },
+            { label: '平均满意度', value: `${learningSummary.averageSatisfactionAcrossAllStaff}%`, icon: '⭐' },
           ].map(item => (
             <div key={item.label} className="stat-card">
               <div style={{ fontSize: '24px' }}>{item.icon}</div>
@@ -908,8 +910,8 @@ export const HotelDashboard: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
           <div className="glass-card">
             <h3 style={{ marginBottom: '16px', color: '#00ff88' }}>🏆 表现优秀</h3>
-            {summary.topPerformers.map(staffId => {
-              const staff = staffList.find(s => s.id === staffId);
+            {learningSummary.topPerformers.map(staffId => {
+              const staff = staffMap.get(staffId);
               return (
                 <div key={staffId} style={{ 
                   padding: '12px',
@@ -925,8 +927,8 @@ export const HotelDashboard: React.FC = () => {
 
           <div className="glass-card">
             <h3 style={{ marginBottom: '16px', color: '#ffa500' }}>⚠️ 需要关注</h3>
-            {summary.needsAttention.map(staffId => {
-              const staff = staffList.find(s => s.id === staffId);
+            {learningSummary.needsAttention.map(staffId => {
+              const staff = staffMap.get(staffId);
               return (
                 <div key={staffId} style={{ 
                   padding: '12px',
@@ -945,12 +947,12 @@ export const HotelDashboard: React.FC = () => {
         <div className="glass-card">
           <h3 style={{ marginBottom: '20px' }}>💡 最新学习洞察</h3>
           
-          {insights.length === 0 ? (
+          {learningInsights.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', opacity: 0.5 }}>
               暂无洞察，系统正在收集数据...
             </div>
           ) : (
-            insights.map(insight => (
+            learningInsights.map(insight => (
               <div key={insight.id} style={{
                 padding: '20px',
                 background: insight.type === 'strength' ? 'rgba(0, 255, 136, 0.05)' :

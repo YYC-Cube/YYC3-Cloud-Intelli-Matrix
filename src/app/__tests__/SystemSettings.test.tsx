@@ -121,17 +121,6 @@ vi.mock("../hooks/useSettingsStore", () => ({
   })),
 }));
 
-vi.mock("../stores/dashboard-stores", () => ({
-  deployedModelStore: {
-    getAll: vi.fn(() => []),
-    getById: vi.fn(),
-    add: vi.fn(),
-    update: vi.fn(),
-    remove: vi.fn(),
-    reset: vi.fn(),
-  },
-}));
-
 vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),

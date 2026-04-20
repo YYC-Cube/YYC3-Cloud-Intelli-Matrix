@@ -12,11 +12,12 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, Music, Copy, RefreshCw, Download, Share2 } from "lucide-react";
-import { FAMILY_MEMBERS } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
 import { lyricsGenerator, type LyricsStyle, type LyricsTheme, type GeneratedLyrics } from "../../lib/LyricsGenerator";
 import { Button } from "../ui/button";
+import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 
-const _FAMILY_MEMBERS = FAMILY_MEMBERS;
+// _FAMILY_MEMBERS removed — members now from store
 
 interface LyricsGeneratorPanelProps {
   defaultStyle?: LyricsStyle;
@@ -31,12 +32,13 @@ export function LyricsGeneratorPanel({
   onLyricsGenerated,
   className = "",
 }: LyricsGeneratorPanelProps) {
+  const { members } = useFamilyMemberSlice();
   const [selectedStyle, setSelectedStyle] = useState<LyricsStyle>(defaultStyle);
   const [selectedTheme, setSelectedTheme] = useState<LyricsTheme>(defaultTheme);
   const [selectedMember, setSelectedMember] = useState<string>("creative");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedLyrics, setGeneratedLyrics] = useState<GeneratedLyrics | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyFeedback();
 
   const styles = lyricsGenerator.getStyles();
   const themes = lyricsGenerator.getThemes();
@@ -63,15 +65,9 @@ export function LyricsGeneratorPanel({
   }, [selectedStyle, selectedTheme, selectedMember, onLyricsGenerated]);
 
   const handleCopy = useCallback(() => {
-    if (!generatedLyrics) {
-      return;
-    }
-
-    const text = formatLyricsForCopy(generatedLyrics);
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [generatedLyrics]);
+    if (!generatedLyrics) { return; }
+    copyToClipboard(formatLyricsForCopy(generatedLyrics), true);
+  }, [generatedLyrics, copyToClipboard]);
 
   const handleDownload = useCallback(() => {
     if (!generatedLyrics) {
@@ -166,7 +162,7 @@ export function LyricsGeneratorPanel({
           <div>
             <label className="block text-sm text-gray-400 mb-2">家人灵感</label>
             <div className="grid grid-cols-4 gap-2">
-              {FAMILY_MEMBERS.slice(0, 8).map((member) => (
+              {members.slice(0, 8).map((member) => (
                 <button
                   key={member.id}
                   onClick={() => setSelectedMember(member.id)}

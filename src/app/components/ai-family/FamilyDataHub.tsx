@@ -19,10 +19,11 @@ import {
 import { GlassCard } from "../GlassCard";
 import { FadeIn } from "./FadeIn";
 import {
-  FAMILY_MEMBERS, FAMILY_ACTIVITIES, SAMPLE_MEMORIES, SAMPLE_MESSAGES,
+  FAMILY_ACTIVITIES, SAMPLE_MEMORIES, SAMPLE_MESSAGES,
   MEMBER_MEDALS, getFamilyDataSummary, hexToRgb,
-  type FamilyMember,
 } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 
 // ═══ Activity type config ═══
 
@@ -56,9 +57,9 @@ function MetricCard({ icon: Icon, label, value, color, delay = 0 }: {
 
 // ═══ 子组件：成员排行 ═══
 
-function MemberRanking({ members }: { members: FamilyMember[] }) {
+function MemberRanking({ members }: { members: UnifiedFamilyMember[] }) {
   const sorted = useMemo(() =>
-    [...members].sort((a, b) => b.contribution - a.contribution),
+    [...members].sort((a, b) => b.stats.contribution - a.stats.contribution),
   [members]);
 
   return (
@@ -70,8 +71,8 @@ function MemberRanking({ members }: { members: FamilyMember[] }) {
       <div className="space-y-2">
         {sorted.map((m, i) => {
           const rgb = hexToRgb(m.color);
-          const maxContrib = sorted[0].contribution;
-          const barWidth = (m.contribution / maxContrib) * 100;
+          const maxContrib = sorted[0].stats.contribution;
+          const barWidth = (m.stats.contribution / maxContrib) * 100;
           return (
             <div key={m.id} className="flex items-center gap-2">
               <span className="w-5 text-center" style={{
@@ -93,7 +94,7 @@ function MemberRanking({ members }: { members: FamilyMember[] }) {
                   style={{ width: `${barWidth}%`, background: `linear-gradient(90deg, rgba(${rgb},0.3), rgba(${rgb},0.6))` }}
                 />
               </div>
-              <span className="text-white/50 w-10 text-right shrink-0" style={{ fontSize: "0.65rem" }}>{m.contribution}</span>
+              <span className="text-white/50 w-10 text-right shrink-0" style={{ fontSize: "0.65rem" }}>{m.stats.contribution}</span>
             </div>
           );
         })}
@@ -105,6 +106,7 @@ function MemberRanking({ members }: { members: FamilyMember[] }) {
 // ═══ 子组件：活动时间线 ═══
 
 function ActivityTimeline() {
+  const { members } = useFamilyMemberSlice();
   const [limit, setLimit] = useState(5);
   const activities = FAMILY_ACTIVITIES.slice(0, limit);
 
@@ -137,7 +139,7 @@ function ActivityTimeline() {
                     </span>
                     {act.winner && (
                       <span className="text-amber-400" style={{ fontSize: "0.55rem" }}>
-                        {FAMILY_MEMBERS.find(m => m.id === act.winner)?.shortName}
+                        {members.find(m => m.id === act.winner)?.shortName}
                       </span>
                     )}
                   </div>
@@ -147,7 +149,7 @@ function ActivityTimeline() {
                   </div>
                   <div className="flex items-center gap-1 mt-2 flex-wrap">
                     {act.participants.slice(0, 6).map(pid => {
-                      const m = FAMILY_MEMBERS.find(fm => fm.id === pid);
+                      const m = members.find(fm => fm.id === pid);
                       if (!m) { return null; }
                       const rgb = hexToRgb(m.color);
                       return (
@@ -187,6 +189,7 @@ function ActivityTimeline() {
 // ═══ 子组件：最近消息 ═══
 
 function RecentMessages() {
+  const { members } = useFamilyMemberSlice();
   const msgs = SAMPLE_MESSAGES.slice(0, 6);
   const typeIcons: Record<string, React.ElementType> = {
     announcement: Sparkles,
@@ -209,7 +212,7 @@ function RecentMessages() {
       </div>
       <div className="space-y-2">
         {msgs.map(msg => {
-          const from = FAMILY_MEMBERS.find(m => m.id === msg.from);
+          const from = members.find(m => m.id === msg.from);
           if (!from) { return null; }
           const Icon = typeIcons[msg.type] || MessageCircle;
           const color = typeColors[msg.type] || "#3b82f6";
@@ -243,15 +246,16 @@ function RecentMessages() {
 // ═══ 主组件 ═══
 
 export function FamilyDataHub() {
+  const { members } = useFamilyMemberSlice();
   const summary = useMemo(() => getFamilyDataSummary(), []);
 
   const handleExportAll = () => {
     const data = {
       exportDate: new Date().toISOString(),
       summary,
-      members: FAMILY_MEMBERS.map(m => ({
+      members: members.map(m => ({
         id: m.id, name: m.name, shortName: m.shortName, enTitle: m.enTitle,
-        contribution: m.contribution, growth: m.growth, streak: m.streak, mood: m.mood,
+        contribution: m.stats.contribution, growth: m.stats.growth, streak: m.stats.streak, mood: m.stats.mood,
         medals: MEMBER_MEDALS[m.id] || [],
       })),
       activities: FAMILY_ACTIVITIES,
@@ -296,7 +300,7 @@ export function FamilyDataHub() {
 
         {/* Metrics row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <MetricCard icon={Users} label="家庭成员" value={FAMILY_MEMBERS.length} color="#00d4ff" delay={0.02} />
+          <MetricCard icon={Users} label="家庭成员" value={members.length} color="#00d4ff" delay={0.02} />
           <MetricCard icon={Trophy} label="活动记录" value={summary.totalActivities} color="#f59e0b" delay={0.04} />
           <MetricCard icon={Award} label="获得勋章" value={summary.totalMedals} color="#a855f7" delay={0.06} />
           <MetricCard icon={MessageCircle} label="通信记录" value={summary.totalMessages} color="#3b82f6" delay={0.08} />
@@ -307,7 +311,7 @@ export function FamilyDataHub() {
           {/* Left: Ranking + Messages */}
           <div className="space-y-4">
             <FadeIn delay={0.1}>
-              <MemberRanking members={FAMILY_MEMBERS} />
+              <MemberRanking members={members} />
             </FadeIn>
             <FadeIn delay={0.15}>
               <RecentMessages />
@@ -328,7 +332,7 @@ export function FamilyDataHub() {
               <span className="text-white/70" style={{ fontSize: "0.8rem" }}>成长指标总览</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {FAMILY_MEMBERS.map(m => {
+              {members.map(m => {
                 const rgb = hexToRgb(m.color);
                 const medals = MEMBER_MEDALS[m.id] || [];
                 return (
@@ -348,11 +352,11 @@ export function FamilyDataHub() {
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="text-white/30" style={{ fontSize: "0.6rem" }}>成长值</span>
-                        <span className="text-emerald-400" style={{ fontSize: "0.7rem" }}>+{m.growth}</span>
+                        <span className="text-emerald-400" style={{ fontSize: "0.7rem" }}>+{m.stats.growth}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-white/30" style={{ fontSize: "0.6rem" }}>连续在线</span>
-                        <span className="text-cyan-400" style={{ fontSize: "0.7rem" }}>{m.streak}天</span>
+                        <span className="text-cyan-400" style={{ fontSize: "0.7rem" }}>{m.stats.streak}天</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-white/30" style={{ fontSize: "0.6rem" }}>勋章</span>

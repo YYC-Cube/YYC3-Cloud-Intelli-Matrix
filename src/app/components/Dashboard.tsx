@@ -9,7 +9,7 @@
  * @tags: [tag1],[tag2],[tag3]
  */
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, memo, useRef, useEffect } from "react";
 import {
   Activity, Clock, Server, Cpu, Zap, HardDrive,
   ArrowUpRight, ArrowDownRight, BarChart3, Layers,
@@ -22,6 +22,7 @@ import {
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis,
   PolarRadiusAxis, Legend, BarChart, Bar, LineChart, Line,
 } from "recharts";
+import { useShallow } from "zustand/shallow";
 import { GlassCard } from "./GlassCard";
 import { NodeDetailModal } from "./NodeDetailModal";
 import { AlertBanner } from "./AlertBanner";
@@ -112,14 +113,24 @@ export function Dashboard() {
   const [swipeAnim, setSwipeAnim] = useState<"" | "left" | "right">("");
   const [showAllNodes, setShowAllNodes] = useState(false);
 
+  // P-11: mounted guard to prevent setState on unmounted component
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const isMobile = view?.isMobile ?? false;
   const isTablet = view?.isTablet ?? false;
   const _isDesktop = !isMobile && !isTablet;
 
-  // ★ 统一 Store — 图表数据从此获取
-  const { modelPerf: _modelPerf, modelDist, radarData: _radarData } = useMetricsSlice();
-  const { recentOps } = useAppSlice();
-  const { nodes, derived } = useNodeSlice();
+  // ★ 统一 Store — useShallow 避免全量订阅
+  const { modelPerf: _modelPerf, modelDist, radarData: _radarData } = useMetricsSlice(
+    useShallow((s) => ({ modelPerf: s.modelPerf, modelDist: s.modelDist, radarData: s.radarData }))
+  );
+  const { recentOps } = useAppSlice(useShallow((s) => ({ recentOps: s.recentOps })));
+  const { nodes, derived } = useNodeSlice(
+    useShallow((s) => ({ nodes: s.nodes, derived: s.derived }))
+  );
 
   // Swipe handlers for chart tabs
   const swipeHandlers = useSwipeable({
@@ -128,8 +139,10 @@ export function Dashboard() {
       if (idx < ANALYTICS_TABS.length - 1) {
         setSwipeAnim("left");
         setTimeout(() => {
-          setAnalyticsTab(ANALYTICS_TABS[idx + 1]);
-          setSwipeAnim("");
+          if (mountedRef.current) {
+            setAnalyticsTab(ANALYTICS_TABS[idx + 1]);
+            setSwipeAnim("");
+          }
         }, 150);
       }
     },
@@ -138,8 +151,10 @@ export function Dashboard() {
       if (idx > 0) {
         setSwipeAnim("right");
         setTimeout(() => {
-          setAnalyticsTab(ANALYTICS_TABS[idx - 1]);
-          setSwipeAnim("");
+          if (mountedRef.current) {
+            setAnalyticsTab(ANALYTICS_TABS[idx - 1]);
+            setSwipeAnim("");
+          }
         }, 150);
       }
     },
@@ -476,7 +491,7 @@ export function Dashboard() {
               : (isMobile ? "grid-cols-2" : isTablet ? "grid-cols-3" : "grid-cols-4")
           }`}>
             {nodes.map((node) => (
-              <NodeCard key={node.id} node={node} onClick={() => setSelectedNode(node)} />
+              <NodeCard key={node.id} node={node} onClick={setSelectedNode} />
             ))}
           </div>
         </GlassCard>
@@ -552,7 +567,7 @@ export function Dashboard() {
 
 function RadarSection({ isMobile }: { isMobile: boolean }) {
   const { t } = useI18n();
-  const { radarData } = useMetricsSlice();
+  const { radarData } = useMetricsSlice(useShallow((s) => ({ radarData: s.radarData })));
   return (
     <ResponsiveContainer width="100%" height={isMobile ? 240 : 220}>
       <RadarChart data={radarData}>
@@ -570,7 +585,7 @@ function RadarSection({ isMobile }: { isMobile: boolean }) {
 
 function PerformanceSection({ isMobile }: { isMobile: boolean }) {
   const { t } = useI18n();
-  const { modelPerf } = useMetricsSlice();
+  const { modelPerf } = useMetricsSlice(useShallow((s) => ({ modelPerf: s.modelPerf })));
   return (
     <div className={isMobile ? "overflow-x-auto -mx-3" : ""}>
       <div style={isMobile ? { minWidth: "420px", paddingLeft: 12, paddingRight: 12 } : undefined}>
@@ -606,10 +621,10 @@ function PredictionSection({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
+const NodeCard = memo(function NodeCard({ node, onClick }: { node: NodeData; onClick: (n: NodeData) => void }) {
   return (
     <div
-      onClick={onClick}
+      onClick={() => onClick(node)}
       className={`
         relative p-2.5 md:p-3 rounded-lg border cursor-pointer transition-all duration-300
         hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,180,255,0.15)]
@@ -662,4 +677,4 @@ function NodeCard({ node, onClick }: { node: NodeData; onClick: () => void }) {
       </div>
     </div>
   );
-}
+});

@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useCopyFeedback } from "../hooks/useCopyFeedback";
 import {
   X, Send, Sparkles, Settings,
   Zap, Server, Database, Shield, RotateCcw, Play, Copy, Check,
@@ -23,6 +24,7 @@ import { YYC3LogoSvg } from "./YYC3LogoSvg";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useSettingsStore } from "../hooks/useSettingsStore";
 import { useNodeSlice } from "../store/slices/node-slice";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 import { useWebSocketData } from "../hooks/useWebSocketData";
 import { testAIConnection, runFullSystemDiagnostic, type SystemDiagnosticResult, type AIConnectionConfig } from "../lib/connection-test-engine";
 import type { ChatMessage, CommandCategory } from "../types";
@@ -124,15 +126,9 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [activeTab, setActiveTab] = useState<"chat" | "commands" | "prompts" | "settings" | "overview">("chat");
 
-  // Drag state (position persisted to localStorage)
-  const POSITION_STORAGE_KEY = "yyc3_ai_float_position";
-  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
-    try {
-      const saved = localStorage.getItem(POSITION_STORAGE_KEY);
-      if (saved) { return JSON.parse(saved); }
-    } catch { /* ignore */ }
-    return { x: -1, y: -1 };
-  });
+  // Drag state (position persisted via useUIPrefsSlice)
+  const position = useUIPrefsSlice((s) => s.aiFloatPosition);
+  const setAIFloatPosition = useUIPrefsSlice((s) => s.setAIFloatPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -184,7 +180,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
   // Command filter
   const [cmdFilter, setCmdFilter] = useState<string>("all");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedId, copyToClipboard] = useCopyFeedback<string>();
 
   // 自动选中第一个可用模型
   useEffect(() => {
@@ -253,12 +249,6 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     setMessages(prev => [...prev, sysMsg]);
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   const clearChat = () => {
     setMessages([{
       id: "welcome-new",
@@ -296,7 +286,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
       newX = Math.max(padding, Math.min(newX, window.innerWidth - panelW - padding));
       newY = Math.max(padding, Math.min(newY, window.innerHeight - panelH - padding));
 
-      setPosition({ x: newX, y: newY });
+      setAIFloatPosition({ x: newX, y: newY });
     };
     const handleMouseUp = () => {
       setIsDragging(false);
@@ -308,13 +298,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging]);
-
-  useEffect(() => {
-    if (position.x >= 0 && position.y >= 0) {
-      try { localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position)); } catch { /* ignore */ }
-    }
-  }, [position]);
+  }, [isDragging, setAIFloatPosition]);
 
   // ========== ONE-CLICK FULL SYSTEM DIAGNOSTIC ==========
   const [diagRunning, setDiagRunning] = useState(false);

@@ -76,6 +76,8 @@ const zhCN = {
     alertRules: "告警规则",
     reportExport: "报表导出",
     aiDiagnostics: "AI 诊断",
+    sdkChat: "SDK 对话",
+    exportCenter: "数据备份",
     hostFiles: "宿主机文件",
     database: "数据库管理",
     dbConnections: "连接配置",

@@ -9,7 +9,7 @@
  * @tags: [tag1],[tag2],[tag3]
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Users, UserPlus, Search, Shield, ShieldCheck, ShieldAlert, Crown,
   Edit2, Trash2, Lock, Unlock, Activity,
@@ -18,8 +18,9 @@ import {
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
 import { toast } from "sonner";
-import type { UserRecord } from "../stores/dashboard-stores";
+import type { UserRecord } from "../types";
 import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
+import { useShallow } from "zustand/shallow";
 
 const ROLE_LIST = ["超级管理员", "运维工程师", "开发者", "数据分析师", "测试工程师", "AI 研究员", "系统服务", "自动化运维"];
 
@@ -46,7 +47,9 @@ type ModalMode = "view" | "edit" | "add" | null;
 
 export function UserManagement() {
   const { t } = useI18n();
-  const { users, addUser, updateUser, removeUser, toggleLock } = useUserMgmtSlice();
+  const { users, addUser, updateUser, removeUser, toggleLock } = useUserMgmtSlice(
+    useShallow((s) => ({ users: s.users, addUser: s.addUser, updateUser: s.updateUser, removeUser: s.removeUser, toggleLock: s.toggleLock }))
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
@@ -58,9 +61,18 @@ export function UserManagement() {
   const [formEmail, setFormEmail] = useState("");
   const [formRole, setFormRole] = useState("开发者");
 
-  const filteredUsers = users.filter(u =>
-    u.name.includes(searchQuery) || u.username.includes(searchQuery) || u.email.includes(searchQuery)
+  const filteredUsers = useMemo(() =>
+    users.filter(u =>
+      u.name.includes(searchQuery) || u.username.includes(searchQuery) || u.email.includes(searchQuery)
+    ), [users, searchQuery]
   );
+
+  const { onlineCount, adminCount, serviceCount, totalApiCalls } = useMemo(() => ({
+    onlineCount: users.filter(u => u.status === "online").length,
+    adminCount: users.filter(u => u.role === "超级管理员").length,
+    serviceCount: users.filter(u => u.role === "系统服务" || u.role === "自动化运维").length,
+    totalApiCalls: users.reduce((s, u) => s + u.apiCalls, 0),
+  }), [users]);
 
   const openView = (user: UserRecord) => {
     setSelectedUser(user);
@@ -139,10 +151,6 @@ export function UserManagement() {
     toast.info("用户列表已重置为默认值", { style: toastStyle });
   }, []);
 
-  const onlineCount = users.filter(u => u.status === "online").length;
-  const adminCount = users.filter(u => u.role === "超级管理员").length;
-  const serviceCount = users.filter(u => u.role === "系统服务" || u.role === "自动化运维").length;
-
   return (
     <div className="space-y-3 md:space-y-4">
       {/* Summary */}
@@ -152,7 +160,7 @@ export function UserManagement() {
           { label: t("userMgmt.onlineUsers"), value: String(onlineCount), color: "#00ff88", icon: Activity },
           { label: t("userMgmt.admins"), value: String(adminCount), color: "#ff3366", icon: Crown },
           { label: t("userMgmt.serviceAccounts"), value: String(serviceCount), color: "#aa55ff", icon: Shield },
-          { label: t("userMgmt.todayApiCalls"), value: `${(users.reduce((s, u) => s + u.apiCalls, 0) / 1000).toFixed(1)}K`, color: "#ffdd00", icon: Activity },
+          { label: t("userMgmt.todayApiCalls"), value: `${(totalApiCalls / 1000).toFixed(1)}K`, color: "#ffdd00", icon: Activity },
         ].map((s) => (
           <GlassCard key={s.label} className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -377,7 +385,7 @@ export function UserManagement() {
               <h3 className="text-[#e0f0ff]" style={{ fontSize: "1rem" }}>
                 {modalMode === "add" ? "添加用户" : modalMode === "edit" ? "编辑用户" : t("userMgmt.userDetail")}
               </h3>
-              <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)]">
+              <button onClick={closeModal} title="关闭" className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)]">
                 <XCircle className="w-5 h-5 text-[rgba(0,212,255,0.4)]" />
               </button>
             </div>
@@ -476,6 +484,7 @@ export function UserManagement() {
                 <div>
                   <label className="text-[rgba(0,212,255,0.5)] mb-1 block" style={{ fontSize: "0.75rem" }}>角色</label>
                   <select
+                    aria-label="用户角色"
                     value={formRole}
                     onChange={e => setFormRole(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl bg-[rgba(0,40,80,0.4)] border border-[rgba(0,180,255,0.15)] text-[#e0f0ff] focus:outline-none focus:border-[rgba(0,212,255,0.4)]"

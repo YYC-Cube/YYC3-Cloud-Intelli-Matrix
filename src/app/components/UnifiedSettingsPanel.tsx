@@ -46,16 +46,14 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import {
-  useUser,
-  useConfig,
-  useModels,
   useDatabase,
   useAlerts,
-  useChat,
   exportStoreData,
   importStoreData,
 } from "../stores/global-store";
+import { useProviderSlice } from "../store";
 import { useI18n } from "../hooks/useI18n";
+import { useCopyFeedback } from "../hooks/useCopyFeedback";
 import { toast } from "sonner";
 import { isCryptoAvailable } from "../lib/crypto-vault";
 import { downloadFullBackup, importFullBackup } from "../lib/full-backup";
@@ -118,14 +116,11 @@ export function UnifiedSettingsPanel() {
   const [activeTab, setActiveTab] = useState("security");
   const [storageInfo, setStorageInfo] = useState<StorageInfo[]>([]);
   const [_showApiKey] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, _copyRaw] = useCopyFeedback();
 
-  const _user = useUser();
-  const _config = useConfig();
-  const models = useModels();
+  const { providers, configuredModels } = useProviderSlice();
   const database = useDatabase();
   const alerts = useAlerts();
-  const _chat = useChat();
 
   const refreshStorageInfo = useCallback(() => {
     setStorageInfo(getLocalStorageInfo());
@@ -148,7 +143,7 @@ export function UnifiedSettingsPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success(t("settings.exportSuccess") || "数据导出成功");
-    } catch (_error) {
+    } catch {
       toast.error(t("settings.exportFailed") || "数据导出失败");
     }
   }, [t]);
@@ -168,7 +163,7 @@ export function UnifiedSettingsPanel() {
         } else {
           toast.error(t("settings.importFailed") || "数据导入失败");
         }
-      } catch (_error) {
+      } catch {
         toast.error(t("settings.importInvalid") || "无效的数据文件");
       }
     };
@@ -186,11 +181,9 @@ export function UnifiedSettingsPanel() {
   }, [t, refreshStorageInfo]);
 
   const copyToClipboard = useCallback((text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    _copyRaw(text, true);
     toast.success(t("common.copied") || "已复制到剪贴板");
-  }, [t]);
+  }, [t, _copyRaw]);
 
   const totalSize = storageInfo.reduce((sum, info) => sum + info.size, 0);
 
@@ -325,7 +318,7 @@ export function UnifiedSettingsPanel() {
               {t("settings.apiKeyDesc") || "您的 API 密钥仅存储在本地浏览器中，永远不会上传到任何服务器"}
             </p>
             <div className="space-y-3">
-              {models.providers.slice(0, 3).map((provider) => (
+              {providers.slice(0, 3).map((provider) => (
                 <div
                   key={provider.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-[rgba(0,20,40,0.4)] border border-[rgba(0,180,255,0.15)]"
@@ -567,14 +560,14 @@ export function UnifiedSettingsPanel() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 rounded-lg bg-[rgba(0,20,40,0.4)] border border-[rgba(0,180,255,0.15)] text-center">
-                <div className="text-2xl font-bold text-[#00d4ff]">{models.providers.length}</div>
+                <div className="text-2xl font-bold text-[#00d4ff]">{providers.length}</div>
                 <div className="text-xs text-[rgba(0,180,255,0.6)]">
                   {t("settings.providers") || "模型提供商"}
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-[rgba(0,20,40,0.4)] border border-[rgba(0,180,255,0.15)] text-center">
                 <div className="text-2xl font-bold text-[#00d4ff]">
-                  {models.configuredModels.length}
+                  {configuredModels.length}
                 </div>
                 <div className="text-xs text-[rgba(0,180,255,0.6)]">
                   {t("settings.configuredModels") || "已配置模型"}

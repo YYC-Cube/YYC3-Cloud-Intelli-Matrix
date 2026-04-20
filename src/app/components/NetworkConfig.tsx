@@ -33,7 +33,7 @@ import { GlassCard } from "./GlassCard";
 import { useNetworkConfig } from "../hooks/useNetworkConfig";
 import type { TestStatus } from "../types";
 import { toast } from "sonner";
-import type { WifiAutoReconnectSettings } from "../stores/dashboard-stores";
+import type { WifiAutoReconnectSettings } from "../types";
 import { useNetworkSlice } from "../store/slices/network-slice";
 
 interface NetworkConfigProps {

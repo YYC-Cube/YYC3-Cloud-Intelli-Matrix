@@ -46,41 +46,6 @@ vi.mock("../hooks/useNetworkConfig", () => ({
   })),
 }));
 
-vi.mock("../stores/dashboard-stores", () => ({
-  wifiNetworkStore: {
-    getAll: vi.fn(() => []),
-    add: vi.fn(),
-    remove: vi.fn(),
-    update: vi.fn(),
-    getState: vi.fn(() => ({
-      networks: [],
-      autoReconnect: {
-        enabled: false,
-        networkId: "",
-      },
-    })),
-    setState: vi.fn(),
-  },
-  getWifiAutoReconnectConfig: vi.fn(() => ({
-    id: "wifi-ar-config",
-    enabled: false,
-    preferStrongestSignal: false,
-    intervalSeconds: 5,
-    maxRetries: 10,
-    preferredSsid: "",
-    lastUpdatedAt: Date.now(),
-  })),
-  updateWifiAutoReconnectConfig: vi.fn(() => ({
-    id: "wifi-ar-config",
-    enabled: false,
-    preferStrongestSignal: false,
-    intervalSeconds: 5,
-    maxRetries: 10,
-    preferredSsid: "",
-    lastUpdatedAt: Date.now(),
-  })),
-}));
-
 vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),

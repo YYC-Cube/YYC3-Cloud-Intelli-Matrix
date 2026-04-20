@@ -2,19 +2,20 @@
  * @file: dashboard-stores.ts
  * @description: YYC³ Dashboard Stores (Legacy) · createLocalStore 实例
  * @author: YanYuCloudCube Team
- * @version: v2.0.0
+ * @version: v2.1.0
  * @created: 2026-04-08
- * @updated: 2026-04-16
- * @status: deprecated (类型已迁移至 types/index.ts)
- * @tags: [module],[legacy]
+ * @updated: 2026-04-17
+ * @status: active
+ * @tags: [module],[legacy],[test-infra]
  *
- * @brief: 类型定义已迁移到 types/index.ts，本文件仅保留 store 实例和重新导出
+ * @brief: 测试基础设施 — 生产代码已全部迁移至 Zustand slices
  *
  * @migration-note:
  * - 所有 interface 定义已迁移至 src/app/types/index.ts (Section 38)
- * - Slice Store 已改为从 types/index.ts 导入类型
- * - 本文件通过 re-export 保持向后兼容
- * - 下一个 Phase 将移除本文件
+ * - 生产代码零引用 (grep -r "dashboard-stores" src/app/ --exclude-dir=__tests__ = 0)
+ * - 2 个测试文件仍引用此文件 (core-components-integration, followUpStore)
+ * - 完整迁移需重写测试用例，成本高收益低，保留为测试基础设施
+ * - useAISuggestion.ts 已于 Phase U 迁移至 ai-suggestion-slice.ts (createLocalStore 生产消费者归零)
  */
 
 import { createLocalStore } from "../lib/create-local-store";

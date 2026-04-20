@@ -9,7 +9,7 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X, Wand2, Copy, Check, Loader2, Sparkles,
@@ -21,6 +21,9 @@ import {
 import { clsx } from 'clsx';
 import { useI18n } from '../../hooks/useI18n';
 import { MUSIC_LIBRARY, type MusicTrack, getRandomPhoto } from '../../lib/dmusic-resources';
+import { useCopyFeedback } from '../../hooks/useCopyFeedback';
+import { useFamilySettingsSlice } from '../../store/slices/family-settings-slice';
+import type { CreatedWork } from '../../store/slices/family-settings-slice';
 
 type CreationMode = 'quick' | 'master' | 'remix' | 'works' | 'upload';
 type AILyricsTheme = 'happy' | 'sad' | 'energetic' | 'calm' | 'love';
@@ -36,16 +39,6 @@ interface CreationStudioProps {
   user?: { id: string; name?: string };
   starPower?: number;
   onStarPowerUpdate?: (sp: number) => void;
-}
-
-interface CreatedWork {
-  id: string;
-  title: string;
-  theme: string;
-  lyrics: string[];
-  createdAt: number;
-  mode: string;
-  audioUrl?: string;
 }
 
 const THEMES: Array<{
@@ -173,39 +166,20 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
   const [remixResult, setRemixResult] = useState<string[] | null>(null);
   const [remixComposing, setRemixComposing] = useState<'idle' | 'lyrics' | 'composing' | 'done'>('idle');
 
-  const [works, setWorks] = useState<CreatedWork[]>([]);
-  const [copied, setCopied] = useState<string | null>(null);
+  const works = useFamilySettingsSlice((s) => s.musicWorks);
+  const [copied, handleCopyLyrics] = useCopyFeedback<string>();
 
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadArtist, setUploadArtist] = useState('董小姐');
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      try {
-        const stored = localStorage.getItem('d-music-works');
-        if (stored) {setWorks(JSON.parse(stored));}
-      } catch {
-        // localStorage不可用时忽略，使用默认空数组
-      }
-    }
-  }, [isOpen]);
-
   const saveWork = useCallback((work: CreatedWork) => {
-    setWorks(prev => {
-      const updated = [work, ...prev].slice(0, 50);
-      try { localStorage.setItem('d-music-works', JSON.stringify(updated)); } catch { /* 存储失败时忽略 */ }
-      return updated;
-    });
+    useFamilySettingsSlice.getState().addMusicWork(work);
   }, []);
 
   const deleteWork = useCallback((id: string) => {
-    setWorks(prev => {
-      const updated = prev.filter(w => w.id !== id);
-      try { localStorage.setItem('d-music-works', JSON.stringify(updated)); } catch { /* 存储失败时忽略 */ }
-      return updated;
-    });
+    useFamilySettingsSlice.getState().removeMusicWork(id);
   }, []);
 
   const generateDemoLyrics = useCallback((theme: AILyricsTheme, keywords: string[], lines: number): string[] => {
@@ -432,11 +406,6 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
     }
   }, [uploadFile, uploadTitle, uploadArtist, onCreateTrack, onHaptic, saveWork]);
 
-  const handleCopyLyrics = useCallback((lyrics: string[], id: string) => {
-    navigator.clipboard.writeText(lyrics.join('\n'));
-    setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
-  }, []);
 
   const addMasterKeyword = useCallback(() => {
     const trimmed = masterKwInput.trim();
@@ -618,7 +587,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                               {locale === 'zh-CN' ? '生成的歌词' : 'Generated Lyrics'}
                             </p>
                             <button
-                              onClick={() => handleCopyLyrics(quickLyrics, 'quick')}
+                              onClick={() => handleCopyLyrics(quickLyrics.join('\n'), 'quick')}
                               className="flex items-center gap-1 px-2 py-1 rounded bg-white/5 text-xs text-white/50 hover:text-white/80"
                             >
                               {copied === 'quick' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
@@ -808,7 +777,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                               {locale === 'zh-CN' ? '生成的歌词' : 'Generated Lyrics'}
                             </p>
                             <button
-                              onClick={() => handleCopyLyrics(masterLyrics, 'master')}
+                              onClick={() => handleCopyLyrics(masterLyrics.join('\n'), 'master')}
                               className="flex items-center gap-1 px-2 py-1 rounded bg-white/5 text-xs text-white/50 hover:text-white/80"
                             >
                               {copied === 'master' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
@@ -917,7 +886,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                               {locale === 'zh-CN' ? '改编歌词' : 'Remix Lyrics'}
                             </p>
                             <button
-                              onClick={() => handleCopyLyrics(remixResult, 'remix')}
+                              onClick={() => handleCopyLyrics(remixResult.join('\n'), 'remix')}
                               className="flex items-center gap-1 px-2 py-1 rounded bg-white/5 text-xs text-white/50 hover:text-white/80"
                             >
                               {copied === 'remix' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
@@ -1035,7 +1004,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                               <div className="flex items-center gap-1">
                                 {work.lyrics.length > 0 && (
                                   <button
-                                    onClick={() => handleCopyLyrics(work.lyrics, work.id)}
+                                    onClick={() => handleCopyLyrics(work.lyrics.join('\n'), work.id)}
                                     className="p-1.5 rounded text-white/30 hover:text-white/60 hover:bg-white/5"
                                   >
                                     {copied === work.id ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}

@@ -197,9 +197,14 @@ class MockSupabaseClient {
 export const supabase = USE_MOCK ? new MockSupabaseClient() : getSupabaseClient();
 
 /**
- * 幽灵登录
+ * 幽灵登录（仅限开发环境）
  */
-export function ghostSignIn(): AppSession {
+export function ghostSignIn(): AppSession | null {
+  // @ts-ignore - Vite env
+  if (import.meta.env.PROD) {
+    console.error('[Auth] Ghost mode is disabled in production builds');
+    return null;
+  }
   const session: AppSession = {
     user: GHOST_USER,
     token: `ghost_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -214,6 +219,8 @@ export function ghostSignIn(): AppSession {
  * 检查是否为幽灵模式
  */
 export function isGhostMode(): boolean {
+  // @ts-ignore - Vite env
+  if (import.meta.env.PROD) { return false; }
   return localStorage.getItem(GHOST_KEY) === "1";
 }
 

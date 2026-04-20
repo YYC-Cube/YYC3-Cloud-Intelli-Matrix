@@ -18,7 +18,7 @@ import {
 import { GlassCard } from "./GlassCard";
 import { useI18n } from "../hooks/useI18n";
 import { useFollowUpSlice } from "../store/slices/follow-up-slice";
-import type { FollowUpRecord } from "../stores/dashboard-stores";
+import type { FollowUpRecord } from "../types";
 import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
 import { FollowUpEditDialog } from "./FollowUpEditDialog";
 

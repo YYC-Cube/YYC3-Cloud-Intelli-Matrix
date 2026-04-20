@@ -48,3 +48,38 @@ export interface StorageEvent {
   data?: SyncData | OfflineQueueItem | unknown;
   error?: string;
 }
+
+/** IndexedDB store 名称
+ *  RF-004: 新增 store 时需同步更新 yyc3-storage.ts 中的 ALL_STORES 常量数组
+ */
+export type StoreName =
+  | "alertRules"
+  | "alertEvents"
+  | "patrolHistory"
+  | "loopHistory"
+  | "operationTemplates"
+  | "operationLogs"
+  | "diagnosisHistory"
+  | "reports"
+  | "errorLog"
+  | "dashboardSnapshots"
+  | "fileVersions"
+  | "dbConnections"
+  | "queryHistory"
+  | "committedChanges"
+  | "agent_memories"
+  | "agent_tasks"
+  | "mcp_contexts"
+  | "inference_cache"
+  | "family_messages"
+  | "family_activities"
+  | "family_memories"
+  | "family_broadcasts";
+
+/** 存储变更事件 (BroadcastChannel) */
+export interface StorageChangeEvent {
+  store: StoreName;
+  action: string;
+  key: string;
+  timestamp: number;
+}

@@ -12,7 +12,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Volume2, VolumeX, Play, Pause, SkipForward } from "lucide-react";
-import { FAMILY_MEMBERS, type FamilyMember } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 import { voiceProfileManager, type VoiceProfile } from "../../lib/VoiceProfileManager";
 import { musicEventBus } from "../../lib/MusicEventBus";
 import { Button } from "../ui/button";
@@ -128,11 +129,12 @@ export function FamilyAnnouncer({
   onAnnouncementEnd,
   className = "",
 }: FamilyAnnouncerProps) {
+  const { members } = useFamilyMemberSlice();
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [announcementQueue, setAnnouncementQueue] = useState<Announcement[]>([]);
-  const [currentMember, setCurrentMember] = useState<FamilyMember | null>(null);
+  const [currentMember, setCurrentMember] = useState<UnifiedFamilyMember | null>(null);
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
   const [audioVisualizerData, setAudioVisualizerData] = useState<number[]>(new Array(20).fill(0));
   const processingRef = useRef(false);
@@ -175,13 +177,13 @@ export function FamilyAnnouncer({
   }, []);
 
   useEffect(() => {
-    const member = FAMILY_MEMBERS.find((m) => m.id === defaultMember);
+    const member = members.find((m) => m.id === defaultMember);
     if (member) {
       setCurrentMember(member);
       const profile = voiceProfileManager.getProfile(defaultMember);
       setVoiceProfile(profile ?? null);
     }
-  }, [defaultMember]);
+  }, [defaultMember, members]);
 
   useEffect(() => {
     if (isSpeaking && showVisualizer) {
@@ -281,13 +283,13 @@ export function FamilyAnnouncer({
   }, []);
 
   const handleMemberChange = useCallback((memberId: string) => {
-    const member = FAMILY_MEMBERS.find((m) => m.id === memberId);
+    const member = members.find((m) => m.id === memberId);
     if (member) {
       setCurrentMember(member);
       const profile = voiceProfileManager.getProfile(memberId);
       setVoiceProfile(profile ?? null);
     }
-  }, []);
+  }, [members]);
 
   return (
     <div className={`family-announcer ${className}`}>
@@ -373,7 +375,7 @@ export function FamilyAnnouncer({
         </AnimatePresence>
 
         <div className="grid grid-cols-4 gap-2 mb-4">
-          {FAMILY_MEMBERS.map((member) => (
+          {members.map((member) => (
             <button
               key={member.id}
               onClick={() => handleMemberChange(member.id)}

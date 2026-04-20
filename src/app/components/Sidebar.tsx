@@ -72,6 +72,7 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.connectionTest", path: "/connection-test", icon: Zap },
       { key: "nav.serviceLoop", path: "/loop",         icon: SettingsIcon },
       { key: "nav.reportExport", path: "/reports",     icon: FileBarChart },
+      { key: "nav.exportCenter", path: "/export-center", icon: Package },
     ],
   },
   {
@@ -82,6 +83,7 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.aiDecision",      path: "/ai",            icon: Sparkles },
       { key: "modelProvider.title",  path: "/models",        icon: Cpu },
       { key: "nav.aiDiagnostics",    path: "/ai-diagnosis",  icon: BrainCircuit },
+      { key: "nav.sdkChat",          path: "/sdk-chat",       icon: MessageCircle },
     ],
   },
   {

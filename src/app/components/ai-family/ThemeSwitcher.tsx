@@ -12,13 +12,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Palette, Check, Sparkles } from "lucide-react";
-import { FAMILY_MEMBERS, type FamilyMember } from "./shared";
+import { useFamilyMemberSlice } from "../../store";
+import type { UnifiedFamilyMember } from "../../types";
 import { familyThemeManager, type FamilyTheme } from "../../lib/FamilyMusicThemes";
 import { Button } from "../ui/button";
 
 interface ThemeSwitcherProps {
   currentMemberId?: string;
-  onThemeChange?: (theme: FamilyTheme, member: FamilyMember) => void;
+  onThemeChange?: (theme: FamilyTheme, member: UnifiedFamilyMember) => void;
   showPreview?: boolean;
   compact?: boolean;
   className?: string;
@@ -31,6 +32,7 @@ export function ThemeSwitcher({
   compact = false,
   className = "",
 }: ThemeSwitcherProps) {
+  const { members } = useFamilyMemberSlice();
   const [selectedMemberId, setSelectedMemberId] = useState(currentMemberId);
   const [currentTheme, setCurrentTheme] = useState<FamilyTheme | null>(null);
   const [previewTheme, setPreviewTheme] = useState<FamilyTheme | null>(null);
@@ -64,7 +66,7 @@ export function ThemeSwitcher({
       setIsTransitioning(true);
 
       const theme = familyThemeManager.setTheme(memberId);
-      const member = FAMILY_MEMBERS.find((m) => m.id === memberId);
+      const member = members.find((m) => m.id === memberId);
 
       if (theme && member) {
         setCurrentTheme(theme);
@@ -76,7 +78,7 @@ export function ThemeSwitcher({
         setIsTransitioning(false);
       }, 300);
     },
-    [onThemeChange]
+    [onThemeChange, members]
   );
 
   const handleCancelPreview = useCallback(() => {
@@ -203,7 +205,7 @@ export function ThemeSwitcher({
         )}
 
         <div className={`grid ${compact ? "grid-cols-4" : "grid-cols-4"} gap-2 mb-4`}>
-          {FAMILY_MEMBERS.map((member) => {
+          {members.map((member) => {
             const theme = familyThemeManager.getTheme(member.id);
             const isSelected = selectedMemberId === member.id;
             const isPreviewed = previewTheme?.memberId === member.id;

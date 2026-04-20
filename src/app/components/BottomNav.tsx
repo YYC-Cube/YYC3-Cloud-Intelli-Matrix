@@ -58,6 +58,7 @@ const MORE_CATEGORIES: MoreCategory[] = [
       { key: "nav.envConfig",    path: "/env-config",   icon: ServerCog },
       { key: "nav.serviceLoop",  path: "/loop",         icon: Settings },
       { key: "nav.reportExport", path: "/reports",      icon: FileBarChart },
+      { key: "nav.exportCenter", path: "/export-center", icon: Package },
     ],
   },
   {
@@ -72,6 +73,7 @@ const MORE_CATEGORIES: MoreCategory[] = [
       { key: "nav.aiDecision",     path: "/ai",           icon: Sparkles },
       { key: "modelProvider.title", path: "/models",       icon: Cpu },
       { key: "nav.aiDiagnostics",  path: "/ai-diagnosis", icon: BrainCircuit },
+      { key: "nav.sdkChat",         path: "/sdk-chat",     icon: MessageCircle },
     ],
   },
   {

@@ -414,8 +414,13 @@ describe("useWebSocketData", () => {
         });
       });
 
-      expect(result.current.nodes.length).toBe(1);
-      expect(result.current.nodes[0].id).toBe("GPU-A100-01");
+      // node_status merges with existing nodes via DataBus (smart merge)
+      // So the node count stays the same (or grows if new nodes are added)
+      // Verify that the specific node was updated
+      const updatedNode = result.current.nodes.find((n) => n.id === "GPU-A100-01");
+      expect(updatedNode).toBeDefined();
+      expect(updatedNode!.id).toBe("GPU-A100-01");
+      expect(updatedNode!.gpu).toBe(95);
     });
 
     it("should handle alert message", () => {

@@ -10,30 +10,15 @@
  */
 
 import * as React from "react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { X, RotateCcw } from "lucide-react";
 import { useI18n } from "../../hooks/useI18n";
+import { useIDESettingsSlice } from "../../store/slices/ide-settings-slice";
 import type { IDESettings } from "./ide-types";
 
 // ============================================================
 // Constants
 // ============================================================
-
-const IDE_SETTINGS_STORAGE_KEY = "yyc3-ide-settings";
-
-const DEFAULT_IDE_SETTINGS: IDESettings = {
-  theme: "dark",
-  fontSize: 14,
-  fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
-  tabSize: 2,
-  wordWrap: true,
-  minimap: true,
-  lineNumbers: true,
-  autoSave: true,
-  autoSaveDelay: 1000,
-  formatOnSave: true,
-  bracketPairColorization: true,
-};
 
 const FONT_OPTIONS = [
   "'JetBrains Mono', monospace",
@@ -73,27 +58,22 @@ interface IDESettingsPanelProps {
 export function IDESettingsPanel({ isOpen, onClose }: IDESettingsPanelProps) {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<SettingsTab>("editor");
-  const [settings, setSettings] = useState<IDESettings>(() => loadSettings());
+  const settings = useIDESettingsSlice((s) => s.settings);
+  const updateSettingAction = useIDESettingsSlice((s) => s.updateSetting);
+  const resetSettings = useIDESettingsSlice((s) => s.resetSettings);
   const [hasChanges, setHasChanges] = useState(false);
-
-  // Persist settings whenever they change
-  useEffect(() => {
-    if (hasChanges) {
-      saveSettings(settings);
-    }
-  }, [settings, hasChanges]);
 
   // ─── Settings update helpers ─────────────────────────────
 
   const updateSetting = useCallback(<K extends keyof IDESettings>(key: K, value: IDESettings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    updateSettingAction(key, value);
     setHasChanges(true);
-  }, []);
+  }, [updateSettingAction]);
 
   const handleReset = useCallback(() => {
-    setSettings({ ...DEFAULT_IDE_SETTINGS });
+    resetSettings();
     setHasChanges(true);
-  }, []);
+  }, [resetSettings]);
 
   // ─── Tab configuration ───────────────────────────────────
 
@@ -451,29 +431,4 @@ export function IDESettingsPanel({ isOpen, onClose }: IDESettingsPanelProps) {
       </div>
     </>
   );
-}
-
-// ============================================================
-// Persistence helpers
-// ============================================================
-
-function loadSettings(): IDESettings {
-  try {
-    const raw = localStorage.getItem(IDE_SETTINGS_STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      return { ...DEFAULT_IDE_SETTINGS, ...saved };
-    }
-  } catch {
-    /* localStorage unavailable or corrupted */
-  }
-  return { ...DEFAULT_IDE_SETTINGS };
-}
-
-function saveSettings(settings: IDESettings): void {
-  try {
-    localStorage.setItem(IDE_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  } catch {
-    /* localStorage unavailable */
-  }
 }

@@ -13,7 +13,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { idbPut, idbGetAll, idbDelete } from "../lib/yyc3-storage";
 import { getAPIConfig } from "../lib/api-config";
-import type { HostFileEntry, FileVersion } from "../types";
+import { useFSSlice } from "../store/slices/fs-slice";
+import type { HostFileEntry, FileVersion, RecentFile } from "../types";
 
 // ============================================================
 //  API 降级层 (后端接口预留)
@@ -213,28 +214,19 @@ async function searchInDirectory(
 }
 
 // ============================================================
-//  Recent file tracking
+//  Recent file tracking (via Zustand slice)
 // ============================================================
 
 // RecentFile is now centralized in types/index.ts
-import type { RecentFile } from "../types";
 // RF-011: Re-export 已移除
 
-const RECENT_KEY = "yyc3_recent_files";
-const MAX_RECENT = 20;
-
-function loadRecentFiles(): RecentFile[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
-  } catch { return []; }
-}
-
 function saveRecentFile(entry: HostFileEntry) {
-  try {
-    const recent = loadRecentFiles().filter(r => r.path !== entry.path);
-    recent.unshift({ id: entry.id, name: entry.name, path: entry.path, size: entry.size, accessedAt: Date.now() });
-    localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
-  } catch { /* ignore */ }
+  useFSSlice.getState().addRecentFile({
+    id: entry.id,
+    name: entry.name,
+    path: entry.path,
+    size: entry.size,
+  });
 }
 
 // ============================================================
@@ -257,7 +249,7 @@ export function useHostFileSystem() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<HostFileEntry[]>([]);
   const [searching, setSearching] = useState(false);
-  const [recentFiles, setRecentFiles] = useState<RecentFile[]>(loadRecentFiles);
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>(() => useFSSlice.getState().recentFiles);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const rootRef = useRef<FileSystemDirectoryHandle | null>(null);
 
@@ -423,7 +415,7 @@ export function useHostFileSystem() {
     setSelectedEntry(entry);
     setImagePreviewUrl(null);
     saveRecentFile(entry);
-    setRecentFiles(loadRecentFiles());
+    setRecentFiles(useFSSlice.getState().recentFiles);
 
     try {
       const fileHandle = entry.handle as FileSystemFileHandle;

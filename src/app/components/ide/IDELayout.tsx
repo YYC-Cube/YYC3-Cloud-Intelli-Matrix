@@ -13,6 +13,7 @@ import * as React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useI18n } from "../../hooks/useI18n";
+import { useIDESettingsSlice } from "../../store/slices/ide-settings-slice";
 import { IDETopBar } from "./IDETopBar";
 import { IDEViewSwitcher } from "./IDEViewSwitcher";
 import { AIChatPanel } from "./AIChatPanel";
@@ -22,7 +23,7 @@ import { IDETerminal } from "./IDETerminal";
 import { IDEStatusBar } from "./IDEStatusBar";
 import { MOCK_FILE_CONTENTS, MOCK_NOTIFICATIONS } from "./ide-mock-data";
 import { AI_MODELS } from "./ide-mock-data";
-import type { IDEViewMode, IDELayoutMode, OpenTab } from "./ide-types";
+import type { IDEViewMode, OpenTab } from "./ide-types";
 import { LayoutProvider } from "./LayoutContext";
 import { Workspace } from "./Workspace";
 import type { PanelType } from "./ide-layout-types";
@@ -166,19 +167,12 @@ function SplitContainer({
   );
 }
 
-const LAYOUT_MODE_STORAGE_KEY = "yyc3-ide-layout-mode";
-
 export function IDELayout() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [viewMode, setViewMode] = useState<IDEViewMode>("default");
-  const [layoutMode, setLayoutMode] = useState<IDELayoutMode>(() => {
-    try {
-      const stored = localStorage.getItem(LAYOUT_MODE_STORAGE_KEY);
-      if (stored === "edit" || stored === "preview" || stored === "free") {return stored;}
-    } catch { /* localStorage 不可用时使用默认值 */ }
-    return "preview";
-  });
+  const layoutMode = useIDESettingsSlice((s) => s.layoutMode);
+  const setLayoutMode = useIDESettingsSlice((s) => s.setLayoutMode);
   const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
   const [openTabs, setOpenTabs] = useState<OpenTab[]>([]);
   const [activeTabId, setActiveTabId] = useState("");
@@ -188,13 +182,6 @@ export function IDELayout() {
   const [_showSettings, setShowSettings] = useState(false);
   const [_showDeploy, setShowDeploy] = useState(false);
   const [_showShare, setShowShare] = useState(false);
-
-  // Persist layoutMode to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(LAYOUT_MODE_STORAGE_KEY, layoutMode);
-    } catch { /* localStorage 不可用时忽略 */ }
-  }, [layoutMode]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -278,16 +265,14 @@ export function IDELayout() {
       // Ctrl+3 to toggle layout mode
       if ((e.ctrlKey || e.metaKey) && e.key === "3") {
         e.preventDefault();
-        setLayoutMode((m) => {
-          if (m === "edit") {return "preview";}
-          if (m === "preview") {return "free";}
-          return "edit";
-        });
+        setLayoutMode(
+          layoutMode === "edit" ? "preview" : layoutMode === "preview" ? "free" : "edit"
+        );
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [layoutMode, viewMode]);
+  }, [layoutMode, setLayoutMode, viewMode]);
 
   // Determine panel visibility based on view mode
   const showLeftPanel = viewMode !== "code";

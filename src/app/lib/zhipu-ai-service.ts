@@ -528,7 +528,7 @@ ${context.previousContext.join("\n")}`;
               try {
                 const json = JSON.parse(trimmed.slice(6)) as ZhipuAIStreamChunk;
                 onChunk(json);
-              } catch (_e) {
+              } catch {
                 // 忽略解析错误
               }
             }

@@ -148,9 +148,14 @@ export const supabase = new MockSupabaseClient();
 /**
  * 幽灵登录 · Ghost Sign-In
  * 跳过所有认证流程，直接创建 admin 级会话
- * 功能完全不受限，适用于本地开发 / 演示 / 紧急运维
+ * 功能完全不受限，仅限开发环境使用
  */
-export function ghostSignIn(): AppSession {
+export function ghostSignIn(): AppSession | null {
+  // @ts-ignore - Vite env
+  if (import.meta.env.PROD) {
+    console.error('[Auth] Ghost mode is disabled in production builds');
+    return null;
+  }
   const session: AppSession = {
     user: GHOST_USER,
     token: `ghost_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -163,5 +168,7 @@ export function ghostSignIn(): AppSession {
 
 /** 检查当前是否为幽灵模式 */
 export function isGhostMode(): boolean {
+  // @ts-ignore - Vite env
+  if (import.meta.env.PROD) { return false; }
   return localStorage.getItem("yyc3_ghost") === "1";
 }

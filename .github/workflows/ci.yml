@@ -74,7 +74,7 @@
         - name: Type check
           run: pnpm exec tsc --noEmit
         - name: Lint code
-          run: pnpm run lint:fix
+          run: pnpm run lint
         - name: Check formatting
           run: pnpm exec prettier --check "src/**/*.{ts,tsx}" || true
 

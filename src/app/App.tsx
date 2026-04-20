@@ -33,6 +33,9 @@ import { useYYC3Head } from "./hooks/useYYC3Head";
 import { useI18nProvider, I18nContext } from "./hooks/useI18n";
 import { AuthContext } from "./lib/authContext";
 import { isFigmaPlatformError } from "./lib/figma-error-filter";
+import { FamilyDataAccessor } from "./lib/family-data-accessor";
+import { useFamilyMemberSlice } from "./store";
+import { refreshFromStore } from "./components/ai-family/shared";
 import type { UserRole, AppSession } from "./types";
 
 // ────────────────────────────────────────────────────────────────
@@ -116,9 +119,13 @@ export default function App() {
   // 注入 YYC3 品牌 <head> 标签 (favicon / manifest / theme-color / title)
   useYYC3Head();
 
-  // 安装全局错误监听器（仅一次）
+  // 安装全局错误监听器 + 初始化非 React 服务层
   useEffect(() => {
     installGlobalErrorListeners();
+    // 注入 store 成员数据到 FamilyDataAccessor（供非 React 库读取）
+    FamilyDataAccessor.initialize(useFamilyMemberSlice.getState().members);
+    // 刷新 shared.ts 的 FAMILY_MEMBERS 为 store-backed 数据
+    refreshFromStore();
   }, []);
 
   useEffect(() => {
@@ -161,6 +168,7 @@ export default function App() {
   /** ��灵登录 · 跳过认证直接进入 */
   const handleGhostLogin = useCallback(() => {
     const session = ghostSignIn();
+    if (!session) { return; }
     setUserEmail(session.user.email);
     setUserRole(session.user.role as UserRole);
     setIsGhost(true);

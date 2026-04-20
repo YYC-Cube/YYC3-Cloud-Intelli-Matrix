@@ -169,7 +169,7 @@ describe("E2E: env-config 配置闭环", () => {
 
     // 1. 默认值
     expect(env("SYSTEM_NAME")).toBe("YYC³ Cloud Intelli-Matrix");
-    expect(env("SYSTEM_VERSION")).toBe("3.2.0");
+    expect(env("SYSTEM_VERSION")).toBe("3.3.0");
     expect(env("ENABLE_MOCK_MODE")).toBe(true);
 
     // 2. 修改

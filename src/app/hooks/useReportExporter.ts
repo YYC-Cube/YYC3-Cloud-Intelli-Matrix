@@ -214,8 +214,9 @@ function exportPrintable(data: ReportData) {
   </div>
 </body>
 </html>`;
-  win.document.write(html);
-  win.document.close();
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  win.location.href = url;
 }
 
 // ============================================================

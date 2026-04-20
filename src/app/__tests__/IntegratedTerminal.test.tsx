@@ -1,10 +1,10 @@
 /**
  * @file: IntegratedTerminal.test.tsx
- * @description: IntegratedTerminal 组件完整测试套件
+ * @description: IntegratedTerminal component full test suite — Zustand slice integration
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-01
- * @updated: 2026-04-01
+ * @updated: 2026-04-19
  * @status: active
  * @tags: [component],[test]
  */
@@ -50,19 +50,23 @@ vi.mock("motion/react", () => ({
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
+// ── Import the Zustand store after mocks ───────────────────────
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
+
 describe("IntegratedTerminal", () => {
   const mockOnClose = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    // Reset Zustand store to default state
+    useUIPrefsSlice.setState({ terminalHeight: 300 });
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  describe("基础渲染", () => {
+  describe("basic rendering", () => {
     it("should not render when open is false", () => {
       render(<IntegratedTerminal open={false} onClose={mockOnClose} />);
       expect(screen.queryByText("cpim-cli v3.2.0")).not.toBeInTheDocument();
@@ -95,7 +99,7 @@ describe("IntegratedTerminal", () => {
     });
   });
 
-  describe("窗口控制按钮", () => {
+  describe("window control buttons", () => {
     it("should render minimize button", () => {
       render(<IntegratedTerminal open={true} onClose={mockOnClose} />);
       const buttons = screen.getAllByRole("button");
@@ -128,7 +132,7 @@ describe("IntegratedTerminal", () => {
     });
   });
 
-  describe("多 Tab 管理", () => {
+  describe("multi-Tab management", () => {
     it("should render add tab button", () => {
       render(<IntegratedTerminal open={true} onClose={mockOnClose} />);
       const buttons = screen.getAllByRole("button");
@@ -172,21 +176,23 @@ describe("IntegratedTerminal", () => {
     });
   });
 
-  describe("高度持久化", () => {
-    it("should load saved height from localStorage", () => {
-      localStorage.setItem("yyc3_terminal_height", "400");
+  describe("height via Zustand store", () => {
+    it("should load saved height from Zustand store", () => {
+      useUIPrefsSlice.setState({ terminalHeight: 400 });
       render(<IntegratedTerminal open={true} onClose={mockOnClose} />);
-      expect(localStorage.getItem("yyc3_terminal_height")).toBe("400");
+      expect(useUIPrefsSlice.getState().terminalHeight).toBe(400);
     });
 
-    it("should save height to localStorage", () => {
+    it("should save height to Zustand store", () => {
       render(<IntegratedTerminal open={true} onClose={mockOnClose} />);
-      expect(localStorage.getItem("yyc3_terminal_height")).toBeDefined();
+      // The component initializes with the store's terminalHeight value
+      expect(useUIPrefsSlice.getState().terminalHeight).toBeDefined();
     });
 
-    it("should use default height when no saved value", () => {
+    it("should use default height from store when no saved value", () => {
       render(<IntegratedTerminal open={true} onClose={mockOnClose} />);
-      expect(localStorage.getItem("yyc3_terminal_height")).toBe("320");
+      // The default terminalHeight in ui-prefs-slice is 300
+      expect(useUIPrefsSlice.getState().terminalHeight).toBe(300);
     });
   });
 

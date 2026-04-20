@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useDbConnSlice } from '../../store/slices/db-conn-slice';
-import type { DBConnection } from '../../stores/dashboard-stores';
+import type { DBConnection } from '../../types';
 
 beforeEach(() => {
   useDbConnSlice.setState({

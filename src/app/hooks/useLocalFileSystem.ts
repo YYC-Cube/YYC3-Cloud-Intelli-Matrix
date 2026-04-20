@@ -12,6 +12,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { env } from "../lib/env-config";
+import { useFSSlice } from "../store/slices/fs-slice";
 import type {
   FileItem,
   LogEntry,
@@ -20,13 +21,6 @@ import type {
   ReportResult,
   ReportFormat,
 } from "../types";
-
-// ============================================================
-// Storage
-// ============================================================
-
-const STORAGE_KEY = "yyc3_file_tree";
-const FILE_CONTENT_KEY = "yyc3_file_contents";
 
 // ============================================================
 // 默认文件树 (首次初始化)
@@ -120,21 +114,19 @@ const DEFAULT_FILE_TREE: FileItem[] = [
 ];
 
 // ============================================================
-// localStorage 持久化工具
+// 文件树持久化 (via Zustand slice)
 // ============================================================
 
 function loadFileTree(): FileItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {return JSON.parse(raw);}
-  } catch { /* ignore */ }
+  const stored = useFSSlice.getState().fileTree;
+  if (stored) {return stored;}
   const defaults = JSON.parse(JSON.stringify(DEFAULT_FILE_TREE));
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults)); } catch { /* ignore */ }
+  useFSSlice.getState().setFileTree(defaults);
   return defaults;
 }
 
 function saveFileTree(tree: FileItem[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tree)); } catch { /* ignore */ }
+  useFSSlice.getState().setFileTree(tree);
 }
 
 // ============================================================
@@ -512,11 +504,8 @@ export function useLocalFileSystem() {
 
   // ═══ 文件内容编辑 ═══
   const getFileContent = useCallback((fileId: string): string => {
-    try {
-      const raw = localStorage.getItem(FILE_CONTENT_KEY);
-      const contents = raw ? JSON.parse(raw) : {};
-      if (contents[fileId]) {return contents[fileId];}
-    } catch { /* ignore */ }
+    const contents = useFSSlice.getState().fileContents;
+    if (contents[fileId]) {return contents[fileId];}
     // 生成模拟内容
     const file = findItem(fileTree, fileId);
     if (!file) {return "";}
@@ -528,12 +517,7 @@ export function useLocalFileSystem() {
   }, [fileTree]);
 
   const saveFileContent = useCallback((fileId: string, content: string) => {
-    try {
-      const raw = localStorage.getItem(FILE_CONTENT_KEY);
-      const contents = raw ? JSON.parse(raw) : {};
-      contents[fileId] = content;
-      localStorage.setItem(FILE_CONTENT_KEY, JSON.stringify(contents));
-    } catch { /* ignore */ }
+    useFSSlice.getState().setOneFileContent(fileId, content);
     // 更新 size 和 modifiedAt
     const tree = JSON.parse(JSON.stringify(fileTree)) as FileItem[];
     const item = findItem(tree, fileId);

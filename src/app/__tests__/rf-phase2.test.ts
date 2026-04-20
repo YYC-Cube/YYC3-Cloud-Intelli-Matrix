@@ -58,11 +58,11 @@ describe("RF-011: 404 通配路由", () => {
 // ================================================================
 
 describe("RF-004: ALL_STORES 常量去重", () => {
-  it("ALL_STORES 导出且包含 14 个 store", async () => {
+  it("ALL_STORES 导出且包含所有 store", async () => {
     const { ALL_STORES } = await import("../lib/yyc3-storage");
     expect(ALL_STORES).toBeDefined();
     expect(Array.isArray(ALL_STORES)).toBe(true);
-    expect(ALL_STORES).toHaveLength(14);
+    expect(ALL_STORES).toHaveLength(22);
   });
 
   it("ALL_STORES 包含所有预期的 store 名称", async () => {
@@ -72,6 +72,8 @@ describe("RF-004: ALL_STORES 常量去重", () => {
       "operationTemplates", "operationLogs", "diagnosisHistory",
       "reports", "errorLog", "dashboardSnapshots",
       "fileVersions", "dbConnections", "queryHistory", "committedChanges",
+      "agent_memories", "agent_tasks", "mcp_contexts", "inference_cache",
+      "family_messages", "family_activities", "family_memories", "family_broadcasts",
     ];
     for (const name of expected) {
       expect(ALL_STORES).toContain(name);
@@ -102,8 +104,10 @@ describe("RF-004: ALL_STORES 常量去重", () => {
       "operationTemplates", "operationLogs", "diagnosisHistory",
       "reports", "errorLog", "dashboardSnapshots",
       "fileVersions", "dbConnections", "queryHistory", "committedChanges",
+      "agent_memories", "agent_tasks", "mcp_contexts", "inference_cache",
+      "family_messages", "family_activities", "family_memories", "family_broadcasts",
     ];
-    expect(validNames).toHaveLength(14);
+    expect(validNames).toHaveLength(22);
   });
 });
 

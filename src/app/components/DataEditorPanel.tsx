@@ -38,9 +38,7 @@ interface RecentOpEntry {
   time: string;
   status: "pending" | "success" | "error" | "warning" | "running";
 }
-import {
-  type RadarEntry, type ModelDistEntry, type StoredLogEntry,
-} from "../stores/dashboard-stores";
+import type { RadarEntry, ModelDistEntry, StoredLogEntry } from "../types";
 import { useNodeSlice } from "../store/slices/node-slice";
 import { useMetricsSlice } from "../store/slices/metrics-slice";
 import { useAppSlice } from "../store/slices/app-slice";

@@ -1,0 +1,3 @@
+[test]
+preload = ["./src/app/__tests__/bun-test-shim.ts"]
+alias = { "vitest" = "/Users/yanyu/Downloads/YYC3-CloudIntelli-Matrix/src/app/__tests__/vitest-shim.ts" }

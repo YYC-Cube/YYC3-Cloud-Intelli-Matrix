@@ -25,6 +25,7 @@ Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act, cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 
 // ============================================================
 // Global mocks
@@ -273,11 +274,22 @@ describe("SystemSettings 集成测试", () => {
 // ============================================================
 
 import { UserManagement } from "../components/UserManagement";
+import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
 
 describe("UserManagement 集成测试", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // Reset the Zustand user management slice to default state
+    useUserMgmtSlice.setState({
+      users: [
+        { id: "usr-1", name: "张管理", username: "admin", email: "admin@cloudpivot.ai", role: "超级管理员", status: "online", lastLogin: "2026-02-22 14:30", sessions: 3, apiCalls: 1284, locked: false },
+        { id: "usr-2", name: "李运维", username: "ops_li", email: "ops_li@cloudpivot.ai", role: "运维工程师", status: "online", lastLogin: "2026-02-22 14:25", sessions: 1, apiCalls: 856, locked: false },
+        { id: "usr-3", name: "王开发", username: "dev_wang", email: "dev_wang@cloudpivot.ai", role: "开发者", status: "online", lastLogin: "2026-02-22 14:18", sessions: 2, apiCalls: 2105, locked: false },
+        { id: "usr-4", name: "赵分析", username: "analyst_zhao", email: "zhao@cloudpivot.ai", role: "数据分析师", status: "online", lastLogin: "2026-02-22 13:55", sessions: 1, apiCalls: 432, locked: false },
+        { id: "usr-5", name: "刘测试", username: "qa_liu", email: "qa_liu@cloudpivot.ai", role: "测试工程师", status: "offline", lastLogin: "2026-02-21 18:30", sessions: 0, apiCalls: 321, locked: false },
+      ],
+    });
   });
 
   describe("用户列表渲染", () => {
@@ -288,9 +300,6 @@ describe("UserManagement 集成测试", () => {
       expect(screen.getAllByText("王开发")[0]).toBeInTheDocument();
       expect(screen.getAllByText("赵分析")[0]).toBeInTheDocument();
       expect(screen.getAllByText("刘测试")[0]).toBeInTheDocument();
-      expect(screen.getAllByText("陈研究")[0]).toBeInTheDocument();
-      expect(screen.getByText("API Service")).toBeInTheDocument();
-      expect(screen.getByText("OPS Bot")).toBeInTheDocument();
     });
 
     it("应渲染 5 个统计卡片", () => {
@@ -705,8 +714,10 @@ describe("Dashboard stores 集成测试", () => {
 
 describe("api-config 类型导出验证", () => {
   it("getAPIConfig 应返回完整配置对象", async () => {
-    const { getAPIConfig } = await vi.importMock<any>("../lib/api-config");
-    const config = getAPIConfig();
+    // vi.importMock is not available in Bun's vitest compat layer.
+    // Use dynamic import — the module is already mocked at file scope.
+    const mod = await import("../lib/api-config");
+    const config = mod.getAPIConfig();
     expect(config).toHaveProperty("enableBackend");
     expect(config).toHaveProperty("timeout");
     expect(config).toHaveProperty("maxRetries");
@@ -716,7 +727,8 @@ describe("api-config 类型导出验证", () => {
   });
 
   it("ENDPOINT_META 应包含正确的元数据结构", async () => {
-    const { ENDPOINT_META } = await vi.importMock<any>("../lib/api-config");
+    const mod = await import("../lib/api-config");
+    const ENDPOINT_META = mod.ENDPOINT_META;
     expect(ENDPOINT_META.length).toBeGreaterThan(0);
     ENDPOINT_META.forEach((meta: any) => {
       expect(meta).toHaveProperty("key");
@@ -732,26 +744,39 @@ describe("api-config 类型导出验证", () => {
 // ============================================================
 
 describe("跨组件数据流集成", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    // Reset the Zustand user management slice to default state
+    useUserMgmtSlice.setState({
+      users: [
+        { id: "usr-1", name: "张管理", username: "admin", email: "admin@cloudpivot.ai", role: "超级管理员", status: "online", lastLogin: "2026-02-22 14:30", sessions: 3, apiCalls: 1284, locked: false },
+        { id: "usr-2", name: "李运维", username: "ops_li", email: "ops_li@cloudpivot.ai", role: "运维工程师", status: "online", lastLogin: "2026-02-22 14:25", sessions: 1, apiCalls: 856, locked: false },
+        { id: "usr-3", name: "王开发", username: "dev_wang", email: "dev_wang@cloudpivot.ai", role: "开发者", status: "online", lastLogin: "2026-02-22 14:18", sessions: 2, apiCalls: 2105, locked: false },
+        { id: "usr-4", name: "赵分析", username: "analyst_zhao", email: "zhao@cloudpivot.ai", role: "数据分析师", status: "online", lastLogin: "2026-02-22 13:55", sessions: 1, apiCalls: 432, locked: false },
+        { id: "usr-5", name: "刘测试", username: "qa_liu", email: "qa_liu@cloudpivot.ai", role: "测试工程师", status: "offline", lastLogin: "2026-02-21 18:30", sessions: 0, apiCalls: 321, locked: false },
+      ],
+    });
+  });
 
   it("userStore 修改后 UserManagement 应反映变更", () => {
-    userStore.reset();
+    localStorage.clear();
+    // The component uses useUserMgmtSlice, default users = 5
     const { rerender } = render(<UserManagement />);
-    expect(screen.getAllByText("8")[0]).toBeInTheDocument(); // total users = 8
-    
+    expect(screen.getAllByText("5")[0]).toBeInTheDocument(); // total users = 5
+
     // 通过 UI 添加用户
     fireEvent.click(screen.getAllByText("userMgmt.addUser")[0]);
     const nameInput = screen.getByPlaceholderText("输入名称...");
     const usernameInput = screen.getByPlaceholderText("输入登录账号...");
     const emailInput = screen.getByPlaceholderText("user@cloudpivot.ai");
-    
+
     fireEvent.change(nameInput, { target: { value: "新用户" } });
     fireEvent.change(usernameInput, { target: { value: "new_user" } });
     fireEvent.change(emailInput, { target: { value: "new@cloudpivot.ai" } });
     fireEvent.click(screen.getByText("创建"));
 
     // 验证用户数增加
-    expect(screen.getAllByText("9")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("6")[0]).toBeInTheDocument();
   });
 
   it("store.reset() 后组件重新渲染应反映默认数据", () => {
@@ -769,7 +794,7 @@ describe("跨组件数据流集成", () => {
       locked: false,
     });
     expect(userStore.count()).toBe(9);
-    
+
     // 重置
     userStore.reset();
     expect(userStore.count()).toBe(8);

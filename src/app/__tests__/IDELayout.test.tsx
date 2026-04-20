@@ -1,17 +1,17 @@
 /**
  * @file: IDELayout.test.tsx
- * @description: IDELayout组件单元测试
+ * @description: IDELayout component unit test — Zustand slice integration
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-05
- * @updated: 2026-04-08
+ * @updated: 2026-04-19
  * @status: active
  * @tags: [module]
  */
 
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { IDELayout } from "../components/ide/IDELayout";
 
 const mockNavigate = vi.fn();
@@ -64,10 +64,14 @@ vi.mock("../components/ide/Workspace", () => ({
   Workspace: () => <div>Workspace</div>,
 }));
 
+// ── Import the Zustand store after mocks ───────────────────────
+import { useIDESettingsSlice } from "../store/slices/ide-settings-slice";
+
 describe("IDELayout", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
-    localStorage.clear();
+    // Reset Zustand store to default state
+    useIDESettingsSlice.setState({ layoutMode: "preview" });
   });
 
   afterEach(() => {
@@ -117,20 +121,20 @@ describe("IDELayout", () => {
   });
 
   describe("layout modes", () => {
-    it("should render edit mode by default when stored", () => {
-      localStorage.setItem("yyc3-ide-layout-mode", "edit");
+    it("should render edit mode via Zustand store", () => {
+      useIDESettingsSlice.setState({ layoutMode: "edit" });
       render(<IDELayout />);
       expect(screen.getByText("AI Chat Panel")).toBeInTheDocument();
     });
 
-    it("should render preview mode by default when stored", () => {
-      localStorage.setItem("yyc3-ide-layout-mode", "preview");
+    it("should render preview mode via Zustand store", () => {
+      useIDESettingsSlice.setState({ layoutMode: "preview" });
       render(<IDELayout />);
       expect(screen.getByText("AI Chat Panel")).toBeInTheDocument();
     });
 
-    it("should render free mode when stored", () => {
-      localStorage.setItem("yyc3-ide-layout-mode", "free");
+    it("should render free mode via Zustand store", () => {
+      useIDESettingsSlice.setState({ layoutMode: "free" });
       render(<IDELayout />);
       expect(screen.getByText("Workspace")).toBeInTheDocument();
     });
@@ -186,8 +190,9 @@ describe("IDELayout", () => {
     });
   });
 
-  describe("localStorage persistence", () => {
-    it("should persist layout mode to localStorage", () => {
+  describe("Zustand store persistence", () => {
+    it("should persist layout mode via Zustand store on Ctrl+3", () => {
+      useIDESettingsSlice.setState({ layoutMode: "edit" });
       render(<IDELayout />);
 
       fireEvent.keyDown(window, {
@@ -195,7 +200,9 @@ describe("IDELayout", () => {
         ctrlKey: true,
       });
 
-      expect(localStorage.getItem("yyc3-ide-layout-mode")).not.toBeNull();
+      // Verify the store state changed (edit -> preview on first toggle)
+      const currentMode = useIDESettingsSlice.getState().layoutMode;
+      expect(currentMode).not.toBe("edit");
     });
   });
 });

@@ -87,25 +87,6 @@ vi.mock("../hooks/useI18n", () => ({
   })),
 }));
 
-vi.mock("../stores/dashboard-stores", () => ({
-  modelPerfStore: {
-    getState: vi.fn(() => ({ data: [] })),
-    getAll: vi.fn(() => []),
-  },
-  modelDistStore: {
-    getState: vi.fn(() => ({ data: [] })),
-    getAll: vi.fn(() => []),
-  },
-  radarStore: {
-    getState: vi.fn(() => ({ data: [] })),
-    getAll: vi.fn(() => []),
-  },
-  recentOpsStore: {
-    getState: vi.fn(() => ({ data: [] })),
-    getAll: vi.fn(() => []),
-  },
-}));
-
 vi.mock("../stores/global-store", () => {
   const actual = vi.importActual("../stores/global-store");
   return {

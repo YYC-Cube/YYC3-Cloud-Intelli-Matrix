@@ -33,7 +33,7 @@ import {
 } from "../lib/api-config";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useSettingsStore } from "../hooks/useSettingsStore";
-import type { DeployedModel } from "../stores/dashboard-stores";
+import type { DeployedModel } from "../types";
 import type { SettingsToggles, SettingsValues } from "../hooks/useSettingsStore";
 import { useModelSlice } from "../store/slices/model-slice";
 import { testAIConnection, type AIConnectionConfig, type ConnectionTestResult } from "../lib/connection-test-engine";

@@ -1,35 +1,20 @@
 /**
  * @file: useOfflineMode.ts
- * @description: useOfflineMode Hook
+ * @description: useOfflineMode Hook — 离线模式状态管理
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-08
- * @updated: 2026-04-08
+ * @updated: 2026-04-18
  * @status: active
  * @tags: [hook]
+ *
+ * @brief: 离线模式检测 + 快照恢复
+ * @details: v2 从 localStorage 直接调用迁移至 useOfflineSlice 持久化
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LOCALSTORAGE_KEYS } from "../lib/yyc3-storage";
-
-/** 保存仪表盘状态快照到 localStorage (供离线恢复) */
-function saveDashboardState(data: Record<string, unknown>) {
-  try {
-    localStorage.setItem(LOCALSTORAGE_KEYS.dashboardState, JSON.stringify(data));
-  } catch {
-    // storage full
-  }
-}
-
-/** 读取仪表盘状态快照 */
-function loadDashboardState(): Record<string, unknown> | null {
-  try {
-    const raw = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+import { useOfflineSlice } from "../store/slices/offline-slice";
+import { useProviderSlice } from "../store/slices/provider-slice";
 
 export function useOfflineMode() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -38,20 +23,15 @@ export function useOfflineMode() {
   const snapshotTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const saveOfflineSnapshot = useCallback(() => {
-    try {
-      const state = localStorage.getItem(LOCALSTORAGE_KEYS.dashboardState);
-      if (state) {
-        localStorage.setItem(LOCALSTORAGE_KEYS.offlineSnapshot, state);
-        localStorage.setItem(LOCALSTORAGE_KEYS.offlineTime, new Date().toISOString());
-      }
-    } catch {
-      // storage full or unavailable
+    const dashboard = useOfflineSlice.getState().dashboardSnapshot;
+    if (dashboard) {
+      useOfflineSlice.getState().setOfflineSnapshot(dashboard, new Date().toISOString());
     }
   }, []);
 
   const syncOfflineData = useCallback(async () => {
-    const offlineState = localStorage.getItem(LOCALSTORAGE_KEYS.offlineSnapshot);
-    if (!offlineState) {
+    const { offlineSnapshot } = useOfflineSlice.getState();
+    if (!offlineSnapshot) {
       setLastSyncTime(new Date());
       return;
     }
@@ -59,8 +39,7 @@ export function useOfflineMode() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setLastSyncTime(new Date());
-      localStorage.removeItem(LOCALSTORAGE_KEYS.offlineSnapshot);
-      localStorage.removeItem(LOCALSTORAGE_KEYS.offlineTime);
+      useOfflineSlice.getState().clearOfflineSnapshot();
     } catch {
       // sync failed
     } finally {
@@ -71,20 +50,14 @@ export function useOfflineMode() {
   // 定期保存 dashboard_state (每 30 秒)
   useEffect(() => {
     const saveSnapshot = () => {
-      saveDashboardState({
+      useOfflineSlice.getState().setDashboardSnapshot({
         savedAt: Date.now(),
-        locale: localStorage.getItem(LOCALSTORAGE_KEYS.locale) ?? "zh-CN",
-        networkConfig: localStorage.getItem(LOCALSTORAGE_KEYS.networkConfig),
-        modelsCount: (() => {
-          try {
-            const raw = localStorage.getItem(LOCALSTORAGE_KEYS.configuredModels);
-            return raw ? JSON.parse(raw).length : 0;
-          } catch { return 0; }
-        })(),
+        locale: localStorage.getItem("yyc3_locale") ?? "zh-CN",
+        networkConfig: localStorage.getItem("yyc3_network_config"),
+        modelsCount: useProviderSlice.getState().configuredModels.length,
       });
     };
 
-    // 首次保存
     saveSnapshot();
     snapshotTimer.current = setInterval(saveSnapshot, 30_000);
 
@@ -114,7 +87,7 @@ export function useOfflineMode() {
   }, [saveOfflineSnapshot, syncOfflineData]);
 
   const getOfflineSnapshotTime = useCallback((): Date | null => {
-    const time = localStorage.getItem(LOCALSTORAGE_KEYS.offlineTime);
+    const time = useOfflineSlice.getState().offlineSnapshotTime;
     return time ? new Date(time) : null;
   }, []);
 
@@ -126,8 +99,10 @@ export function useOfflineMode() {
     syncOfflineData,
     getOfflineSnapshotTime,
     /** 手动保存仪表盘快照 */
-    saveDashboardState,
+    saveDashboardState: (data: Record<string, unknown>) =>
+      useOfflineSlice.getState().setDashboardSnapshot(data),
     /** 读取仪表盘快照 */
-    loadDashboardState,
+    loadDashboardState: () =>
+      useOfflineSlice.getState().dashboardSnapshot,
   };
 }

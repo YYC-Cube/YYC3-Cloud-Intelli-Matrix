@@ -3,10 +3,10 @@
  * @description: Performance Cache Manager with TTL and LRU eviction
  * @author: YanYuCloudCube Team
  * @version: v2.0.0
- * @created: 2026-04-16
- * @updated: 2026-04-16
+ * @created: 2026-04-10
+ * @updated: 2026-04-20
  * @status: active
- * @tags: [auto-generated]
+ * @tags: [cache, performance, lru, ttl]
  */
 
 export interface CacheOptions<T> {

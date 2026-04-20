@@ -78,6 +78,8 @@ const enUS: TranslationKeys = {
     alertRules: "Alert Rules",
     reportExport: "Reports",
     aiDiagnostics: "AI Diagnosis",
+    sdkChat: "SDK Chat",
+    exportCenter: "Data Backup",
     hostFiles: "Host Files",
     database: "Database",
     dbConnections: "DB Connections",

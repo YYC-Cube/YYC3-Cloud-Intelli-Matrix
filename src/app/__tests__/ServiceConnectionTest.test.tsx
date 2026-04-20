@@ -26,15 +26,6 @@ vi.mock("../hooks/useModelProvider", () => ({
   })),
 }));
 
-vi.mock("../stores/dashboard-stores", () => ({
-  dbConnectionStore: {
-    getAll: vi.fn(() => []),
-    add: vi.fn(),
-    remove: vi.fn(),
-    update: vi.fn(),
-  },
-}));
-
 vi.mock("../lib/env-config", () => ({
   env: vi.fn((key: string) => {
     const envMap: Record<string, string> = {

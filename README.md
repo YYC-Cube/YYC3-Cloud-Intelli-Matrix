@@ -39,9 +39,9 @@
 [![PWA Ready](https://img.shields.io/badge/PWA-ready-blue?style=flat-square&logo=pwa&logoColor=white)](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)
 [![Electron](https://img.shields.io/badge/Electron-28-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)
-[![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-deployed-success?style=flat-square&logo=github)](https://yyc-cube.github.io/YYC3-Cloud-Intelli-Matrix/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-deployed-success?style=flat-square&logo=github)](https://matrix.yyc3.top/)
 
-**[在线演示 Demo](https://yyc-cube.github.io/YYC3-Cloud-Intelli-Matrix/)** · **[文档 Documentation](./docs/)** · **[更新日志 Changelog](./CHANGELOG.md)** · **[贡献指南 Contributing](./CONTRIBUTING.md)**
+**[在线演示 Demo](https://matrix.yyc3.top/)** · **[文档 Documentation](./docs/)** · **[更新日志 Changelog](./CHANGELOG.md)** · **[贡献指南 Contributing](./CONTRIBUTING.md)**
 
 **English** | [简体中文](./README.zh-CN.md)
 

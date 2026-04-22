@@ -27,6 +27,25 @@ language: zh-CN
 
 ---
 
+## [3.5.0] - 2026-04-23
+
+### Changed
+
+- GitHub Pages 自定义域名迁移: `cpim.yyccube.xin` / `cp.yyccube.xin` / `yyc-cube.github.io` → **`matrix.yyc3.top`**
+  - CNAME 文件、deploy-pages.yml CUSTOM_DOMAIN、README.md Demo 链接、scripts/README.md 文档链接全部同步
+- Dependabot 自动合并: Actions 版本升级（pnpm/action-setup@v6, upload-pages-artifact@v5, deploy-pages@v5 等）
+- pnpm-lock.yaml 同步修复: dependabot 合并后 lockfile 与 package.json 版本不一致问题
+- CI/CD Pipeline Codecov action 降级: v6 → v4 + fail_ci_if_error:false，解决 git config 锁定错误 (exit code 255)
+- 生产依赖升级: vite 8.0.8→8.0.9, electron 28→41.1.1, electron-builder 26.8.1, eslint 10.2.0, vitest 4.1.4 等
+
+### Fixed
+
+- CI Install dependencies 失败: pnpm-lock.yaml 与 package.json semver spec 不匹配导致 --frozen-lockfile 校验失败
+- CI Test 全部 shard 失败: codecov/codecov-action@v6 git config 错误导致 exit code 255，覆盖率上传阻塞测试结果
+- SSH 推送协议切换: OAuth App 缺少 workflow scope，改用 SSH 协议推送 workflow 文件变更
+
+---
+
 ## [3.4.1] - 2026-04-20
 
 ### Added

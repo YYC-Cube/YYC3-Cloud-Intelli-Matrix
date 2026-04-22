@@ -402,7 +402,7 @@ YYC³ Cloud Intelli-Matrix 智能校测脚本系统遵循 MIT 许可证。
 
 - **邮箱**：<admin@0379.email>
 - **GitHub**：https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix
-- **文档**：https://yyccube.xin/docs
+- **文档**：https://matrix.yyc3.top/docs
 
 ---
 

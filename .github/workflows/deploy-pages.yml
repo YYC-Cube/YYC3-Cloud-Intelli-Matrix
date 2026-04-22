@@ -17,7 +17,7 @@ concurrency:
 env:
   NODE_VERSION: '20.x'
   PNPM_VERSION: '9.x'
-  CUSTOM_DOMAIN: cp.yyccube.xin
+  CUSTOM_DOMAIN: matrix.yyc3.top
 
 jobs:
   build:

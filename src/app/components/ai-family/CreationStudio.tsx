@@ -470,6 +470,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close"
                 className="p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -653,6 +654,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                           <button
                             onClick={addMasterKeyword}
                             disabled={!masterKwInput.trim() || masterKeywords.length >= 8}
+                            aria-label="Add keyword"
                             className="p-2 rounded-lg bg-white/5 border border-white/[0.08] text-white/60 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-30"
                           >
                             <Plus className="w-4 h-4" />
@@ -663,7 +665,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                             {masterKeywords.map((kw) => (
                               <span key={kw} className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-xs text-purple-300">
                                 {kw}
-                                <button onClick={() => setMasterKeywords(prev => prev.filter(k => k !== kw))} className="text-purple-400/60 hover:text-purple-300">
+                                <button onClick={() => setMasterKeywords(prev => prev.filter(k => k !== kw))} aria-label={`Remove ${kw}`} className="text-purple-400/60 hover:text-purple-300">
                                   <X className="w-3 h-3" />
                                 </button>
                               </span>
@@ -677,11 +679,11 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                           {locale === 'zh-CN' ? '歌词行数' : 'Line Count'}
                         </p>
                         <div className="flex items-center gap-3">
-                          <button onClick={() => setMasterLineCount(Math.max(4, masterLineCount - 2))} className="p-2 rounded-lg bg-white/5 border border-white/[0.08] text-white/60 hover:text-white transition-colors">
+                          <button onClick={() => setMasterLineCount(Math.max(4, masterLineCount - 2))} aria-label="Decrease line count" className="p-2 rounded-lg bg-white/5 border border-white/[0.08] text-white/60 hover:text-white transition-colors">
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="flex-1 text-center text-2xl font-bold text-white font-mono">{masterLineCount}</span>
-                          <button onClick={() => setMasterLineCount(Math.min(20, masterLineCount + 2))} className="p-2 rounded-lg bg-white/5 border border-white/[0.08] text-white/60 hover:text-white transition-colors">
+                          <button onClick={() => setMasterLineCount(Math.min(20, masterLineCount + 2))} aria-label="Increase line count" className="p-2 rounded-lg bg-white/5 border border-white/[0.08] text-white/60 hover:text-white transition-colors">
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
@@ -740,6 +742,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                           type="range"
                           min="60"
                           max="180"
+                          aria-label="Tempo"
                           value={masterTempo}
                           onChange={(e) => setMasterTempo(parseInt(e.target.value))}
                           className="w-full h-2 rounded-full appearance-none bg-white/10 cursor-pointer"
@@ -1012,6 +1015,7 @@ export const CreationStudio: React.FC<CreationStudioProps> = ({
                                 )}
                                 <button
                                   onClick={() => deleteWork(work.id)}
+                                  aria-label="Delete work"
                                   className="p-1.5 rounded text-white/30 hover:text-red-400 hover:bg-white/5"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />

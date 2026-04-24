@@ -12,16 +12,17 @@
 import * as React from "react";
 
 const IS_TEST = typeof process !== "undefined" && process.env.NODE_ENV === "test";
+const BASE = (typeof import.meta !== "undefined" && import.meta.env?.BASE_URL) || "";
 
-const logo16 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/16.png";
-const logo32 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/32.png";
-const logo48 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/64.png";
-const logo64 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/64.png";
-const logo96 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/128.png";
-const logo128 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/128.png";
-const logo192 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/256.png";
-const logo256 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/256.png";
-const logo512 = IS_TEST ? "/placeholder-logo.png" : "/yyc3-icons/macOS/512.png";
+const logo16 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/16.png`;
+const logo32 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/32.png`;
+const logo48 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/64.png`;
+const logo64 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/64.png`;
+const logo96 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/128.png`;
+const logo128 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/128.png`;
+const logo192 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/256.png`;
+const logo256 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/256.png`;
+const logo512 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/512.png`;
 
 function pickLogo(size: number): string {
   if (size <= 16) {return logo16;}

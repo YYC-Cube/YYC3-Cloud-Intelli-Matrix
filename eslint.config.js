@@ -22,11 +22,11 @@
  */
 
 import js from "@eslint/js";
-import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import unusedImports from "eslint-plugin-unused-imports";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
 export default [
   {
@@ -35,6 +35,7 @@ export default [
       "dist-electron",
       "electron/dist-electron",
       "node_modules",
+      ".pnpm-store",
       "coverage",
       "*.config.ts",
       "*.config.js",
@@ -63,6 +64,8 @@ export default [
       "**/*.spec.ts",
       "**/*.spec.tsx",
       "hotel-quick-verify.ts",
+      "src/app/__tests__/bun-test-shim.ts",
+      "src/app/__tests__/vitest-shim.ts",
     ],
   },
   {
@@ -83,6 +86,11 @@ export default [
         React: "readonly",
         NodeJS: "readonly",
         BufferEncoding: "readonly",
+      },
+    },
+    settings: {
+      react: {
+        version: "19.2.4",
       },
     },
     plugins: {

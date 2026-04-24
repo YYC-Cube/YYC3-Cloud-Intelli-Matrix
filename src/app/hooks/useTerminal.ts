@@ -9,12 +9,16 @@
  * @tags: [hook]
  */
 
-import { useState, useCallback, useRef } from "react";
-import type { TerminalHistoryEntry } from "../types";
+import { useCallback, useRef, useState } from "react";
 import {
-  env, getEnvConfig, setEnvConfig, resetEnvConfig, exportEnvConfig,
+  env,
+  exportEnvConfig,
+  getEnvConfig,
+  resetEnvConfig,
+  setEnvConfig,
   type EnvConfig,
 } from "../lib/env-config";
+import type { TerminalHistoryEntry } from "../types";
 
 // ============================================================
 // Command Registry
@@ -28,19 +32,20 @@ interface CommandResult {
 }
 
 const COMMANDS: Record<string, string[]> = {
-  cpim:   ["status", "node", "model", "alerts", "patrol", "report", "config", "help"],
+  cpim: ["status", "node", "model", "alerts", "patrol", "report", "config", "help"],
   status: [],
-  node:   ["GPU-A100-01", "GPU-A100-02", "GPU-A100-03", "GPU-A100-04", "GPU-H100-01", "GPU-H100-02", "restart", "--all", "--force"],
-  model:  ["deploy", "list", "migrate", "status"],
+  node: ["GPU-A100-01", "GPU-A100-02", "GPU-A100-03", "GPU-A100-04", "GPU-H100-01", "GPU-H100-02", "restart", "--all", "--force"],
+  model: ["deploy", "list", "migrate", "status"],
   alerts: ["--unresolved", "--critical", "--all"],
   patrol: ["run", "--full", "--quick", "history", "status"],
   report: ["--type", "performance", "health", "security", "--format", "json", "markdown", "--output"],
   config: ["set", "get", "list", "patrol.interval", "notification.email"],
-  env:    ["list", "get", "set", "reset", "export"],
-  help:   [],
-  goto:   ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
-  open:   ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
-  ai:     [],
+  env: ["list", "get", "set", "reset", "export"],
+  help: [],
+  goto: ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
+  open: ["/", "/follow-up", "/patrol", "/operations", "/files", "/ai", "/loop", "/pwa", "/design-system", "/dev-guide", "/models", "/theme", "/terminal", "/ide", "/audit", "/users", "/settings", "/security", "/alerts", "/reports", "/ai-diagnosis", "/data-editor", "/performance", "/env-config", "/host-files", "/database", "/refactoring"],
+  ai: [],
+  kb: ["search", "list", "stats", "categories"],
 };
 
 /** 路由路径 → 中文名 映射 */
@@ -119,10 +124,10 @@ function aiTextToCli(prompt: string): { suggestion: string; explanation: string 
     return { suggestion: "neofetch", explanation: "显示系统详细信息" };
   }
   if (p.includes("跳转") || p.includes("打开") || p.includes("去")) {
-    if (p.includes("监控")) {return { suggestion: "goto /", explanation: "跳转到数据监控页面" };}
-    if (p.includes("巡查")) {return { suggestion: "goto /patrol", explanation: "跳转到巡查模式" };}
-    if (p.includes("操作")) {return { suggestion: "goto /operations", explanation: "跳转到操作中心" };}
-    if (p.includes("设置")) {return { suggestion: "goto /settings", explanation: "跳转到系统设置" };}
+    if (p.includes("监控")) { return { suggestion: "goto /", explanation: "跳转到数据监控页面" }; }
+    if (p.includes("巡查")) { return { suggestion: "goto /patrol", explanation: "跳转到巡查模式" }; }
+    if (p.includes("操作")) { return { suggestion: "goto /operations", explanation: "跳转到操作中心" }; }
+    if (p.includes("设置")) { return { suggestion: "goto /settings", explanation: "跳转到系统设置" }; }
     return { suggestion: "goto /", explanation: "跳转到首页" };
   }
   if (p.includes("清") && (p.includes("屏") || p.includes("空"))) {
@@ -156,7 +161,7 @@ function processEnvCommand(parts: string[]): CommandResult {
 
   if (action === "get") {
     const key = parts[2];
-    if (!key) {return { status: "error", output: "用法: env get <KEY>\n  示例: env get SYSTEM_NAME" };}
+    if (!key) { return { status: "error", output: "用法: env get <KEY>\n  示例: env get SYSTEM_NAME" }; }
     const cfg = getEnvConfig();
     const k = key as keyof EnvConfig;
     if (k in cfg) {
@@ -189,7 +194,7 @@ function processEnvCommand(parts: string[]): CommandResult {
       newVal = rawVal === "true" || rawVal === "1";
     } else if (typeof currentVal === "number") {
       newVal = rawVal.includes(".") ? parseFloat(rawVal) : parseInt(rawVal, 10);
-      if (isNaN(newVal as number)) {return { status: "error", output: `无效数值: ${rawVal}` };}
+      if (isNaN(newVal as number)) { return { status: "error", output: `无效数值: ${rawVal}` }; }
     } else {
       newVal = rawVal.replace(/^["']|["']$/g, ""); // strip quotes
     }
@@ -226,11 +231,11 @@ function processCommand(input: string): CommandResult {
   const parts = input.trim().split(/\s+/);
   const base = parts[0]?.toLowerCase();
 
-  if (!base) {return { output: "", status: "info" };}
-  if (base === "clear") {return { output: "__CLEAR__", status: "info" };}
+  if (!base) { return { output: "", status: "info" }; }
+  if (base === "clear") { return { output: "__CLEAR__", status: "info" }; }
 
   // ── env 命令 (真实 env-config 读写) ──
-  if (base === "env") {return processEnvCommand(parts);}
+  if (base === "env") { return processEnvCommand(parts); }
 
   // ── goto / open 路由跳转 ──
   if (base === "goto" || base === "open") {
@@ -243,7 +248,7 @@ function processCommand(input: string): CommandResult {
     }
     let matchedPath = target.startsWith("/") ? target : `/${target}`;
     const byLabel = Object.entries(ROUTE_LABELS).find(([, label]) => label.includes(target));
-    if (byLabel) {matchedPath = byLabel[0];}
+    if (byLabel) { matchedPath = byLabel[0]; }
     const label = ROUTE_LABELS[matchedPath];
     if (label) {
       return { status: "success", output: `导航至: ${label} (${matchedPath})`, navigate: matchedPath };
@@ -258,6 +263,44 @@ function processCommand(input: string): CommandResult {
       return { status: "info", output: `用法: ai <自然语言描述>\n\n示例:\n  ai 查看所有节点状态\n  ai 重启异常节点\n  ai 查看环境变量\n  ai 生成性能报告` };
     }
     return { status: "info", output: "", aiQuery: prompt };
+  }
+
+  if (base === "kb") {
+    const sub = parts[1]?.toLowerCase();
+    if (!sub || sub === "search") {
+      const q = parts.slice(sub === "search" ? 2 : 1).join(" ");
+      if (!q) {
+        return { status: "info", output: `用法: kb search <关键词>\n       kb list\n       kb stats\n       kb categories\n\n示例:\n  kb search react hooks\n  kb search zustand 状态管理\n  kb search 终端 命令` };
+      }
+      const { searchKnowledge, formatSearchResultForAI: _formatSearchResultForAI } = require("../lib/local-knowledge-base") as typeof import("../lib/local-knowledge-base");
+      const results = searchKnowledge(q);
+      if (results.length === 0) {
+        return { status: "info", output: `未找到与 "${q}" 相关的知识条目。\n\n输入 kb list 查看所有条目，或 kb categories 查看分类。` };
+      }
+      const header = `🔍 知识库检索: "${q}" (${results.length} 条结果)\n${"─".repeat(50)}`;
+      const body = results.map((r, i) => {
+        const a = r.article;
+        return `\n[${i + 1}] ${a.title}\n    ${a.summary}\n    分类: ${a.category} | 相关度: ${Math.round(r.score * 100)}% | 难度: ${a.difficulty}`;
+      }).join("");
+      return { status: "success", output: header + body };
+    }
+    if (sub === "list") {
+      const { searchKnowledge } = require("../lib/local-knowledge-base") as typeof import("../lib/local-knowledge-base");
+      const all = searchKnowledge("", { limit: 50, threshold: 0 });
+      const body = all.map((r, i) => `[${String(i + 1).padStart(2)}] ${r.article.title.padEnd(35)} ${r.article.category}`).join("\n");
+      return { status: "success", output: `📚 知识库条目列表 (${all.length} 条)\n${"─".repeat(50)}\n${body}` };
+    }
+    if (sub === "stats") {
+      const { getKnowledgeStats } = require("../lib/local-knowledge-base") as typeof import("../lib/local-knowledge-base");
+      const s = getKnowledgeStats();
+      return { status: "success", output: `📊 知识库统计\n${"─".repeat(30)}\n  总条目数: ${s.totalArticles}\n  分类数:   ${s.categories}\n  关键词数: ${s.totalKeywords}` };
+    }
+    if (sub === "categories") {
+      const { getAllCategories } = require("../lib/local-knowledge-base") as typeof import("../lib/local-knowledge-base");
+      const cats = getAllCategories();
+      return { status: "success", output: `📂 知识库分类 (${cats.length} 个)\n${"─".repeat(30)}\n${cats.map((c) => `  · ${c}`).join("\n")}` };
+    }
+    return { status: "info", output: `用法: kb [search|list|stats|categories]` };
   }
 
   if (base === "help" || input === "cpim help" || input === "cpim --help") {
@@ -292,6 +335,12 @@ CPIM 命令:
 
 AI 助手:
   ai <描述>     自然语言转 CLI 命令 (Text-to-CLI)
+
+知识库检索:
+  kb search <关键词>   搜索本地知识库
+  kb list              列出所有条目
+  kb stats             知识库统计
+  kb categories        查看分类
 
 系统命令:
   ls [dir]      列出目录内容      cat <file>    查看文件内容
@@ -520,7 +569,7 @@ AI 助手:
   // ── Unix-like 命令 ──
   if (base === "ls") {
     const dir = parts[1];
-    if (!dir) {return { status: "success", output: "logs/  reports/  backups/  configs/  cache/" };}
+    if (!dir) { return { status: "success", output: "logs/  reports/  backups/  configs/  cache/" }; }
     const dirs: Record<string, string> = {
       "logs": "node/  system/",
       "logs/": "node/  system/",
@@ -540,9 +589,9 @@ AI 助手:
       output: dirs[dir] ?? `ls: cannot access '${dir}': No such file or directory`,
     };
   }
-  if (base === "pwd") {return { status: "success", output: "~/.cpim-cloudpivot" };}
-  if (base === "whoami") {return { status: "success", output: "admin@cpim-cloudpivot" };}
-  if (base === "date") {return { status: "success", output: new Date().toLocaleString("zh-CN") };}
+  if (base === "pwd") { return { status: "success", output: "~/.cpim-cloudpivot" }; }
+  if (base === "whoami") { return { status: "success", output: "admin@cpim-cloudpivot" }; }
+  if (base === "date") { return { status: "success", output: new Date().toLocaleString("zh-CN") }; }
   if (base === "uptime") {
     return {
       status: "success",
@@ -608,7 +657,7 @@ round-trip min/avg/max = 0.123/0.456/0.789 ms`,
 tmpfs           64G   12G   52G    19%   /dev/shm`,
     };
   }
-  if (base === "echo") {return { status: "success", output: parts.slice(1).join(" ") };}
+  if (base === "echo") { return { status: "success", output: parts.slice(1).join(" ") }; }
   if (base === "cat") {
     const file = parts[1];
     if (file === "configs/patrol.json") {
@@ -654,9 +703,9 @@ tmpfs           64G   12G   52G    19%   /dev/shm`,
     }
     return { status: "error", output: file ? `cat: ${file}: No such file or directory` : "cat: missing operand" };
   }
-  if (base === "cd") {return { status: "success", output: "" };}
-  if (base === "history") {return { status: "info", output: "Command history is maintained in session.\nUse ↑/↓ arrow keys to navigate." };}
-  if (base === "exit" || base === "quit") {return { status: "info", output: "Use Ctrl+` or click ✕ to close the integrated terminal." };}
+  if (base === "cd") { return { status: "success", output: "" }; }
+  if (base === "history") { return { status: "info", output: "Command history is maintained in session.\nUse ↑/↓ arrow keys to navigate." }; }
+  if (base === "exit" || base === "quit") { return { status: "info", output: "Use Ctrl+` or click ✕ to close the integrated terminal." }; }
 
   return { status: "error", output: `命令未找到: ${base}\n输入 help 查看可用命令` };
 }
@@ -746,7 +795,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
   const inputHistory = useRef<string[]>([]);
 
   const execute = useCallback((input: string) => {
-    if (!input.trim()) {return;}
+    if (!input.trim()) { return; }
 
     inputHistory.current = [input, ...inputHistory.current.slice(0, 49)];
     setHistoryIndex(-1);
@@ -774,7 +823,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
 
       setTimeout(() => {
         const followUp = processCommand(suggestion);
-        if (followUp.navigate && onNavigate) {onNavigate(followUp.navigate);}
+        if (followUp.navigate && onNavigate) { onNavigate(followUp.navigate); }
         if (followUp.output !== "__CLEAR__") {
           const followEntry: TerminalHistoryEntry = {
             id: `cmd-ai-${Date.now()}`,
@@ -792,7 +841,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
       return;
     }
 
-    if (result.navigate && onNavigate) {onNavigate(result.navigate);}
+    if (result.navigate && onNavigate) { onNavigate(result.navigate); }
 
     const entry: TerminalHistoryEntry = {
       id: `cmd-${Date.now()}`,
@@ -817,7 +866,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
   }, []);
 
   const handleHistoryNav = useCallback((direction: "up" | "down") => {
-    if (inputHistory.current.length === 0) {return;}
+    if (inputHistory.current.length === 0) { return; }
     if (direction === "up") {
       const newIndex = Math.min(historyIndex + 1, inputHistory.current.length - 1);
       setHistoryIndex(newIndex);

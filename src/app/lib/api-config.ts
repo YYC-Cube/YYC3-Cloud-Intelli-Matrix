@@ -51,24 +51,65 @@ const DEFAULTS: APIEndpoints = {
   maxRetries: 2,
 };
 
+const REQUIRED_STRING_KEYS: (keyof APIEndpoints)[] = [
+  "fsBase",
+  "dbBase",
+  "wsEndpoint",
+  "aiBase",
+  "clusterBase",
+];
+
+function cleanSavedConfig(saved: Record<string, unknown>): Record<string, unknown> {
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(saved)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (typeof value === "string" && value.trim() === "") {
+      continue;
+    }
+    cleaned[key] = value;
+  }
+  return cleaned;
+}
+
 function loadConfig(): APIEndpoints {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
-      const merged = { ...DEFAULTS, ...saved };
+      const cleaned = cleanSavedConfig(saved);
+      const merged = { ...DEFAULTS, ...cleaned };
+
+      for (const key of REQUIRED_STRING_KEYS) {
+        if (merged[key] === undefined || merged[key] === null) {
+          (merged as Record<string, unknown>)[key] = DEFAULTS[key];
+        }
+      }
+      if (merged.timeout === undefined || merged.timeout === null) {
+        merged.timeout = DEFAULTS.timeout;
+      }
+      if (merged.maxRetries === undefined || merged.maxRetries === null) {
+        merged.maxRetries = DEFAULTS.maxRetries;
+      }
+      if (merged.enableBackend === undefined || merged.enableBackend === null) {
+        merged.enableBackend = DEFAULTS.enableBackend;
+      }
+
       const validation = validateAPIConfig(merged);
       if (!validation.success) {
         console.warn(
           "[api-config] 存储的配置验证失败，使用默认配置:",
           formatValidationErrors(validation.errors)
         );
+        localStorage.removeItem(STORAGE_KEY);
         return { ...DEFAULTS };
       }
       return merged;
     }
   } catch (err) {
     console.warn("[api-config] 加载配置失败:", err);
+    localStorage.removeItem(STORAGE_KEY);
   }
   return { ...DEFAULTS };
 }

@@ -9,21 +9,33 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback } from "react";
 import {
-  Download, Upload, RotateCcw, Package, Server, Settings,
-  Database, CheckCircle, AlertTriangle, X, FileJson, Copy,
+  AlertTriangle,
+  CheckCircle,
   ChevronDown, ChevronUp,
+  Copy,
+  Database,
+  Download,
+  FileJson,
+  Package,
+  RotateCcw,
+  Server, Settings,
+  Upload,
+  X,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React, { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { useModelProvider } from "../hooks/useModelProvider";
 import { useSettingsStore } from "../hooks/useSettingsStore";
 import {
   exportDbData, importDbData,
-  resetDbModels, resetDbAgents, resetDbNodes,
+  resetDbAgents,
+  resetDbModels,
+  resetDbNodes,
 } from "../lib/db-queries";
 import { exportEnvConfig, importEnvConfig, resetEnvConfig } from "../lib/env-config";
-import { toast } from "sonner";
+import { exportFullBackup, importFullBackup } from "../lib/full-backup";
+import { GlassCard } from "./GlassCard";
 
 // ── 样式常量 ──
 const toastStyle = {
@@ -54,6 +66,7 @@ const MODULES: ExportModule[] = [
   { id: "settings", label: "系统设置", icon: <Settings className="w-4 h-4" />, description: "全局偏好、集群、网络、AI 参数、安全、通知等", color: "#aa77ff" },
   { id: "database", label: "业务数据", icon: <Database className="w-4 h-4" />, description: "模型定义、节点状态、Agent 配置等核心数据", color: "#00ff88" },
   { id: "envConfig", label: "环境变量", icon: <Server className="w-4 h-4" />, description: "不可逆配置：API端点、存储前缀、系统标识、功能开关", color: "#ff6633" },
+  { id: "fullBackup", label: "全量备份", icon: <Package className="w-4 h-4" />, description: "包含 localStorage + IndexedDB + GlobalStore 全部数据", color: "#ff3366" },
 ];
 
 // ============================================================
@@ -82,14 +95,17 @@ export function ConfigExportCenter() {
   const toggleModule = useCallback((id: string) => {
     setSelectedModules((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {next.delete(id);}
-      else {next.add(id);}
+      if (next.has(id)) { next.delete(id); }
+      else { next.add(id); }
       return next;
     });
   }, []);
 
   // ========== 导出 ==========
-  const generateExport = useCallback((): string => {
+  const generateExport = useCallback(async (): Promise<string> => {
+    if (selectedModules.has("fullBackup")) {
+      return await exportFullBackup();
+    }
     const data: Record<string, unknown> = {
       _meta: {
         version: 2,
@@ -115,8 +131,8 @@ export function ConfigExportCenter() {
     return JSON.stringify(data, null, 2);
   }, [selectedModules, modelProvider, settingsStore]);
 
-  const handleExport = useCallback(() => {
-    const json = generateExport();
+  const handleExport = useCallback(async () => {
+    const json = await generateExport();
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -127,8 +143,9 @@ export function ConfigExportCenter() {
     toast.success("配置已导出", { description: `包含: ${Array.from(selectedModules).join(" / ")}`, style: toastStyle });
   }, [generateExport, selectedModules]);
 
-  const handlePreview = useCallback(() => {
-    setPreviewJson(generateExport());
+  const handlePreview = useCallback(async () => {
+    const json = await generateExport();
+    setPreviewJson(json);
     setShowPreview(true);
   }, [generateExport]);
 
@@ -138,28 +155,42 @@ export function ConfigExportCenter() {
   }, [previewJson]);
 
   // ========== 导入 ==========
-  const handleImport = useCallback(() => {
-    if (!importText.trim()) {return;}
+  const handleImport = useCallback(async () => {
+    if (!importText.trim()) { return; }
 
     try {
       const data = JSON.parse(importText.trim());
+
+      if (data._tool === "yyc3-full-backup") {
+        const result = await importFullBackup(importText.trim());
+        if (result.success) {
+          setImportResult({ success: true, message: "全量备份恢复成功" });
+          toast.success("全量备份恢复成功", { style: toastStyle });
+          setTimeout(() => { setShowImport(false); setImportText(""); setImportResult(null); }, 2000);
+        } else {
+          setImportResult({ success: false, message: result.errors.join("; ") });
+          toast.error("全量恢复失败", { description: result.errors.join("; "), style: toastStyleErr });
+        }
+        return;
+      }
+
       let importedCount = 0;
 
       if (data.providers) {
         const raw = typeof data.providers === "string" ? data.providers : JSON.stringify(data.providers);
-        if (modelProvider.importConfig(raw)) {importedCount++;}
+        if (modelProvider.importConfig(raw)) { importedCount++; }
       }
       if (data.settings) {
         const raw = typeof data.settings === "string" ? data.settings : JSON.stringify(data.settings);
-        if (settingsStore.importSettings(raw)) {importedCount++;}
+        if (settingsStore.importSettings(raw)) { importedCount++; }
       }
       if (data.database) {
         const raw = typeof data.database === "string" ? data.database : JSON.stringify(data.database);
-        if (importDbData(raw)) {importedCount++;}
+        if (importDbData(raw)) { importedCount++; }
       }
       if (data.envConfig) {
         const raw = typeof data.envConfig === "string" ? data.envConfig : JSON.stringify(data.envConfig);
-        if (importEnvConfig(raw)) {importedCount++;}
+        if (importEnvConfig(raw)) { importedCount++; }
       }
 
       if (importedCount > 0) {
@@ -182,7 +213,7 @@ export function ConfigExportCenter() {
     input.accept = ".json";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) {return;}
+      if (!file) { return; }
       const reader = new FileReader();
       reader.onload = (ev) => {
         setImportText(ev.target?.result as string || "");
@@ -273,7 +304,7 @@ export function ConfigExportCenter() {
               <FileJson className="w-4 h-4 text-[#aa77ff]" />
               <h4 className="text-[#e0f0ff]" style={{ fontSize: "0.88rem" }}>导入配置 (JSON)</h4>
             </div>
-            <button onClick={() => { setShowImport(false); setImportResult(null); }} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]">
+            <button onClick={() => { setShowImport(false); setImportResult(null); }} className="p-1 rounded hover:bg-[rgba(0,180,255,0.08)]" title="关闭">
               <X className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
             </button>
           </div>
@@ -314,9 +345,8 @@ export function ConfigExportCenter() {
           return (
             <GlassCard
               key={mod.id}
-              className={`p-4 cursor-pointer transition-all ${
-                selected ? "border-[rgba(0,212,255,0.4)] shadow-[0_0_20px_rgba(0,180,255,0.1)]" : ""
-              }`}
+              className={`p-4 cursor-pointer transition-all ${selected ? "border-[rgba(0,212,255,0.4)] shadow-[0_0_20px_rgba(0,180,255,0.1)]" : ""
+                }`}
               onClick={() => toggleModule(mod.id)}
             >
               <div className="flex items-center justify-between mb-2">
@@ -332,11 +362,10 @@ export function ConfigExportCenter() {
                   </span>
                 </div>
                 <div
-                  className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                    selected
-                      ? "border-[#00d4ff] bg-[rgba(0,212,255,0.2)]"
-                      : "border-[rgba(0,180,255,0.2)]"
-                  }`}
+                  className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${selected
+                    ? "border-[#00d4ff] bg-[rgba(0,212,255,0.2)]"
+                    : "border-[rgba(0,180,255,0.2)]"
+                    }`}
                 >
                   {selected && <div className="w-2.5 h-2.5 rounded-sm bg-[#00d4ff]" />}
                 </div>

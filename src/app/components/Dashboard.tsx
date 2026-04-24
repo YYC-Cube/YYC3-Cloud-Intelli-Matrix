@@ -9,31 +9,62 @@
  * @tags: [tag1],[tag2],[tag3]
  */
 
-import React, { useState, useContext, memo, useRef, useEffect } from "react";
 import {
-  Activity, Clock, Server, Cpu, Zap, HardDrive,
-  ArrowUpRight, ArrowDownRight, BarChart3, Layers,
-  RefreshCw, Eye, Maximize2, Network, AlertTriangle,
-  CheckCircle2, TrendingUp, GitBranch, Gauge,
-  Wifi, XCircle, Radio,
+  Activity,
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  Eye,
+  Gauge,
+  GitBranch,
+  HardDrive,
+  Layers,
+  Maximize2, Network,
+  Radio,
+  RefreshCw,
+  Server,
+  TrendingUp,
+  Wifi, XCircle,
+  Zap,
 } from "lucide-react";
+import { memo, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { useSwipeable } from "react-swipeable";
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  PolarRadiusAxis, Legend, BarChart, Bar, LineChart, Line,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis, YAxis,
 } from "recharts";
 import { useShallow } from "zustand/shallow";
+import { useI18n } from "../hooks/useI18n";
+import { ViewContext, WebSocketContext } from "../lib/view-context";
+import { useAppSlice } from "../store/slices/app-slice";
+import { useMetricsSlice } from "../store/slices/metrics-slice";
+import { useNodeSlice } from "../store/slices/node-slice";
+import type { NodeData } from "../types";
+import { AlertBanner } from "./AlertBanner";
 import { GlassCard } from "./GlassCard";
 import { NodeDetailModal } from "./NodeDetailModal";
-import { AlertBanner } from "./AlertBanner";
-import { WebSocketContext, ViewContext } from "../lib/view-context";
-import { useI18n } from "../hooks/useI18n";
-import type { NodeData } from "../types";
-import { useSwipeable } from "react-swipeable";
-import { useNavigate } from "react-router";
-import { useMetricsSlice } from "../store/slices/metrics-slice";
-import { useAppSlice } from "../store/slices/app-slice";
-import { useNodeSlice } from "../store/slices/node-slice";
 
 // ============================================================
 // Static reference data → 从 localStorage 读取 (可编辑)
@@ -41,16 +72,44 @@ import { useNodeSlice } from "../store/slices/node-slice";
 
 const PIE_COLORS = ["#00d4ff", "#00ff88", "#ff6600", "#aa55ff", "#ffdd00"];
 
-const predictionData = [
-  { time: "now", actual: 3800, predicted: null },
-  { time: "+1h", actual: null, predicted: 4100 },
-  { time: "+2h", actual: null, predicted: 4350 },
-  { time: "+3h", actual: null, predicted: 4200 },
-  { time: "+4h", actual: null, predicted: 3900 },
-  { time: "+6h", actual: null, predicted: 3500 },
-  { time: "+8h", actual: null, predicted: 3100 },
-  { time: "+12h", actual: null, predicted: 2200 },
-];
+interface PredictionPoint {
+  time: string;
+  actual: number | null;
+  predicted: number | null;
+}
+
+function buildPredictionFromHistory(
+  history: { time: string; qps: number }[],
+): PredictionPoint[] {
+  const recent = history.slice(-12);
+  if (recent.length < 2) {
+    return [
+      { time: "now", actual: 3800, predicted: null },
+      { time: "+1h", actual: null, predicted: 4100 },
+      { time: "+2h", actual: null, predicted: 4350 },
+      { time: "+3h", actual: null, predicted: 4200 },
+      { time: "+4h", actual: null, predicted: 3900 },
+      { time: "+6h", actual: null, predicted: 3500 },
+      { time: "+8h", actual: null, predicted: 3100 },
+      { time: "+12h", actual: null, predicted: 2200 },
+    ];
+  }
+  const lastQps = recent[recent.length - 1].qps;
+  const firstQps = recent[0].qps;
+  const slope = (lastQps - firstQps) / recent.length;
+  const actuals: PredictionPoint[] = recent.map((p) => ({
+    time: p.time,
+    actual: p.qps,
+    predicted: null,
+  }));
+  const labels = ["+1h", "+2h", "+3h", "+4h", "+6h", "+8h", "+12h"];
+  const multipliers = [1, 2, 3, 4, 6, 8, 12];
+  const forecasts: PredictionPoint[] = labels.map((label, i) => {
+    const raw = lastQps + slope * (multipliers[i] + 1) + (Math.sin(i * 0.8) * lastQps * 0.05);
+    return { time: label, actual: null, predicted: Math.round(Math.max(0, raw)) };
+  });
+  return [...actuals, ...forecasts];
+}
 
 const customTooltipStyle = {
   backgroundColor: "rgba(8, 25, 55, 0.95)",
@@ -82,11 +141,10 @@ function ChartTabBar({ active, onChange }: { active: AnalyticsTab; onChange: (t:
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`px-3 py-1.5 rounded-lg transition-all min-h-[36px] ${
-            active === tab.key
-              ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-              : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
-          }`}
+          className={`px-3 py-1.5 rounded-lg transition-all min-h-[36px] ${active === tab.key
+            ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
+            : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+            }`}
           style={{ fontSize: "0.75rem" }}
         >
           {tab.label}
@@ -210,13 +268,13 @@ export function Dashboard() {
             <span className="font-medium" style={{
               fontSize: "0.78rem",
               color: ws?.connectionState === "connected" ? "#00ff88" :
-                     ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? "#ffdd00" : "#ff3366",
+                ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? "#ffdd00" : "#ff3366",
             }}>
               {ws?.connectionState === "connected" ? "已连接" :
-               ws?.connectionState === "connecting" ? "连接中..." :
-               ws?.connectionState === "reconnecting" ? "重连中..." :
-               ws?.connectionState === "disconnected" ? "已断开" :
-               ws?.connectionState === "simulated" ? "模拟模式" : "未知"}
+                ws?.connectionState === "connecting" ? "连接中..." :
+                  ws?.connectionState === "reconnecting" ? "重连中..." :
+                    ws?.connectionState === "disconnected" ? "已断开" :
+                      ws?.connectionState === "simulated" ? "模拟模式" : "未知"}
             </span>
           </div>
 
@@ -329,7 +387,7 @@ export function Dashboard() {
                 </button>
               ))}
               {!isMobile && (
-                <button className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all">
+                <button className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all" title="全屏">
                   <Maximize2 className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
                 </button>
               )}
@@ -412,18 +470,17 @@ export function Dashboard() {
           >
             {analyticsTab === "radar" && <RadarSection isMobile={isMobile} />}
             {analyticsTab === "performance" && <PerformanceSection isMobile={isMobile} />}
-            {analyticsTab === "prediction" && <PredictionSection isMobile={isMobile} />}
+            {analyticsTab === "prediction" && <PredictionSection isMobile={isMobile} throughputHistory={throughputHistory} />}
           </div>
           {/* Swipe indicator dots */}
           <div className="flex items-center justify-center gap-2 mt-3">
             {ANALYTICS_TABS.map((tab) => (
               <div
                 key={tab}
-                className={`rounded-full transition-all duration-300 ${
-                  analyticsTab === tab
-                    ? "w-5 h-1.5 bg-[#00d4ff] shadow-[0_0_8px_rgba(0,212,255,0.4)]"
-                    : "w-1.5 h-1.5 bg-[rgba(0,212,255,0.2)]"
-                }`}
+                className={`rounded-full transition-all duration-300 ${analyticsTab === tab
+                  ? "w-5 h-1.5 bg-[#00d4ff] shadow-[0_0_8px_rgba(0,212,255,0.4)]"
+                  : "w-1.5 h-1.5 bg-[rgba(0,212,255,0.2)]"
+                  }`}
               />
             ))}
           </div>
@@ -450,7 +507,7 @@ export function Dashboard() {
               <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>{t("monitor.predictionTitle")}</h3>
               <span className="ml-auto px-2 py-0.5 rounded bg-[rgba(255,102,0,0.1)] border border-[rgba(255,102,0,0.2)] text-[#ff6600]" style={{ fontSize: "0.65rem" }}>{t("monitor.aiPrediction")}</span>
             </div>
-            <PredictionSection isMobile={false} />
+            <PredictionSection isMobile={false} throughputHistory={throughputHistory} />
           </GlassCard>
         </div>
       )}
@@ -472,11 +529,10 @@ export function Dashboard() {
               {!isMobile && (
                 <button
                   onClick={() => setShowAllNodes(!showAllNodes)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all min-h-[32px] ${
-                    showAllNodes
-                      ? "bg-[rgba(0,212,255,0.15)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
-                      : "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)]"
-                  }`}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all min-h-[32px] ${showAllNodes
+                    ? "bg-[rgba(0,212,255,0.15)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
+                    : "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.2)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)]"
+                    }`}
                   style={{ fontSize: "0.7rem" }}
                 >
                   <Eye className="w-3 h-3" />
@@ -485,11 +541,10 @@ export function Dashboard() {
               )}
             </div>
           </div>
-          <div className={`grid gap-2 ${
-            showAllNodes
-              ? (isMobile ? "grid-cols-2" : isTablet ? "grid-cols-4" : "grid-cols-5")
-              : (isMobile ? "grid-cols-2" : isTablet ? "grid-cols-3" : "grid-cols-4")
-          }`}>
+          <div className={`grid gap-2 ${showAllNodes
+            ? (isMobile ? "grid-cols-2" : isTablet ? "grid-cols-4" : "grid-cols-5")
+            : (isMobile ? "grid-cols-2" : isTablet ? "grid-cols-3" : "grid-cols-4")
+            }`}>
             {nodes.map((node) => (
               <NodeCard key={node.id} node={node} onClick={setSelectedNode} />
             ))}
@@ -514,16 +569,15 @@ export function Dashboard() {
           <div className="space-y-2">
             {recentOps.map((op) => (
               <div key={op.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-2.5 rounded-lg bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.06)] hover:border-[rgba(0,180,255,0.15)] transition-all cursor-pointer">
-                <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${
-                  op.status === "success" ? "bg-[rgba(0,255,136,0.1)]" :
+                <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${op.status === "success" ? "bg-[rgba(0,255,136,0.1)]" :
                   op.status === "running" ? "bg-[rgba(0,212,255,0.1)]" :
-                  op.status === "pending" ? "bg-[rgba(170,85,255,0.1)]" :
-                  "bg-[rgba(255,221,0,0.1)]"
-                }`}>
+                    op.status === "pending" ? "bg-[rgba(170,85,255,0.1)]" :
+                      "bg-[rgba(255,221,0,0.1)]"
+                  }`}>
                   {op.status === "success" ? <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff88]" /> :
-                   op.status === "running" ? <RefreshCw className="w-3.5 h-3.5 text-[#00d4ff] animate-spin" /> :
-                   op.status === "pending" ? <Clock className="w-3.5 h-3.5 text-[#aa55ff]" /> :
-                   <AlertTriangle className="w-3.5 h-3.5 text-[#ffdd00]" />}
+                    op.status === "running" ? <RefreshCw className="w-3.5 h-3.5 text-[#00d4ff] animate-spin" /> :
+                      op.status === "pending" ? <Clock className="w-3.5 h-3.5 text-[#aa55ff]" /> :
+                        <AlertTriangle className="w-3.5 h-3.5 text-[#ffdd00]" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -537,12 +591,11 @@ export function Dashboard() {
                   <p className="text-[rgba(0,212,255,0.4)] truncate" style={{ fontSize: "0.68rem" }}>{op.target}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className={`inline-block px-1.5 py-0.5 rounded ${
-                    op.status === "success" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
+                  <span className={`inline-block px-1.5 py-0.5 rounded ${op.status === "success" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
                     op.status === "running" ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" :
-                    op.status === "pending" ? "bg-[rgba(170,85,255,0.1)] text-[#aa55ff]" :
-                    "bg-[rgba(255,221,0,0.1)] text-[#ffdd00]"
-                  }`} style={{ fontSize: "0.6rem" }}>
+                      op.status === "pending" ? "bg-[rgba(170,85,255,0.1)] text-[#aa55ff]" :
+                        "bg-[rgba(255,221,0,0.1)] text-[#ffdd00]"
+                    }`} style={{ fontSize: "0.6rem" }}>
                     {op.status === "success" ? t("monitor.statusDone") : op.status === "running" ? t("monitor.statusRunning") : op.status === "pending" ? t("monitor.statusPending") : t("monitor.statusAlert")}
                   </span>
                   <p className="text-[rgba(0,212,255,0.3)] mt-0.5" style={{ fontSize: "0.6rem" }}>{op.time}</p>
@@ -605,11 +658,12 @@ function PerformanceSection({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-function PredictionSection({ isMobile }: { isMobile: boolean }) {
+function PredictionSection({ isMobile, throughputHistory }: { isMobile: boolean; throughputHistory: { time: string; qps: number }[] }) {
   const { t } = useI18n();
+  const data = useMemo(() => buildPredictionFromHistory(throughputHistory), [throughputHistory]);
   return (
     <ResponsiveContainer width="100%" height={isMobile ? 220 : 220}>
-      <LineChart data={predictionData}>
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,180,255,0.08)" />
         <XAxis dataKey="time" tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 11 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} />
         <YAxis tick={{ fill: "rgba(0,212,255,0.4)", fontSize: 11 }} axisLine={{ stroke: "rgba(0,180,255,0.1)" }} />
@@ -632,18 +686,17 @@ const NodeCard = memo(function NodeCard({ node, onClick }: { node: NodeData; onC
         ${node.status === "active"
           ? "bg-[rgba(0,255,136,0.03)] border-[rgba(0,255,136,0.15)] hover:border-[rgba(0,255,136,0.3)]"
           : node.status === "warning"
-          ? "bg-[rgba(255,221,0,0.03)] border-[rgba(255,221,0,0.15)] hover:border-[rgba(255,221,0,0.3)]"
-          : "bg-[rgba(255,51,102,0.03)] border-[rgba(255,51,102,0.15)] hover:border-[rgba(255,51,102,0.3)]"
+            ? "bg-[rgba(255,221,0,0.03)] border-[rgba(255,221,0,0.15)] hover:border-[rgba(255,221,0,0.3)]"
+            : "bg-[rgba(255,51,102,0.03)] border-[rgba(255,51,102,0.15)] hover:border-[rgba(255,51,102,0.3)]"
         }
       `}
     >
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[#c0dcf0] truncate" style={{ fontSize: "0.7rem" }}>{node.id}</span>
-        <div className={`w-2 h-2 rounded-full shrink-0 ${
-          node.status === "active" ? "bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]"
+        <div className={`w-2 h-2 rounded-full shrink-0 ${node.status === "active" ? "bg-[#00ff88] shadow-[0_0_6px_rgba(0,255,136,0.5)]"
           : node.status === "warning" ? "bg-[#ffdd00] shadow-[0_0_6px_rgba(255,221,0,0.5)] animate-pulse"
-          : "bg-[#ff3366] shadow-[0_0_6px_rgba(255,51,102,0.5)]"
-        }`} />
+            : "bg-[#ff3366] shadow-[0_0_6px_rgba(255,51,102,0.5)]"
+          }`} />
       </div>
       {/* GPU bar */}
       <div className="mb-1">

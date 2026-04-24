@@ -15,23 +15,23 @@
  */
 
 import type {
-  HotelStaffMember,
-  HotelRole,
+  CollaborativeTask,
+  ConversationContext,
+  DecisionRecord,
   FamilyMessage,
-  MultiModelConversation,
+  HotelRole,
+  HotelStaffMember,
+  ModelCapability,
   ModelConfig,
   ModelRoutingStrategy,
-  RoutingCondition,
-  ConversationContext,
-  CollaborativeTask,
-  DecisionRecord,
+  MultiModelConversation,
   PerformanceMetrics,
-  ModelCapability,
+  RoutingCondition,
 } from "./ai-family-hotel.types";
 import {
-  ZHIPU_MODELS,
   DEFAULT_ROUTING_STRATEGY,
   HOTEL_ROLES,
+  ZHIPU_MODELS,
 } from "./ai-family-hotel.types";
 
 // ============================================================
@@ -363,11 +363,13 @@ export class AIFamilyHotelManager {
   private staffMembers: Map<string, HotelStaffMember> = new Map();
   private conversations: Map<string, MultiModelConversation> = new Map();
   private messageQueue: FamilyMessage[] = [];
-  
+
+  static readonly MAX_REPLY_DEPTH = 3;
+
   // 模型路由
   private routingStrategy: ModelRoutingStrategy;
   private modelPerformanceStats: Map<string, ModelPerformanceStats> = new Map();
-  
+
   // 事件回调
   private eventListeners: Map<string, Set<Function>> = new Map();
 
@@ -394,7 +396,7 @@ export class AIFamilyHotelManager {
       };
 
       this.staffMembers.set(member.id, member);
-      
+
       // 初始化模型性能统计
       this.initializeModelStats(member.primaryModel.modelId);
       member.secondaryModels.forEach((model) => {
@@ -461,7 +463,7 @@ export class AIFamilyHotelManager {
 
   updateStaffStatus(staffId: string, status: HotelStaffMember["status"], currentTask?: string): void {
     const member = this.staffMembers.get(staffId);
-    if (!member) {return;}
+    if (!member) { return; }
 
     member.status = status;
     member.currentTask = currentTask;
@@ -479,19 +481,22 @@ export class AIFamilyHotelManager {
     context?: Partial<ConversationContext>
   ): Promise<MultiModelConversation> {
     const conversationId = `conv-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    
-    const participantMembers = participants.map((id) => {
-      const member = this.staffMembers.get(id)!;
-      return {
-        memberId: id,
-        memberName: member.name,
-        role: member.role,
-        currentModel: member.primaryModel.modelId,
-        joinedAt: Date.now(),
-        isActive: true,
-        contributionCount: 0,
-      };
-    });
+
+    const participantMembers = participants
+      .map((id) => {
+        const member = this.staffMembers.get(id);
+        if (!member) { return null; }
+        return {
+          memberId: id,
+          memberName: member.name,
+          role: member.role,
+          currentModel: member.primaryModel.modelId,
+          joinedAt: Date.now(),
+          isActive: true,
+          contributionCount: 0,
+        } as MultiModelConversation["participants"][number];
+      })
+      .filter((m): m is NonNullable<typeof m> => m !== null);
 
     const conversation: MultiModelConversation = {
       conversationId,
@@ -533,10 +538,10 @@ export class AIFamilyHotelManager {
     }
   ): Promise<FamilyMessage> {
     const conversation = this.conversations.get(conversationId);
-    if (!conversation) {throw new Error(`Conversation not found: ${conversationId}`);}
+    if (!conversation) { throw new Error(`Conversation not found: ${conversationId}`); }
 
     const sender = this.staffMembers.get(senderId);
-    if (!sender) {throw new Error(`Sender not found: ${senderId}`);}
+    if (!sender) { throw new Error(`Sender not found: ${senderId}`); }
 
     const receivers = receiverIds.map((id) => this.staffMembers.get(id)).filter(Boolean) as HotelStaffMember[];
 
@@ -593,7 +598,7 @@ export class AIFamilyHotelManager {
     const message = conversation!.messages.find((m) => m.messageId === messageId);
     const receiver = this.staffMembers.get(receiverId);
 
-    if (!conversation || !message || !receiver) {return;}
+    if (!conversation || !message || !receiver) { return; }
 
     // 更新消息状态为已送达
     message.status = "delivered";
@@ -601,6 +606,12 @@ export class AIFamilyHotelManager {
 
     // 如果接收者开启自动回复且可用
     if (receiver.preferences.autoRespondEnabled && receiver.status === "available") {
+      const replyDepth = this.getReplyChainDepth(conversation, messageId);
+      if (replyDepth >= AIFamilyHotelManager.MAX_REPLY_DEPTH) {
+        message.status = "delivered";
+        return;
+      }
+
       message.status = "processing";
 
       try {
@@ -646,6 +657,22 @@ export class AIFamilyHotelManager {
     }
   }
 
+  private getReplyChainDepth(conversation: MultiModelConversation, messageId: string): number {
+    let depth = 0;
+    let currentId = messageId;
+    const visited = new Set<string>();
+
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      const msg = conversation.messages.find((m) => m.messageId === currentId);
+      if (!msg?.parentMessageId) { break; }
+      currentId = msg.parentMessageId;
+      depth++;
+    }
+
+    return depth;
+  }
+
   // ============================================================
   // 模型路由与选择
   // ============================================================
@@ -674,7 +701,7 @@ export class AIFamilyHotelManager {
   ): boolean {
     // 复杂度评估
     const complexity = this.assessComplexity(message);
-    if (condition.taskComplexity && condition.taskComplexity !== complexity) {return false;}
+    if (condition.taskComplexity && condition.taskComplexity !== complexity) { return false; }
 
     // 能力检查
     if (condition.requiredCapabilities?.length) {
@@ -682,15 +709,15 @@ export class AIFamilyHotelManager {
         staff.primaryModel.capabilities.includes(cap as ModelCapability) ||
         staff.secondaryModels.some((m) => m.capabilities.includes(cap as ModelCapability))
       );
-      if (!hasAllCapabilities) {return false;}
+      if (!hasAllCapabilities) { return false; }
     }
 
     // 时间检查（简化版）
     if (condition.timeOfDay) {
       const hour = new Date().getHours();
       const isBusinessHours = hour >= 9 && hour <= 18;
-      if (condition.timeOfDay === "business-hours" && !isBusinessHours) {return false;}
-      if (condition.timeOfDay === "after-hours" && isBusinessHours) {return false;}
+      if (condition.timeOfDay === "business-hours" && !isBusinessHours) { return false; }
+      if (condition.timeOfDay === "after-hours" && isBusinessHours) { return false; }
     }
 
     return true;
@@ -704,9 +731,9 @@ export class AIFamilyHotelManager {
     const requiresAction = /帮我|请|需要|能否|可以/i.test(text);
     const hasUrgency = /紧急|马上|立即| ASAP|urgent/i.test(text);
 
-    if (hasUrgency && (isLongMessage || hasTechnicalTerms)) {return "very-complex";}
-    if (hasTechnicalTerms || hasMultipleQuestions || isLongMessage) {return "complex";}
-    if (requiresAction) {return "moderate";}
+    if (hasUrgency && (isLongMessage || hasTechnicalTerms)) { return "very-complex"; }
+    if (hasTechnicalTerms || hasMultipleQuestions || isLongMessage) { return "complex"; }
+    if (requiresAction) { return "moderate"; }
     return "simple";
   }
 
@@ -722,7 +749,7 @@ export class AIFamilyHotelManager {
   ): Promise<FamilyMessage["content"]> {
     // 模拟不同模型的响应风格
     const responseTemplates = this.getResponseTemplates(staff, model, incomingMessage);
-    
+
     // 根据模型类型生成不同的响应内容
     let responseText: string;
 
@@ -796,11 +823,51 @@ export class AIFamilyHotelManager {
         ];
         break;
 
+      case "guest-relations":
+        templates.responses = [
+          `${message.senderName}您好！非常感谢您的信任，我会立刻为您安排最合适的房间和服务，确保您的每一次入住都充满惊喜与温馨。`,
+          `收到您的消息了！作为您的专属客户关系管家，我已详细了解您的需求偏好，正在为您协调最佳方案。`,
+          `好的没问题！我会全程跟进这件事，确保给您一个满意的结果，有任何需要随时告诉我。`,
+        ];
+        break;
+
+      case "chef":
+        templates.responses = [
+          `这道菜我来进行精心调配`,
+          `让我为您设计一份独特的菜单`,
+          `厨房这边已经准备好了`,
+        ];
+        break;
+
+      case "manager":
+        templates.responses = [
+          `收到，我来统筹安排`,
+          `这个情况我了解了，马上处理`,
+          `各部门请注意，按计划执行`,
+        ];
+        break;
+
+      case "event-coordinator":
+        templates.responses = [
+          `活动策划方案已经准备好了`,
+          `让我来设计一个精彩的活动流程`,
+          `这个活动交给我来协调`,
+        ];
+        break;
+
+      case "spa-wellness":
+        templates.responses = [
+          `欢迎来到SPA康养中心`,
+          `让我为您推荐最适合的疗程`,
+          `放松身心，从这里开始`,
+        ];
+        break;
+
       default:
         templates.responses = [
-          `明白了，我来帮您处理`,
-          `好的，这就为您安排`,
-          `没问题，交给我吧`,
+          `明白了，我来帮您处理这项事务，请稍等片刻我就会给您满意的答复。`,
+          `好的，这就为您安排妥当，确保每一个细节都符合您的期望和要求。`,
+          `没问题，交给我吧！我会全力以赴为您提供最优质的服务体验。`,
         ];
     }
 
@@ -849,7 +916,7 @@ export class AIFamilyHotelManager {
     templates: Record<string, string[]>
   ): Promise<string> {
     const greeting = templates.greetings[Math.floor(Math.random() * templates.greetings.length)];
-    
+
     // CogAgent 会进行多步推理和工具调用
     const reasoningSteps = [
       "**思考过程：**\n",
@@ -867,12 +934,12 @@ export class AIFamilyHotelManager {
   }
 
   private extractIntent(text: string): string {
-    if (/预订|房间|入住|退房/i.test(text)) {return "客房服务";}
-    if (/餐饮|菜单|食物|早餐|晚餐/i.test(text)) {return "餐饮咨询";}
-    if (/投诉|问题|不满意|解决/i.test(text)) {return "投诉处理";}
-    if (/活动|会议|宴会|婚礼/i.test(text)) {return "活动策划";}
-    if (/技术|网络|电脑|WiFi|系统/i.test(text)) {return "技术支持";}
-    if (/推荐|景点|旅游|出行/i.test(text)) {return "旅行建议";}
+    if (/预订|房间|入住|退房/i.test(text)) { return "客房服务"; }
+    if (/餐饮|菜单|食物|早餐|晚餐/i.test(text)) { return "餐饮咨询"; }
+    if (/投诉|问题|不满意|解决/i.test(text)) { return "投诉处理"; }
+    if (/活动|会议|宴会|婚礼/i.test(text)) { return "活动策划"; }
+    if (/技术|网络|电脑|WiFi|系统/i.test(text)) { return "技术支持"; }
+    if (/推荐|景点|旅游|出行/i.test(text)) { return "旅行建议"; }
     return "综合咨询";
   }
 
@@ -972,7 +1039,7 @@ export class AIFamilyHotelManager {
   private shouldEscalate(message: FamilyMessage, receiver: HotelStaffMember): boolean {
     const complexity = this.assessComplexity(message);
     const complexityLevels = { simple: 1, moderate: 2, complex: 3, "very-complex": 4 };
-    
+
     return complexityLevels[complexity] >= receiver.preferences.escalationThreshold;
   }
 
@@ -983,7 +1050,7 @@ export class AIFamilyHotelManager {
   ): Promise<void> {
     // 找到合适的升级目标（通常是经理）
     const manager = this.getStaffByRole("manager")[0];
-    if (!manager) {return;}
+    if (!manager) { return; }
 
     const escalationMessage: FamilyMessage["content"] = {
       text: `⚠️ **消息升级通知**\n\n来自: ${originalReceiver.name} (${HOTEL_ROLES[originalReceiver.role].label})\n原消息: "${message.content.text}"\n原因: 任务复杂度过高或超出处理范围\n\n请协助处理。`,
@@ -1020,7 +1087,7 @@ export class AIFamilyHotelManager {
     latencyMs: number
   ): void {
     const stats = this.modelPerformanceStats.get(modelId);
-    if (!stats) {return;}
+    if (!stats) { return; }
 
     stats.totalRequests++;
     if (success) {

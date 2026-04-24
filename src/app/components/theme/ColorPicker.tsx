@@ -9,9 +9,14 @@
  * @tags: [component]
  */
 
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  hexToRgb, rgbToHex, hsvToRgb, rgbToHsv, hexToOklch, formatOklch,
+  formatOklch,
+  hexToOklch,
+  hexToRgb,
+  hsvToRgb,
+  rgbToHex,
+  rgbToHsv,
 } from "./color-utils";
 
 interface ColorPickerProps {
@@ -44,9 +49,9 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   // ── Draw SV canvas ──
   const drawSV = useCallback((hue: number) => {
     const canvas = svCanvasRef.current;
-    if (!canvas) {return;}
+    if (!canvas) { return; }
     const ctx = canvas.getContext("2d");
-    if (!ctx) {return;}
+    if (!ctx) { return; }
     const w = canvas.width;
     const h = canvas.height;
 
@@ -73,9 +78,9 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   // ── Draw Hue bar ──
   const drawHue = useCallback(() => {
     const canvas = hueCanvasRef.current;
-    if (!canvas) {return;}
+    if (!canvas) { return; }
     const ctx = canvas.getContext("2d");
-    if (!ctx) {return;}
+    if (!ctx) { return; }
     const w = canvas.width;
     const h = canvas.height;
     const grad = ctx.createLinearGradient(0, 0, w, 0);
@@ -95,7 +100,7 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   // ── SV interactions ──
   const handleSVPick = useCallback((e: React.MouseEvent | MouseEvent) => {
     const canvas = svCanvasRef.current;
-    if (!canvas) {return;}
+    if (!canvas) { return; }
     const rect = canvas.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
@@ -109,7 +114,7 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   }, [hsv[0], onChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => { if (svDragging.current) {handleSVPick(e);} };
+    const onMove = (e: MouseEvent) => { if (svDragging.current) { handleSVPick(e); } };
     const onUp = () => { svDragging.current = false; };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -119,7 +124,7 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   // ── Hue interactions ──
   const handleHuePick = useCallback((e: React.MouseEvent | MouseEvent) => {
     const canvas = hueCanvasRef.current;
-    if (!canvas) {return;}
+    if (!canvas) { return; }
     const rect = canvas.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const newHue = x * 360;
@@ -134,7 +139,7 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
   }, [hsv[1], hsv[2], drawSV, onChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => { if (hueDragging.current) {handleHuePick(e);} };
+    const onMove = (e: MouseEvent) => { if (hueDragging.current) { handleHuePick(e); } };
     const onUp = () => { hueDragging.current = false; };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -179,10 +184,11 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
         <input
           className="flex-1 bg-transparent text-[#e0f0ff] outline-none"
           style={{ fontSize: "0.85rem", fontFamily: "monospace" }}
+          title="HEX 颜色值"
           value={hexInput}
           onChange={(e) => setHexInput(e.target.value.replace(/[^0-9a-fA-F]/g, "").substring(0, 6))}
           onBlur={() => commitHex(hexInput)}
-          onKeyDown={(e) => { if (e.key === "Enter") {commitHex(hexInput);} }}
+          onKeyDown={(e) => { if (e.key === "Enter") { commitHex(hexInput); } }}
           maxLength={6}
           spellCheck={false}
         />
@@ -229,10 +235,11 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
           <input
             className="w-full text-center rounded-md border border-[rgba(0,180,255,0.15)] bg-[rgba(0,20,40,0.5)] text-[#e0f0ff] px-1 py-1 outline-none focus:border-[#00d4ff]"
             style={{ fontSize: "0.72rem", fontFamily: "monospace" }}
+            title="Hex 颜色值"
             value={hexInput}
             onChange={(e) => setHexInput(e.target.value.replace(/[^0-9a-fA-F]/g, "").substring(0, 6))}
             onBlur={() => commitHex(hexInput)}
-            onKeyDown={(e) => { if (e.key === "Enter") {commitHex(hexInput);} }}
+            onKeyDown={(e) => { if (e.key === "Enter") { commitHex(hexInput); } }}
             maxLength={6}
           />
           <span className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.6rem" }}>Hex</span>
@@ -242,6 +249,7 @@ export function ColorPicker({ value, onChange, onClose: _onClose }: ColorPickerP
             <input
               className="w-full text-center rounded-md border border-[rgba(0,180,255,0.15)] bg-[rgba(0,20,40,0.5)] text-[#e0f0ff] px-1 py-1 outline-none focus:border-[#00d4ff]"
               style={{ fontSize: "0.72rem", fontFamily: "monospace" }}
+              title={`${ch} 通道值`}
               value={rgb[i]}
               onChange={(e) => commitRgbChannel(i as 0 | 1 | 2, e.target.value)}
               type="number"

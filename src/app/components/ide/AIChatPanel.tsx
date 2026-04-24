@@ -9,16 +9,36 @@
  * @tags: [component]
  */
 
-import * as React from "react";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 import {
-  Bot, User, Send, Image as ImageIcon,
-  FileCode, Link, Sigma, Clipboard, Plus,
-  Sparkles, Bug, Zap, TestTube, RefreshCw,
-  Lightbulb, Wand2, Copy, Check,
+  Bot,
+  Bug,
+  Check,
+  Clipboard,
+  Copy,
+  FileCode,
+  Image as ImageIcon,
+  Lightbulb,
+  Link,
+  Plus,
+  RefreshCw,
+  Send,
+  Sigma,
+  Sparkles,
+  TestTube,
+  User,
+  Wand2,
+  Zap,
 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useBigModelSDK } from "../../hooks/useBigModelSDK";
+import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 import { useI18n } from "../../hooks/useI18n";
+import { useModelProvider } from "../../hooks/useModelProvider";
+import type { KnowledgeSearchResult } from "../../lib/local-knowledge-base";
+import {
+  formatSearchResultForAI,
+  searchKnowledge,
+} from "../../lib/local-knowledge-base";
 import { MOCK_CHAT_HISTORY } from "./ide-mock-data";
 import type { ChatMessage } from "./ide-types";
 
@@ -33,23 +53,36 @@ const AI_QUICK_ACTIONS = [
 ];
 
 // Mock AI response generator
-function generateMockResponse(prompt: string): string {
+function generateEnhancedResponse(
+  prompt: string,
+  kbHits: KnowledgeSearchResult[],
+): string {
+  const kbSection = kbHits.length > 0
+    ? `\n\n📚 **本地知识库参考**:\n${kbHits.map((r, i) => `${i + 1}. **${r.article.title}** — ${r.article.summary}`).join("\n")}`
+    : "";
+
   if (prompt.includes("解释") || prompt.includes("explain")) {
-    return "这段代码实现了一个 **React 函数组件**，主要功能包括：\n\n1. 使用 `useState` 管理组件状态\n2. 通过 `useEffect` 处理副作用\n3. 使用 Tailwind CSS 进行样式控制\n\n核心逻辑是通过 props 接收数据，经过内部处理后渲染 UI。建议关注状态更新的性能优化。";
+    return "这段代码实现了一个 **React 函数组件**，主要功能包括：\n\n1. 使用 `useState` 管理组件状态\n2. 通过 `useEffect` 处理副作用\n3. 使用 Tailwind CSS 进行样式控制\n\n核心逻辑是通过 props 接收数据，经过内部处理后渲染 UI。" + kbSection;
   }
   if (prompt.includes("bug") || prompt.includes("修复")) {
-    return "发现 **2 个潜在问题**：\n\n🔴 **Issue 1**: `useEffect` 缺少依赖项 `count`，可能导致闭包问题\n```tsx\nuseEffect(() => {\n  // Fix: add count to deps\n}, [count]);\n```\n\n🟡 **Issue 2**: 未处理 `null` 边界情况\n```tsx\nif (!data) return <Loading />;\n```\n\n修复后代码应该可以正常运行。";
+    return "发现 **2 个潜在问题**：\n\n🔴 **Issue 1**: `useEffect` 缺少依赖项\n🟡 **Issue 2**: 未处理 `null` 边界情况\n\n修复后代码应该可以正常运行。" + kbSection;
   }
   if (prompt.includes("优化") || prompt.includes("optimize")) {
-    return "🚀 **性能优化建议**：\n\n1. **Memoize** 计算密集的函数：\n```tsx\nconst result = useMemo(() => compute(data), [data]);\n```\n\n2. **虚拟滚动**: 列表超过 100 项时使用虚拟化\n3. **Code Splitting**: 使用 `React.lazy` 延迟加载\n4. **避免重渲染**: 使用 `React.memo` 包裹纯展示组件\n\n预计优化后渲染时间降低 **40-60%**。";
+    return "🚀 **性能优化建议**：\n\n1. **Memoize** 计算密集的函数\n2. **虚拟滚动**: 列表超过 100 项时使用虚拟化\n3. **Code Splitting**: 使用 `React.lazy` 延迟加载\n\n预计优化后渲染时间降低 **40-60%**。" + kbSection;
   }
   if (prompt.includes("测试") || prompt.includes("test")) {
-    return "已生成 **Vitest 单元测试**：\n\n```tsx\nimport { render, screen } from '@testing-library/react';\nimport { describe, it, expect } from 'vitest';\nimport { NodeStatusCard } from './NodeStatusCard';\n\ndescribe('NodeStatusCard', () => {\n  it('renders node ID', () => {\n    render(<NodeStatusCard node={mockNode} />);\n    expect(screen.getByText('GPU-A100-01')).toBeDefined();\n  });\n\n  it('displays GPU utilization', () => {\n    render(<NodeStatusCard node={mockNode} />);\n    expect(screen.getByText('87%')).toBeDefined();\n  });\n\n  it('applies warning style for high temp', () => {\n    const hot = { ...mockNode, temp: 85 };\n    render(<NodeStatusCard node={hot} />);\n    // assert warning class applied\n  });\n});\n```\n\n覆盖了核心渲染和边界情况。";
+    return "已生成 **Vitest 单元测试**模板，覆盖核心渲染和边界情况。\n\n提示: 项目使用 Vitest + @testing-library/react，运行 `pnpm test` 执行。" + kbSection;
   }
   if (prompt.includes("重构") || prompt.includes("refactor")) {
-    return "♻️ **重构建议**：\n\n1. 提取自定义 Hook `useNodeData()`\n2. 将 inline styles 替换为 Tailwind classes\n3. 拆分为 `NodeHeader` + `NodeMetrics` 子组件\n4. 使用 discriminated union 优化类型定义\n\n重构后代码行数减少 **~30%**，可读性显著提升。";
+    return "♻️ **重构建议**：\n\n1. 提取自定义 Hook\n2. 拆分为子组件\n3. 使用 discriminated union 优化类型\n\n重构后代码行数减少约 **30%**。" + kbSection;
   }
-  return "收到！正在分析你的需求...\n\n基于当前项目上下文，我建议使用 `GlassCard` 组件配合 `recharts` 来实现数据可视化。需要我生成完整代码吗？";
+
+  const defaultKb = kbSection || "\n\n💡 输入 `kb search <关键词>` 在终端中搜索项目知识库。";
+  return "收到！正在分析你的需求...\n\n基于当前项目上下文，我建议结合项目组件库来实现。需要我生成完整代码吗？" + defaultKb;
+}
+
+function _generateMockResponse(prompt: string): string {
+  return generateEnhancedResponse(prompt, []);
 }
 
 let messageIdCounter = 0;
@@ -64,10 +97,13 @@ const getCurrentTimestamp = (): string => {
 
 export function AIChatPanel() {
   const { t } = useI18n();
+  const modelProvider = useModelProvider();
+  const sdk = useBigModelSDK();
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CHAT_HISTORY);
   const [input, setInput] = useState("");
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [_kbResults, setKbResults] = useState<KnowledgeSearchResult[]>([]);
   const [copiedId, handleCopyMessage] = useCopyFeedback<string>();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -75,9 +111,9 @@ export function AIChatPanel() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = useCallback((content?: string) => {
+  const handleSend = useCallback(async (content?: string) => {
     const text = content || input.trim();
-    if (!text) {return;}
+    if (!text) { return; }
 
     const userMsg: ChatMessage = {
       id: generateMessageId(),
@@ -89,18 +125,47 @@ export function AIChatPanel() {
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response with context-aware mock
-    setTimeout(() => {
-      const aiMsg: ChatMessage = {
-        id: generateMessageId("-ai"),
-        role: "assistant",
-        content: generateMockResponse(text),
-        timestamp: getCurrentTimestamp(),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 800 + Math.random() * 1200);
-  }, [input]);
+    const kbHits = searchKnowledge(text);
+    setKbResults(kbHits);
+    const _kbContext = kbHits.length > 0 ? formatSearchResultForAI(kbHits) : "";
+
+    const activeModel = modelProvider.configuredModels[0];
+    const hasActiveProvider = !!activeModel;
+
+    if (hasActiveProvider) {
+      try {
+        const response = await sdk.sendMessage(activeModel, text);
+        const aiMsg: ChatMessage = {
+          id: generateMessageId("-ai"),
+          role: "assistant",
+          content: response.content || generateEnhancedResponse(text, kbHits),
+          timestamp: getCurrentTimestamp(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      } catch {
+        const aiMsg: ChatMessage = {
+          id: generateMessageId("-ai"),
+          role: "assistant",
+          content: generateEnhancedResponse(text, kbHits),
+          timestamp: getCurrentTimestamp(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      }
+    } else {
+      setTimeout(() => {
+        const aiMsg: ChatMessage = {
+          id: generateMessageId("-ai"),
+          role: "assistant",
+          content: generateEnhancedResponse(text, kbHits),
+          timestamp: getCurrentTimestamp(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+        setIsTyping(false);
+      }, 600 + Math.random() * 800);
+      return;
+    }
+    setIsTyping(false);
+  }, [input, modelProvider.configuredModels, sdk]);
 
   const handleQuickAction = useCallback((action: typeof AI_QUICK_ACTIONS[0]) => {
     handleSend(action.prompt);
@@ -168,11 +233,10 @@ export function AIChatPanel() {
               )}
             </div>
             <div
-              className={`relative max-w-[85%] rounded-lg px-2.5 py-2 group ${
-                msg.role === "user"
-                  ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.2)]"
-                  : "bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.08)]"
-              }`}
+              className={`relative max-w-[85%] rounded-lg px-2.5 py-2 group ${msg.role === "user"
+                ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.2)]"
+                : "bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.08)]"
+                }`}
             >
               <p className="text-[#c0dcf0] whitespace-pre-wrap" style={{ fontSize: "0.68rem", lineHeight: "1.5" }}>
                 {msg.content}
@@ -234,6 +298,7 @@ export function AIChatPanel() {
           <div className="relative">
             <button
               onClick={() => setShowAttachMenu(!showAttachMenu)}
+              title="附件"
               className="p-1.5 rounded-md text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.08)] transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -293,12 +358,12 @@ export function AIChatPanel() {
           {/* Send button */}
           <button
             onClick={() => handleSend()}
+            title="发送"
             disabled={!input.trim() || isTyping}
-            className={`p-1.5 rounded-md transition-all ${
-              input.trim() && !isTyping
-                ? "text-[#00d4ff] hover:bg-[rgba(0,212,255,0.12)]"
-                : "text-[rgba(0,212,255,0.15)]"
-            }`}
+            className={`p-1.5 rounded-md transition-all ${input.trim() && !isTyping
+              ? "text-[#00d4ff] hover:bg-[rgba(0,212,255,0.12)]"
+              : "text-[rgba(0,212,255,0.15)]"
+              }`}
           >
             <Send className="w-3.5 h-3.5" />
           </button>

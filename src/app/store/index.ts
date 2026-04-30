@@ -37,6 +37,8 @@ export type { AlertThresholds } from './slices/ui-prefs-slice';
 export { useOfflineSlice } from './slices/offline-slice';
 export { useFSSlice } from './slices/fs-slice';
 export { useSDKSessionSlice } from './slices/sdk-session-slice';
+export { useSettingsSSOT } from './slices/settings-ssot-slice';
+export type { SettingsSSOTSlice, SettingsToggles, SettingsValues, RuntimeConfig } from './slices/settings-ssot-slice';
 export type { VoiceProfile, VoiceConversation, FamilyMessage, FamilyUIConfig, MemberModelAssignment, CreatedWork } from './slices/family-settings-slice';
 
 export type { NodeData } from '../types';

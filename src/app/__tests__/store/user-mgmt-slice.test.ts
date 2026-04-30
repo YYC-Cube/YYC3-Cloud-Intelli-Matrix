@@ -9,28 +9,13 @@
  * @tags: [auto-generated]
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useUserMgmtSlice } from '../../store/slices/user-mgmt-slice';
 import type { UserRecord } from '../../types';
 
 describe('useUserMgmtSlice', () => {
   beforeEach(() => {
-    // 删除额外添加的用户
-    const currentUsers = useUserMgmtSlice.getState().users;
-    currentUsers.forEach(user => {
-      if (!user.id.startsWith('usr-1') && !user.id.startsWith('usr-2') &&
-          !user.id.startsWith('usr-3') && !user.id.startsWith('usr-4') &&
-          !user.id.startsWith('usr-5')) {
-        useUserMgmtSlice.getState().removeUser(user.id);
-      }
-    });
-
-    // 重置所有默认用户的 locked 状态
-    useUserMgmtSlice.getState().users.forEach(user => {
-      if (user.locked) {
-        useUserMgmtSlice.getState().toggleLock(user.id);
-      }
-    });
+    useUserMgmtSlice.setState({ users: useUserMgmtSlice.getInitialState().users });
   });
 
   describe('初始状态', () => {

@@ -139,5 +139,12 @@ out
 .pnpm-debug.log*
 
 # YYC3 内部文档 - 不提交远程
-docs/.YYC3-总工程师-智能演进-优化指导/
+docs/13-YYC3-CP-IM-智能演进-优化阶段/
+docs/16-YYC3-FAmily-九层五维-核心设计/
+docs/17-YYC3-CP-IM-项目实测-全局数据/
+docs/18-YYC3-CP-IM-完善优化-衔接文档/
+docs/19-YYC3-CP-IM-数据架构-说明文档/
+docs/20-YYC3-CP-IM-项目模块-图示架构/
 .pnpm-store/
+public/D-Music/
+public/Music-Mp3/

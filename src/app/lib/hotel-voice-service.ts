@@ -123,22 +123,22 @@ export interface VoiceEvent {
 export const HOTEL_VOCABULARY = {
   // 房间类型
   rooms: ["标准间", "大床房", "双床房", "套房", "总统套房", "海景房", "山景房", "商务套房", "豪华房"],
-  
+
   // 服务项目
   services: ["入住", "退房", "预订", "叫醒", "客房服务", "洗衣", "行李寄存", "租车", "机场接送"],
-  
+
   // 餐饮相关
   dining: ["早餐", "午餐", "晚餐", "自助餐", "中餐", "西餐", "日料", "酒吧", "咖啡厅", "送餐"],
-  
+
   // 设施
   facilities: ["健身房", "游泳池", "SPA", "会议室", "WiFi", "停车场", "商务中心", "儿童乐园"],
-  
+
   // 常见问题
   issues: ["空调", "热水", "噪音", "清洁", "网络", "电视", "马桶", "淋浴"],
-  
+
   // 紧急情况
   emergency: ["紧急", "火警", "急救", "报警", "帮助", "投诉", "不满意"],
-  
+
   // 称呼和礼貌用语
   greetings: ["你好", "您好", "谢谢", "对不起", "不好意思", "麻烦", "请", "请问"],
 };
@@ -197,7 +197,7 @@ export class HotelVoiceService {
 
         this.recognition.start();
         this.setStatus("listening");
-        
+
         this.emit({ type: "start", timestamp: Date.now() });
         resolve();
       } catch (error) {
@@ -241,7 +241,7 @@ export class HotelVoiceService {
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
-      
+
       // 配置语音参数
       utterance.rate = options?.rate || this.config.speechRate;
       utterance.pitch = options?.pitch || this.config.speechPitch;
@@ -302,6 +302,13 @@ export class HotelVoiceService {
     return this.status;
   }
 
+  updateVoiceConfig(updates: { speechRate?: number; speechPitch?: number; speechVolume?: number; language?: string }): void {
+    if (updates.speechRate !== undefined) { this.config.speechRate = updates.speechRate; }
+    if (updates.speechPitch !== undefined) { this.config.speechPitch = updates.speechPitch; }
+    if (updates.speechVolume !== undefined) { this.config.speechVolume = updates.speechVolume; }
+    if (updates.language !== undefined) { this.config.language = updates.language; }
+  }
+
   /**
    * 检查浏览器是否支持语音功能
    */
@@ -320,7 +327,7 @@ export class HotelVoiceService {
     if (synthesis) {
       const synth = window.speechSynthesis;
       availableVoices = synth.getVoices().map(v => `${v.name} (${v.lang})`);
-      
+
       // 尝试获取支持的语言
       if (recognition) {
         const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -337,7 +344,7 @@ export class HotelVoiceService {
    * 获取可用的语音列表
    */
   getAvailableVoices(): SpeechSynthesisVoice[] {
-    if (!this.synthesis) {return [];}
+    if (!this.synthesis) { return []; }
     return this.synthesis.getVoices();
   }
 
@@ -364,7 +371,7 @@ export class HotelVoiceService {
 
   private initializeSpeechRecognition(): void {
     const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognitionClass) {
       console.warn("[HotelVoice] 浏览器不支持语音识别");
       return;
@@ -427,7 +434,7 @@ export class HotelVoiceService {
           this.setStatus("idle");
         }
       }
-      
+
       this.emit({
         type: "end",
         timestamp: Date.now(),
@@ -440,9 +447,9 @@ export class HotelVoiceService {
     const langPrefix = this.config.language.split("-")[0];
 
     // 优先级：目标语言女性 > 目标语言男性 > 默认语音
-    const preferred = voices.find(v => 
+    const preferred = voices.find(v =>
       v.lang.startsWith(langPrefix) && v.name.toLowerCase().includes("female")
-    ) || voices.find(v => 
+    ) || voices.find(v =>
       v.lang.startsWith(langPrefix)
     ) || voices[0];
 

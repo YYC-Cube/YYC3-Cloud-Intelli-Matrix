@@ -93,6 +93,7 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.0",
     "embla-carousel-react": "^8.6.0",
+    "eventemitter3": "^5.0.4",
     "immer": "^11.1.4",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.8.0",

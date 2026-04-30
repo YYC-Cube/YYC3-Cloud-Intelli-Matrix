@@ -4,7 +4,7 @@ description: YYC³ Cloud Intelli-Matrix 版本更新日志 · 记录所有重要
 author: YanYuCloudCube Team <admin@0379.email>
 version: v1.0.0
 created: 2026-02-26
-updated: 2026-04-09
+updated: 2026-04-26
 status: stable
 tags: [changelog],[version],[release]
 category: general
@@ -24,6 +24,56 @@ language: zh-CN
 本文件记录 YYC³ Cloud Intelli-Matrix 项目的所有重要更改。
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+---
+
+## [3.4.2] - 2026-04-26
+
+### Added
+
+- 全量模块审核: 6 大模块 42 页面数据源、可编辑性、持久化闭环验证
+- 通讯基站独立主导航: CommStationPanel 组件 + IndexedDB 持久化 + 完整 CRUD
+- 智慧酒店独立主导航: 从 AI Family 子导航提升为 `/hotel` 独立路由
+- 音乐空间播放列表删除功能: 每首歌曲可从列表移除，自动调整播放索引
+- 音乐空间上传加固: SongUploadZone 改用 React useRef + 隐藏 `<input>` 替代 document.createElement
+- 时钟页面成员详情面板: "对话"和"任务分配"按钮绑定实际导航（→ chat / activities）
+- AI Family 19 子页面数据源审核报告: 全部使用 useFamilyMemberSlice 统一数据
+
+### Changed
+
+- 预设模型精简: BUILTIN_PROVIDERS 从 9 个缩减为 3 个（智谱 / DeepSeek / Ollama），清理全部 openai/kimi/volcengine/claude/qwen 引用
+- OperationAudit 数据真实化: 硬编码 ALL_AUDIT_LOGS → useLogSlice 真实日志数据 + mapLogToAudit 映射
+- DEFAULT_MODEL_ASSIGNMENTS 更新: 全部 8 个 AI 成员分配到 zhipu/deepseek/ollama
+- Logo 路径修复: YYC3LogoSvg BASE_URL 拼接归一化，`"./"` / `"/"` 统一为空字符串
+- StoreName 扩展: 新增 `comm_stations`，ALL_STORES 23→24
+- react-router-dom → react-router: AIFamilyCenterPage / usePageConfig 修正导入路径（项目使用 React Router v7）
+- OperationAudit 无障碍修复: 4 个 button 补充 title 属性
+- FamilyMusic 上传回调: song 对象补全 id/artist 字段，careEngine 加 .catch 防崩溃
+
+### Fixed
+
+- 🔴 AI Family 中心页面加载失败: `import from "react-router-dom"` 导致模块找不到，整个 center 页面崩溃
+- 🔴 usePageConfig 路由错误: 同样引用 react-router-dom，影响页面配置功能
+- 🔴 音乐空间上传按钮无效: document.createElement("input").click() 在部分环境下被拦截
+- 🔴 音乐空间无删除功能: 播放列表和已上传列表均缺少删除入口
+- 🔴 时钟页面成员弹出面板按钮无效: "对话"和"任务分配"两个按钮缺少 onClick 处理器
+- 🔴 Logo 不显示 (net::ERR_NAME_NOT_RESOLVED): BASE_URL 拼接产生 `yyc3-icons/macOS/32.png` 无前导 `/`
+
+### Audited
+
+- 系统设定 9 页: 安全监控 / 操作审计 / 环境变量 / 数据管理 / 统一设置 / 系统管理 / 性能监控 / 用户管理 / PWA 管理
+- 监控中心 5 页: Dashboard / FollowUpPanel / PatrolDashboard / AlertRulesPanel / OperationCenter
+- AI 智能中心 4 页: AISuggestionPanel / ModelProviderPanel / AIDiagnostics / SDKChatPanel
+- 运维管理 9 页: 全部数据源正确
+- 开发工具 5 页: 全部数据源正确
+- AI Family 19 子页面: 全部使用 useFamilyMemberSlice 统一数据源
+
+### Technical
+
+- tsc: 0 errors | lint: 0 errors | test: 4222/4222 all green
+- 修改文件: 17 源文件 + 3 测试文件
+- 新增文件: CommStationPanel.tsx
+- 影响范围: 全局路由 / AI Family 模块 / 预设模型系统 / Logo 系统
 
 ---
 

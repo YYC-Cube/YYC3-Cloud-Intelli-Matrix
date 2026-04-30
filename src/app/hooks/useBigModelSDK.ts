@@ -9,21 +9,21 @@
  * @tags: [hook]
  */
 
-import { useState, useCallback, useMemo, useRef } from "react";
-import type {
-  ConfiguredModel,
-  ModelProviderId,
-  ChatMessage,
-  ChatSession,
-  ChatRole,
-  SDKConnectionStatus,
-  SDKUsageStats,
-  SDKChatResponse,
-  SDKCapability,
-  SDKProviderCapabilities,
-} from "../types";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getOllamaChatUrl, getOllamaUrl } from "../lib/ollama-url";
 import { useSDKSessionSlice } from "../store/slices/sdk-session-slice";
+import type {
+  ChatMessage,
+  ChatRole,
+  ChatSession,
+  ConfiguredModel,
+  ModelProviderId,
+  SDKCapability,
+  SDKChatResponse,
+  SDKConnectionStatus,
+  SDKProviderCapabilities,
+  SDKUsageStats,
+} from "../types";
 
 // ============================================================
 // 常量
@@ -31,15 +31,9 @@ import { useSDKSessionSlice } from "../store/slices/sdk-session-slice";
 
 /** 各提供商支持的能力 */
 export const PROVIDER_CAPABILITIES: SDKProviderCapabilities[] = [
-  { providerId: "zhipu",          capabilities: ["chat", "chat-stream", "file-upload", "knowledge-base", "image-gen", "tts", "stt", "video-gen", "code-gen"] },
-  { providerId: "zhipu-plan",     capabilities: ["chat", "chat-stream"] },
-  { providerId: "openai",         capabilities: ["chat", "chat-stream", "image-gen", "tts", "stt", "code-gen"] },
-  { providerId: "kimi-cn",        capabilities: ["chat", "chat-stream"] },
-  { providerId: "kimi-global",    capabilities: ["chat", "chat-stream"] },
-  { providerId: "deepseek",       capabilities: ["chat", "chat-stream", "code-gen"] },
-  { providerId: "volcengine",     capabilities: ["chat", "chat-stream"] },
-  { providerId: "volcengine-plan", capabilities: ["chat", "chat-stream"] },
-  { providerId: "ollama",         capabilities: ["chat", "chat-stream", "code-gen"] },
+  { providerId: "zhipu", capabilities: ["chat", "chat-stream", "file-upload", "knowledge-base", "image-gen", "tts", "stt", "video-gen", "code-gen"] },
+  { providerId: "deepseek", capabilities: ["chat", "chat-stream", "code-gen"] },
+  { providerId: "ollama", capabilities: ["chat", "chat-stream", "code-gen"] },
 ];
 
 // ============================================================
@@ -81,7 +75,7 @@ function genId(): string {
 function buildHeaders(model: ConfiguredModel): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
 
-  if (model.providerId === "zhipu" || model.providerId === "zhipu-plan") {
+  if (model.providerId === "zhipu") {
     // Z.ai 使用 Bearer token (官方 SDK 用 Bearer)
     headers["Authorization"] = `Bearer ${model.apiKey}`;
   } else if (model.providerId === "ollama") {
@@ -168,8 +162,8 @@ const MOCK_RESPONSES: Record<string, string> = {
 
 function getMockResponse(input: string): string {
   const lower = input.toLowerCase();
-  if (lower.includes("状态") || lower.includes("status")) {return MOCK_RESPONSES.status;}
-  if (lower.includes("异常") || lower.includes("error") || lower.includes("告警")) {return MOCK_RESPONSES.error;}
+  if (lower.includes("状态") || lower.includes("status")) { return MOCK_RESPONSES.status; }
+  if (lower.includes("异常") || lower.includes("error") || lower.includes("告警")) { return MOCK_RESPONSES.error; }
   return MOCK_RESPONSES.default;
 }
 
@@ -512,12 +506,12 @@ export function useBigModelSDK() {
         signal: abortRef.current.signal,
       });
 
-      if (!res.ok) {throw new Error(`API ${res.status}: ${res.statusText}`);}
+      if (!res.ok) { throw new Error(`API ${res.status}: ${res.statusText}`); }
 
       setConnectionStatus("connected");
 
       const reader = res.body?.getReader();
-      if (!reader) {throw new Error("Response body is not readable");}
+      if (!reader) { throw new Error("Response body is not readable"); }
 
       const decoder = new TextDecoder();
       let buffer = "";
@@ -525,7 +519,7 @@ export function useBigModelSDK() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) {break;}
+        if (done) { break; }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
@@ -534,7 +528,7 @@ export function useBigModelSDK() {
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             const data = line.slice(6).trim();
-            if (data === "[DONE]") {continue;}
+            if (data === "[DONE]") { continue; }
             try {
               const chunk = JSON.parse(data);
               const delta = configuredModel.providerId === "ollama"
@@ -657,7 +651,7 @@ export function useBigModelSDK() {
         const res = await fetch(testUrl, {
           signal: AbortSignal.timeout(5000),
         });
-        if (!res.ok) {throw new Error(`HTTP ${res.status}`);}
+        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
         return { success: true, latencyMs: Date.now() - start };
       }
 

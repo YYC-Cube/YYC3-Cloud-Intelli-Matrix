@@ -29,7 +29,7 @@ const DB_NAME = "yyc3_matrix";
 const DB_VERSION = 5;
 
 /** IndexedDB store 名称 — centralized in types/index.ts */
-import type { StoreName, StorageChangeEvent } from "../types";
+import type { StorageChangeEvent, StoreName } from "../types";
 // RF-011: Re-export 已移除 — StoreName/StorageChangeEvent 统一从 types/index.ts 导入
 
 // RF-009: 统一 BroadcastChannel 工厂
@@ -62,6 +62,8 @@ export const ALL_STORES: StoreName[] = [
   "family_activities",
   "family_memories",
   "family_broadcasts",
+  "music_library",
+  "comm_stations",
 ] as const as unknown as StoreName[];
 
 /** 打开数据库，自动创建 object stores */
@@ -85,7 +87,7 @@ function openDB(): Promise<IDBDatabase> {
 
       // v1-v3: 标准 store (keyPath: "id")，跳过自定义 keyPath 的 store
       for (const name of ALL_STORES) {
-        if (customStores[name]) {continue;}
+        if (customStores[name]) { continue; }
         if (!db.objectStoreNames.contains(name)) {
           db.createObjectStore(name, { keyPath: "id" });
         }
@@ -168,7 +170,7 @@ function getDB(): Promise<IDBDatabase> {
   return dbPromise.then((db) => {
     try {
       // 如果连接已关闭，访问 objectStoreNames 会抛出 InvalidStateError
-       
+
       db.objectStoreNames;
       return db;
     } catch {
@@ -322,9 +324,9 @@ let channelInitialized = false;
 
 /** 确保 storage channel 已初始化（注册 onmessage 监听） */
 function ensureChannelListener(): void {
-  if (channelInitialized) {return;}
+  if (channelInitialized) { return; }
   const ch = getSharedChannel(STORAGE_CHANNEL_NAME);
-  if (!ch) {return;}
+  if (!ch) { return; }
   ch.onmessage = (event: MessageEvent<StorageChangeEvent>) => {
     for (const fn of listeners) {
       try {
@@ -361,7 +363,7 @@ export function onStorageChange(listener: ChangeListener): () => void {
   listeners.push(listener);
   return () => {
     const idx = listeners.indexOf(listener);
-    if (idx >= 0) {listeners.splice(idx, 1);}
+    if (idx >= 0) { listeners.splice(idx, 1); }
   };
 }
 
@@ -423,95 +425,95 @@ export async function getStorageStats(): Promise<{
  */
 export const LOCALSTORAGE_KEYS = {
   // ── 认证与会话 ──
-  session:           "yyc3_session",           // 认证会话
-  ghost:             "yyc3_ghost",             // 幽灵模式标记
-  locale:            "yyc3_locale",            // 语言偏好
+  session: "yyc3_session",           // 认证会话
+  ghost: "yyc3_ghost",             // 幽灵模式标记
+  locale: "yyc3_locale",            // 语言偏好
 
   // ── AI 模型 ──
-  configuredModels:  "yyc3_configured_models", // AI 模型配置
-  modelProviders:    "yyc3_model_providers",   // 模型服务商
+  configuredModels: "yyc3_configured_models", // AI 模型配置
+  modelProviders: "yyc3_model_providers",   // 模型服务商
 
   // ── SDK ──
-  sdkSessions:       "yyc3_sdk_sessions",      // 聊天会话
-  sdkStats:          "yyc3_sdk_stats",         // SDK 使用统计
+  sdkSessions: "yyc3_sdk_sessions",      // 聊天会话
+  sdkStats: "yyc3_sdk_stats",         // SDK 使用统计
 
   // ── 同步与队列 ──
-  syncQueue:         "yyc3_sync_queue",        // 后台同步队列
-  errorLog:          "yyc3_error_log",         // 错误日志
+  syncQueue: "yyc3_sync_queue",        // 后台同步队列
+  errorLog: "yyc3_error_log",         // 错误日志
 
   // ── 网络 ──
-  networkConfig:     "network_config",         // 网络配置
-  corsProxy:         "yyc3_cors_proxy",        // CORS 代理设置
-  apiEndpoints:      "yyc3_api_endpoints",     // API 端点配置
+  networkConfig: "network_config",         // 网络配置
+  corsProxy: "yyc3_cors_proxy",        // CORS 代理设置
+  apiEndpoints: "yyc3_api_endpoints",     // API 端点配置
 
   // ── 离线与 PWA ──
-  offlineSnapshot:   "offline_snapshot",       // 离线快照
-  offlineTime:       "offline_snapshot_time",  // 离线快照时间
+  offlineSnapshot: "offline_snapshot",       // 离线快照
+  offlineTime: "offline_snapshot_time",  // 离线快照时间
   pwaInstallDismiss: "pwa_install_dismissed",  // PWA 安装提示
 
   // ── 仪表盘 ──
-  dashboardState:    "dashboard_state",        // 仪表盘状态 (用于离线快照)
+  dashboardState: "dashboard_state",        // 仪表盘状态 (用于离线快照)
 
   // ── 系统设置 ──
-  systemSettings:    "yyc3_system_settings",   // 系统设置
-  envConfig:         "env_config",             // 环境变量配置
+  systemSettings: "yyc3_system_settings",   // 系统设置
+  envConfig: "env_config",             // 环境变量配置
 
   // ── IDE ──
-  ideLayoutMode:     "yyc3-ide-layout-mode",   // IDE 布局模式
-  terminalHeight:    "yyc3_terminal_height",   // 终端高度
+  ideLayoutMode: "yyc3-ide-layout-mode",   // IDE 布局模式
+  terminalHeight: "yyc3_terminal_height",   // 终端高度
 
   // ── 主题 ──
-  customTheme:       "yyc3_custom_theme",      // 自定义主题
+  customTheme: "yyc3_custom_theme",      // 自定义主题
 
   // ── 音乐 ──
-  musicWorks:        "d-music-works",          // 音乐作品
+  musicWorks: "d-music-works",          // 音乐作品
 
   // ── AI Family ──
-  familyCommMessages:    "yyc3-family-comm-messages",     // 家人通讯消息
-  familyProviderKeys:    "yyc3-family-provider-keys",     // 家人 Provider 密钥
-  familyModelAssignments:"yyc3-family-model-assignments", // 家人模型分配
-  familyVoiceProfiles:   "yyc3-family-voice-profiles",    // 家人语音配置
-  familyDiagnostics:     "yyc3-family-diagnostics",       // 家人诊断数据
+  familyCommMessages: "yyc3-family-comm-messages",     // 家人通讯消息
+  familyProviderKeys: "yyc3-family-provider-keys",     // 家人 Provider 密钥
+  familyModelAssignments: "yyc3-family-model-assignments", // 家人模型分配
+  familyVoiceProfiles: "yyc3-family-voice-profiles",    // 家人语音配置
+  familyDiagnostics: "yyc3-family-diagnostics",       // 家人诊断数据
 
   // ── 性能与监控 ──
-  perfHistory:           "yyc3_perf_history",            // 性能历史
-  performanceMonitor:    "yyc3_performance_monitor",      // 性能监控
+  perfHistory: "yyc3_perf_history",            // 性能历史
+  performanceMonitor: "yyc3_performance_monitor",      // 性能监控
 
   // ── 安全 ──
-  securityAudit:         "yyc3_security_audit",          // 安全审计
-  dependencyScan:        "yyc3_dependency_scan",          // 依赖扫描
+  securityAudit: "yyc3_security_audit",          // 安全审计
+  dependencyScan: "yyc3_dependency_scan",          // 依赖扫描
 
   // ── AI 分析 ──
-  aiPatterns:            "yyc3_ai_patterns",             // AI 使用模式
-  aiRecommendations:     "yyc3_ai_recommendations",       // AI 建议
+  aiPatterns: "yyc3_ai_patterns",             // AI 使用模式
+  aiRecommendations: "yyc3_ai_recommendations",       // AI 建议
 
   // ── Zustand persist (Slice) ──
-  nodeSlice:             "yyc3-node-slice",
-  dbConnSlice:           "yyc3-db-conn-slice",
-  followUpSlice:         "yyc3-follow-up-slice",
-  metricsSlice:          "yyc3-metrics-slice",
-  logSlice:              "yyc3-log-slice",
-  modelSlice:            "yyc3-model-slice",
-  networkSlice:          "yyc3-network-slice",
-  userMgmtSlice:         "yyc3-user-mgmt-slice",
-  familyMemberSlice:     "yyc3-family-members",
-  familyMessageSlice:    "yyc3-family-messages",
-  globalStore:           "yyc3-global-store",
+  nodeSlice: "yyc3-node-slice",
+  dbConnSlice: "yyc3-db-conn-slice",
+  followUpSlice: "yyc3-follow-up-slice",
+  metricsSlice: "yyc3-metrics-slice",
+  logSlice: "yyc3-log-slice",
+  modelSlice: "yyc3-model-slice",
+  networkSlice: "yyc3-network-slice",
+  userMgmtSlice: "yyc3-user-mgmt-slice",
+  familyMemberSlice: "yyc3-family-members",
+  familyMessageSlice: "yyc3-family-messages",
+  globalStore: "yyc3-global-store",
 
   // ── createLocalStore (legacy dashboard-stores) ──
-  nodesStore:            "yyc3_nodes",
-  modelPerfStore:        "yyc3_model_perf",
-  modelDistStore:        "yyc3_model_dist",
-  recentOpsStore:        "yyc3_recent_ops",
-  radarStore:            "yyc3_radar_data",
-  logStore:              "yyc3_logs",
-  dbConnectionStore:     "yyc3_db_connections",
-  deployedModelStore:    "yyc3_deployed_models",
-  wifiNetworkStore:      "yyc3_wifi_networks",
-  userStore:             "yyc3_users",
-  wifiAutoReconnectStore:"yyc3_wifi_auto_reconnect",
-  followUpStore:         "yyc3_follow_ups",
-  alertItemsStore:       "yyc3_alert_items",      // useFollowUp.ts (FollowUpItem)
+  nodesStore: "yyc3_nodes",
+  modelPerfStore: "yyc3_model_perf",
+  modelDistStore: "yyc3_model_dist",
+  recentOpsStore: "yyc3_recent_ops",
+  radarStore: "yyc3_radar_data",
+  logStore: "yyc3_logs",
+  dbConnectionStore: "yyc3_db_connections",
+  deployedModelStore: "yyc3_deployed_models",
+  wifiNetworkStore: "yyc3_wifi_networks",
+  userStore: "yyc3_users",
+  wifiAutoReconnectStore: "yyc3_wifi_auto_reconnect",
+  followUpStore: "yyc3_follow_ups",
+  alertItemsStore: "yyc3_alert_items",      // useFollowUp.ts (FollowUpItem)
 } as const;
 
 /** 清除所有 YYC³ localStorage 数据（含动态前缀键） */

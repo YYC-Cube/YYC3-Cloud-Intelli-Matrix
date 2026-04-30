@@ -9,18 +9,28 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect } from "react";
 import {
-  Plus, Edit, Trash2, CheckCircle, Clock, AlertCircle,
-  Filter, Search, Calendar, User,
-  Flag, ArrowUp, ArrowDown, RefreshCw,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  Calendar,
+  CheckCircle, Clock,
+  Edit,
+  Filter,
+  Flag,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  User,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import { useEffect, useState } from "react";
 import { useI18n } from "../hooks/useI18n";
 import { useFollowUpSlice } from "../store/slices/follow-up-slice";
-import type { FollowUpRecord } from "../types";
 import { useUserMgmtSlice } from "../store/slices/user-mgmt-slice";
+import type { FollowUpRecord } from "../types";
 import { FollowUpEditDialog } from "./FollowUpEditDialog";
+import { GlassCard } from "./GlassCard";
 
 export function FollowUpManager() {
   const { t } = useI18n();
@@ -185,24 +195,26 @@ export function FollowUpManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[rgba(0,212,255,0.1)] flex items-center justify-center">
-            <Flag className="w-6 h-6 text-[#00d4ff]" />
+          <div className="w-10 h-10 rounded-xl bg-[rgba(0,212,255,0.1)] flex items-center justify-center">
+            <Flag className="w-5 h-5 text-[#00d4ff]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#e0f0ff]">{t("collab.title")}</h1>
-            <p className="text-xs text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.76rem" }}>
+            <h2 className="text-[#e0f0ff]" style={{ fontSize: "1.1rem" }}>
+              {t("collab.title")}
+            </h2>
+            <p className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.7rem" }}>
               {t("collab.subtitle")}
             </p>
           </div>
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-5 py-2 rounded-lg font-medium transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all"
           style={{
             background: "linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,212,255,0.04))",
             border: "1px solid rgba(0,212,255,0.3)",
             color: "#00d4ff",
-            fontSize: "0.82rem",
+            fontSize: "0.75rem",
           }}
         >
           <Plus className="w-4 h-4" />
@@ -234,8 +246,9 @@ export function FollowUpManager() {
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
             <select
+              title="状态筛选"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as "all"|"pending"|"in_progress"|"completed"|"cancelled")}
+              onChange={(e) => setFilterStatus(e.target.value as "all" | "pending" | "in_progress" | "completed" | "cancelled")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
               <option value="all">{t("collab.filter.allStatus")}</option>
@@ -246,8 +259,9 @@ export function FollowUpManager() {
             </select>
 
             <select
+              title="优先级筛选"
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as "all"|"critical"|"high"|"medium"|"low")}
+              onChange={(e) => setFilterPriority(e.target.value as "all" | "critical" | "high" | "medium" | "low")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
               <option value="all">{t("collab.filter.allPriority")}</option>
@@ -258,6 +272,7 @@ export function FollowUpManager() {
             </select>
 
             <select
+              title="负责人筛选"
               value={filterAssignee}
               onChange={(e) => setFilterAssignee(e.target.value)}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
@@ -273,8 +288,9 @@ export function FollowUpManager() {
 
           <div className="flex items-center gap-2">
             <select
+              title="排序方式"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "dueDate"|"priority"|"createdAt")}
+              onChange={(e) => setSortBy(e.target.value as "dueDate" | "priority" | "createdAt")}
               className="px-3 py-2 bg-[rgba(0,212,255,0.05)] border border-[rgba(0,212,255,0.2)] rounded-lg text-[#e0f0ff] focus:outline-none focus:border-[#00d4ff]"
             >
               <option value="dueDate">{t("collab.sort.dueDate")}</option>

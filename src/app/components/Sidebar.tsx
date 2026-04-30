@@ -9,26 +9,60 @@
  * @tags: [component]
  */
 
-import * as React from "react";
-import { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Activity, Wrench, Brain, Code2, ShieldCheck,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  BellRing,
+  BookOpen,
+  Brain,
+  BrainCircuit,
+  Building2,
   ChevronLeft, ChevronRight,
-  BarChart3, AlertTriangle, Radar,
-  Settings as SettingsIcon, FolderOpen, RefreshCcw,
-  Sparkles, Cpu, House,
-  Palette, BookOpen, Paintbrush, Terminal, Monitor,
-  ClipboardList, Users, Cog,
-  BellRing, FileBarChart, BrainCircuit,
-  HardDrive, Database, GitBranch,
-  Smartphone, Package, Gauge, ServerCog,
+  ClipboardList,
+  Code2,
+  Cog,
+  Cpu,
+  Database,
+  FileBarChart,
+  FileText,
+  FolderOpen,
+  Gamepad2,
+  Gauge,
+  GitBranch,
+  HardDrive,
+  House,
   Layers,
+  MessageCircle,
+  MessageSquare,
+  Mic,
+  Monitor,
+  Music,
+  Package,
+  Paintbrush,
+  Palette,
+  Phone,
+  Radar,
+  Radio,
+  RefreshCcw,
+  ServerCog,
+  Settings2,
+  Settings as SettingsIcon,
+  Share2,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Terminal,
+  TrendingUp,
+  Trophy,
   UserCircle2,
+  Users,
+  Wrench,
   Zap,
-  MessageCircle, Share2, Music, TrendingUp, Phone, Gamepad2, Mic, MessageSquare, FileText, Trophy, Settings2,
-  Building2, Radio,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router";
+import * as React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useI18n } from "../hooks/useI18n";
 import { YYC3Logo } from "./YYC3Logo";
 
@@ -52,11 +86,11 @@ const NAV_CATEGORIES: NavCategory[] = [
     labelKey: "nav.catMonitor",
     icon: Activity,
     children: [
-      { key: "nav.dataMonitor", path: "/",           icon: BarChart3 },
-      { key: "nav.followUp",    path: "/follow-up",   icon: AlertTriangle },
+      { key: "nav.dataMonitor", path: "/", icon: BarChart3 },
+      { key: "nav.followUp", path: "/follow-up", icon: AlertTriangle },
       { key: "nav.followUpManager", path: "/follow-up-manager", icon: ClipboardList },
-      { key: "nav.patrol",      path: "/patrol",       icon: Radar },
-      { key: "nav.alertRules",  path: "/alerts",       icon: BellRing },
+      { key: "nav.patrol", path: "/patrol", icon: Radar },
+      { key: "nav.alertRules", path: "/alerts", icon: BellRing },
     ],
   },
   {
@@ -64,14 +98,14 @@ const NAV_CATEGORIES: NavCategory[] = [
     labelKey: "nav.catOps",
     icon: Wrench,
     children: [
-      { key: "nav.operations",  path: "/operations",  icon: RefreshCcw },
-      { key: "nav.fileManager", path: "/files",        icon: FolderOpen },
-      { key: "nav.hostFiles",   path: "/host-files",   icon: HardDrive },
-      { key: "nav.database",    path: "/database",     icon: Database },
+      { key: "nav.operations", path: "/operations", icon: RefreshCcw },
+      { key: "nav.fileManager", path: "/files", icon: FolderOpen },
+      { key: "nav.hostFiles", path: "/host-files", icon: HardDrive },
+      { key: "nav.database", path: "/database", icon: Database },
       { key: "nav.dbConnections", path: "/db-connections", icon: Database },
       { key: "nav.connectionTest", path: "/connection-test", icon: Zap },
-      { key: "nav.serviceLoop", path: "/loop",         icon: SettingsIcon },
-      { key: "nav.reportExport", path: "/reports",     icon: FileBarChart },
+      { key: "nav.serviceLoop", path: "/loop", icon: SettingsIcon },
+      { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
       { key: "nav.exportCenter", path: "/export-center", icon: Package },
     ],
   },
@@ -80,10 +114,10 @@ const NAV_CATEGORIES: NavCategory[] = [
     labelKey: "nav.catAI",
     icon: Brain,
     children: [
-      { key: "nav.aiDecision",      path: "/ai",            icon: Sparkles },
-      { key: "modelProvider.title",  path: "/models",        icon: Cpu },
-      { key: "nav.aiDiagnostics",    path: "/ai-diagnosis",  icon: BrainCircuit },
-      { key: "nav.sdkChat",          path: "/sdk-chat",       icon: MessageCircle },
+      { key: "nav.aiDecision", path: "/ai", icon: Sparkles },
+      { key: "modelProvider.title", path: "/models", icon: Cpu },
+      { key: "nav.aiDiagnostics", path: "/ai-diagnosis", icon: BrainCircuit },
+      { key: "nav.sdkChat", path: "/sdk-chat", icon: MessageCircle },
     ],
   },
   {
@@ -91,25 +125,40 @@ const NAV_CATEGORIES: NavCategory[] = [
     labelKey: "nav.catAIFamily",
     icon: UserCircle2,
     children: [
-      { key: "nav.aiFamily",       path: "/ai-family",        icon: UserCircle2 },
-      { key: "nav.aiFamilyHome",  path: "/ai-family/home",   icon: House },
-      { key: "nav.aiFamilyCenter",path: "/ai-family/center",  icon: Sparkles },
-      { key: "nav.aiFamilyPlanning",path: "/ai-family/planning",icon: FileText },
+      { key: "nav.aiFamily", path: "/ai-family", icon: UserCircle2 },
+      { key: "nav.aiFamilyHome", path: "/ai-family/home", icon: House },
+      { key: "nav.aiFamilyCenter", path: "/ai-family/center", icon: Sparkles },
+      { key: "nav.aiFamilyPlanning", path: "/ai-family/planning", icon: FileText },
       { key: "nav.aiFamilyChatCenter", path: "/ai-family/chat", icon: MessageCircle },
-      { key: "nav.aiFamilyShare", path: "/ai-family/share",   icon: Share2 },
-      { key: "nav.aiFamilyLearn", path: "/ai-family/learn",   icon: BookOpen },
-      { key: "nav.aiFamilyMusic", path: "/ai-family/music",   icon: Music },
-      { key: "nav.aiFamilyGrowth",path: "/ai-family/growth",  icon: TrendingUp },
-      { key: "nav.aiFamilyPhone", path: "/ai-family/phone",   icon: Phone },
-      { key: "nav.aiFamilyFun",   path: "/ai-family/fun",     icon: Gamepad2 },
+      { key: "nav.aiFamilyShare", path: "/ai-family/share", icon: Share2 },
+      { key: "nav.aiFamilyLearn", path: "/ai-family/learn", icon: BookOpen },
+      { key: "nav.aiFamilyMusic", path: "/ai-family/music", icon: Music },
+      { key: "nav.aiFamilyGrowth", path: "/ai-family/growth", icon: TrendingUp },
+      { key: "nav.aiFamilyPhone", path: "/ai-family/phone", icon: Phone },
+      { key: "nav.aiFamilyFun", path: "/ai-family/fun", icon: Gamepad2 },
       { key: "nav.aiFamilyActivities", path: "/ai-family/activities", icon: Trophy },
-      { key: "nav.aiFamilyModels", path: "/ai-family/models",  icon: Cpu },
-      { key: "nav.aiFamilyVoice", path: "/ai-family/voice",   icon: Mic },
-      { key: "nav.aiFamilyData",  path: "/ai-family/data",    icon: Database },
-      { key: "nav.aiFamilyComm",  path: "/ai-family/comm",    icon: MessageSquare },
+      { key: "nav.aiFamilyModels", path: "/ai-family/models", icon: Cpu },
+      { key: "nav.aiFamilyVoice", path: "/ai-family/voice", icon: Mic },
+      { key: "nav.aiFamilyData", path: "/ai-family/data", icon: Database },
+      { key: "nav.aiFamilyComm", path: "/ai-family/comm", icon: MessageSquare },
       { key: "nav.aiFamilySettings", path: "/ai-family/settings", icon: Settings2 },
-      { key: "nav.aiFamilyHotel", path: "/ai-family/hotel",   icon: Building2 },
-      { key: "nav.aiFamilyCluster",path: "/ai-family/cluster", icon: Radio },
+      { key: "nav.aiFamilyCluster", path: "/ai-family/cluster", icon: Radio },
+    ],
+  },
+  {
+    id: "hotel",
+    labelKey: "nav.catHotel",
+    icon: Building2,
+    children: [
+      { key: "nav.hotelDashboard", path: "/hotel", icon: Building2 },
+    ],
+  },
+  {
+    id: "comm-station",
+    labelKey: "nav.catCommStation",
+    icon: Radio,
+    children: [
+      { key: "nav.commStation", path: "/comm-station", icon: Radio },
     ],
   },
   {
@@ -118,12 +167,12 @@ const NAV_CATEGORIES: NavCategory[] = [
     icon: Code2,
     children: [
       { key: "nav.designSystem", path: "/design-system", icon: Palette },
-      { key: "nav.devGuide",     path: "/dev-guide",     icon: BookOpen },
-      { key: "nav.theme",        path: "/theme",          icon: Paintbrush },
-      { key: "nav.terminal",     path: "/terminal",       icon: Terminal },
-      { key: "nav.ide",          path: "/ide",             icon: Monitor },
-      { key: "nav.refactoring",  path: "/refactoring",    icon: GitBranch },
-      { key: "nav.architecture", path: "/architecture",   icon: Layers },
+      { key: "nav.devGuide", path: "/dev-guide", icon: BookOpen },
+      { key: "nav.theme", path: "/theme", icon: Paintbrush },
+      { key: "nav.terminal", path: "/terminal", icon: Terminal },
+      { key: "nav.ide", path: "/ide", icon: Monitor },
+      { key: "nav.refactoring", path: "/refactoring", icon: GitBranch },
+      { key: "nav.architecture", path: "/architecture", icon: Layers },
     ],
   },
   {
@@ -131,12 +180,12 @@ const NAV_CATEGORIES: NavCategory[] = [
     labelKey: "nav.catAdmin",
     icon: ShieldCheck,
     children: [
-      { key: "nav.audit",   path: "/audit",    icon: ClipboardList },
-      { key: "nav.userMgmt", path: "/users",    icon: Users },
+      { key: "nav.audit", path: "/audit", icon: ClipboardList },
+      { key: "nav.userMgmt", path: "/users", icon: Users },
       { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.unifiedSettings", path: "/unified-settings", icon: Settings2 },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
-      { key: "nav.pwa",     path: "/pwa",      icon: Smartphone },
+      { key: "nav.pwa", path: "/pwa", icon: Smartphone },
       { key: "nav.dataEditor", path: "/data-editor", icon: Package },
       { key: "nav.performance", path: "/performance", icon: Gauge },
       { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
@@ -152,7 +201,7 @@ export const navItems = NAV_CATEGORIES.flatMap((c) =>
 /* ── 辅助函数 ──────────────────────────────── */
 function getActiveCategoryId(pathname: string): string {
   for (const cat of NAV_CATEGORIES) {
-    if (cat.children.some((c) => c.path === pathname)) {return cat.id;}
+    if (cat.children.some((c) => c.path === pathname)) { return cat.id; }
   }
   return "monitor";
 }
@@ -178,7 +227,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   // debounced hover
   const handleMouseEnter = useCallback((catId: string) => {
-    if (hoverTimerRef.current) {clearTimeout(hoverTimerRef.current);}
+    if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); }
     setHoverCatId(catId);
   }, []);
 
@@ -188,7 +237,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   // keep flyout open while hovering it
   const handleFlyoutEnter = useCallback(() => {
-    if (hoverTimerRef.current) {clearTimeout(hoverTimerRef.current);}
+    if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); }
   }, []);
 
   // close on navigate
@@ -245,7 +294,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   onClick={() => {
                     // 点击分类：导航到第一个子项
                     const firstChild = cat.children[0];
-                    if (firstChild) {navigate(firstChild.path);}
+                    if (firstChild) { navigate(firstChild.path); }
                   }}
                   className="w-full relative group"
                   style={{ padding: collapsed ? "8px 0" : "6px 10px" }}

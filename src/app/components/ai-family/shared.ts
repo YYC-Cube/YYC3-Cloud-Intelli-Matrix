@@ -559,14 +559,14 @@ export interface MemberModelAssignment {
 }
 
 export const DEFAULT_MODEL_ASSIGNMENTS: MemberModelAssignment[] = [
-  { memberId: "navigator",   providerId: "zhipu",    modelId: "glm-4.5",     purpose: "语义理解与意图识别" },
+  { memberId: "navigator",   providerId: "zhipu",    modelId: "glm-4-plus",   purpose: "语义理解与意图识别" },
   { memberId: "thinker",     providerId: "deepseek", modelId: "deepseek-chat", purpose: "深度数据分析与洞察" },
-  { memberId: "prophet",     providerId: "qwen",     modelId: "qwen3-max",   purpose: "趋势预测与异常检测" },
-  { memberId: "bolero",      providerId: "zhipu",    modelId: "glm-4.5-air", purpose: "用户画像与推荐" },
-  { memberId: "meta-oracle", providerId: "openai",   modelId: "gpt-4o",      purpose: "全局调度与决策优化" },
+  { memberId: "prophet",     providerId: "deepseek", modelId: "deepseek-reasoner", purpose: "趋势预测与异常检测" },
+  { memberId: "bolero",      providerId: "zhipu",    modelId: "glm-4-air",    purpose: "用户画像与推荐" },
+  { memberId: "meta-oracle", providerId: "deepseek", modelId: "deepseek-chat", purpose: "全局调度与决策优化" },
   { memberId: "sentinel",    providerId: "deepseek", modelId: "deepseek-reasoner", purpose: "安全分析与威胁检测" },
-  { memberId: "master",      providerId: "claude",   modelId: "claude-sonnet-4-20250514", purpose: "代码审查与架构分析" },
-  { memberId: "creative",    providerId: "qwen",     modelId: "qwen-vl-max", purpose: "多模态创意生成" },
+  { memberId: "master",      providerId: "ollama",   modelId: "codegeex4:latest", purpose: "代码审查与架构分析" },
+  { memberId: "creative",    providerId: "zhipu",    modelId: "glm-4v-plus",  purpose: "多模态创意生成" },
 ];
 
 // ═══ 内部通信消息 ═══

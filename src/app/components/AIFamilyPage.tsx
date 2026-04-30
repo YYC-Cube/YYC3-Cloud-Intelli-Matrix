@@ -9,15 +9,21 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useClock } from "../hooks/useClock";
 import {
-  MessageCircle, ChevronRight, X, Sparkles,
-  Clock, Users, Zap, Activity,
+  Activity,
+  ChevronRight,
+  Clock,
+  MessageCircle,
+  Sparkles,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useClock } from "../hooks/useClock";
 import { useI18n } from "../hooks/useI18n";
-import type { UnifiedFamilyMember } from "../types";
 import { useFamilyMemberSlice } from "../store";
+import type { UnifiedFamilyMember } from "../types";
 
 // ======== 时钟布局扩展 ========
 
@@ -27,9 +33,9 @@ interface ClockMember extends UnifiedFamilyMember {
 }
 
 const CLOCK_SLOTS: { angle: number; timeLabel: string }[] = [
-  { angle: 0,   timeLabel: "06:00" },
-  { angle: 45,  timeLabel: "07:30" },
-  { angle: 90,  timeLabel: "09:00" },
+  { angle: 0, timeLabel: "06:00" },
+  { angle: 45, timeLabel: "07:30" },
+  { angle: 90, timeLabel: "09:00" },
   { angle: 135, timeLabel: "10:30" },
   { angle: 180, timeLabel: "12:00" },
   { angle: 225, timeLabel: "13:30" },
@@ -50,11 +56,11 @@ function useContainerSize(ref: React.RefObject<HTMLDivElement | null>) {
   const [size, setSize] = useState({ width: 800, height: 600 });
   useEffect(() => {
     const el = ref.current;
-    if (!el) {return;}
+    if (!el) { return; }
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {setSize({ width, height });}
+        if (width > 0 && height > 0) { setSize({ width, height }); }
       }
     });
     ro.observe(el);
@@ -542,6 +548,7 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
         <div className="relative shrink-0 p-6 pb-4" style={{ borderBottom: `1px solid ${member.color}15` }}>
           <button
             onClick={onClose}
+            title="关闭"
             className="absolute top-4 right-4 p-1.5 rounded-lg text-[rgba(0,240,255,0.3)] hover:text-[#00F0FF] hover:bg-[rgba(0,240,255,0.08)] transition-all"
           >
             <X className="w-4 h-4" />
@@ -656,6 +663,10 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
         <div className="px-6 pb-6 mt-auto">
           <div className="flex items-center gap-2">
             <button
+              onClick={() => {
+                onClose();
+                window.location.hash = "#/ai-family/chat";
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
               style={{
                 background: `${member.color}12`,
@@ -668,6 +679,10 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
               对话
             </button>
             <button
+              onClick={() => {
+                onClose();
+                window.location.hash = "#/ai-family/activities";
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
               style={{
                 background: "rgba(0,40,80,0.2)",

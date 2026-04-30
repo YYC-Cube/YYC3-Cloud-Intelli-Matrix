@@ -102,10 +102,10 @@ describe("AddModelModal", () => {
     });
   });
 
-  it("选择 OpenAI 后应显示模型选择和 API Key 输入", () => {
+  it("选择 DeepSeek 后应显示模型选择和 API Key 输入", () => {
     renderModal();
     fireEvent.click(screen.getAllByTestId("provider-select")[0]);
-    fireEvent.click(screen.getAllByTestId("provider-option-openai")[0]);
+    fireEvent.click(screen.getAllByTestId("provider-option-deepseek")[0]);
     expect(screen.getAllByTestId("model-select")[0]).toBeInTheDocument();
     expect(screen.getAllByTestId("api-key-input")[0]).toBeInTheDocument();
   });

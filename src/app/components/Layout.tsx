@@ -104,6 +104,7 @@ export function Layout() {
             {/* TopBar: minimal, always on top */}
             <TopBar
               connectionState={wsData.connectionState}
+              isSimulated={wsData.isSimulated}
               reconnectCount={wsData.reconnectCount}
               lastSyncTime={wsData.lastSyncTime}
               onReconnect={wsData.manualReconnect}

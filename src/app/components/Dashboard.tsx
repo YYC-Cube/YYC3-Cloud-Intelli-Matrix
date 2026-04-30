@@ -55,12 +55,14 @@ import {
   Tooltip,
   XAxis, YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { useI18n } from "../hooks/useI18n";
 import { ViewContext, WebSocketContext } from "../lib/view-context";
 import { useAppSlice } from "../store/slices/app-slice";
 import { useMetricsSlice } from "../store/slices/metrics-slice";
 import { useNodeSlice } from "../store/slices/node-slice";
+import { useProviderSlice } from "../store/slices/provider-slice";
 import type { NodeData } from "../types";
 import { AlertBanner } from "./AlertBanner";
 import { GlassCard } from "./GlassCard";
@@ -154,6 +156,53 @@ function ChartTabBar({ active, onChange }: { active: AnalyticsTab; onChange: (t:
   );
 }
 
+function ModelStatusBar() {
+  const { configuredModels, testingIds, getActiveModel } = useProviderSlice();
+  const activeModel = getActiveModel();
+  const activeCount = configuredModels.filter((m: { status: string }) => m.status === "active").length;
+  const errorCount = configuredModels.filter((m: { status: string }) => m.status === "error").length;
+  const total = configuredModels.length;
+
+  if (total === 0) {
+    return (
+      <>
+        <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(0,212,255,0.06)] border border-[rgba(0,212,255,0.1)]">
+          <Cpu className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+          <span className="text-[rgba(0,212,255,0.5)] font-medium" style={{ fontSize: "0.68rem" }}>
+            未配置模型
+          </span>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+      <div className="flex items-center gap-1.5">
+        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${activeCount > 0
+          ? "bg-[rgba(0,255,136,0.06)] border-[rgba(0,255,136,0.15)]"
+          : errorCount > 0
+            ? "bg-[rgba(255,51,102,0.06)] border-[rgba(255,51,102,0.15)]"
+            : "bg-[rgba(170,85,255,0.06)] border-[rgba(170,85,255,0.15)]"
+          }`}>
+          <Cpu className={`w-3.5 h-3.5 ${testingIds.length > 0 ? "text-[#00d4ff] animate-pulse" :
+            activeCount > 0 ? "text-[#00ff88]" : errorCount > 0 ? "text-[#ff3366]" : "text-[#aa55ff]"
+            }`} />
+          <span className={`font-medium ${activeCount > 0 ? "text-[rgba(0,255,136,0.85)]" : errorCount > 0 ? "text-[rgba(255,51,102,0.85)]" : "text-[rgba(170,85,255,0.85)]"}`} style={{ fontSize: "0.68rem" }}>
+            {testingIds.length > 0
+              ? `测试中 (${testingIds.length}/${total})`
+              : activeModel
+                ? `${activeModel.model}`
+                : `${activeCount}/${total} 可用`}
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ============================================================
 // Dashboard Component
 // ============================================================
@@ -186,8 +235,8 @@ export function Dashboard() {
     useShallow((s) => ({ modelPerf: s.modelPerf, modelDist: s.modelDist, radarData: s.radarData }))
   );
   const { recentOps } = useAppSlice(useShallow((s) => ({ recentOps: s.recentOps })));
-  const { nodes, derived } = useNodeSlice(
-    useShallow((s) => ({ nodes: s.nodes, derived: s.derived }))
+  const { nodes, derived, addNode } = useNodeSlice(
+    useShallow((s) => ({ nodes: s.nodes, derived: s.derived, addNode: s.addNode }))
   );
 
   // Swipe handlers for chart tabs
@@ -254,27 +303,46 @@ export function Dashboard() {
       <AlertBanner compact={isMobile} />
 
       {/* ===== Connection Status Bar ===== */}
-      <GlassCard className="p-2.5 md:p-3">
+      <GlassCard
+        className={`p-2.5 md:p-3 transition-all duration-500 ${ws?.connectionState === "connected"
+          ? "border-[rgba(0,255,136,0.25)] bg-[rgba(0,255,136,0.03)]"
+          : ws?.connectionState === "disconnected"
+            ? "border-[rgba(255,51,102,0.3)] bg-[rgba(255,51,102,0.05)]"
+            : ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting"
+              ? "border-[rgba(255,221,0,0.3)] bg-[rgba(255,221,0,0.03)]"
+              : ""
+          }`}
+      >
         <div className="flex items-center gap-3 md:gap-4">
           {/* Connection State Indicator */}
           <div className="flex items-center gap-2">
             {ws?.connectionState === "connected" ? (
-              <Wifi className="w-4 h-4 text-[#00ff88]" />
+              <div className="relative">
+                <Wifi className="w-5 h-5 text-[#00ff88]" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
+              </div>
             ) : ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? (
-              <Radio className="w-4 h-4 text-[#ffdd00] animate-pulse" />
+              <div className="relative">
+                <Radio className="w-5 h-5 text-[#ffdd00] animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#ffdd00] animate-ping" />
+              </div>
             ) : (
-              <XCircle className="w-4 h-4 text-[#ff3366]" />
+              <div className="relative">
+                <XCircle className="w-5 h-5 text-[#ff3366]" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#ff3366] animate-pulse" />
+              </div>
             )}
-            <span className="font-medium" style={{
-              fontSize: "0.78rem",
+            <span className="font-bold" style={{
+              fontSize: "0.85rem",
               color: ws?.connectionState === "connected" ? "#00ff88" :
                 ws?.connectionState === "connecting" || ws?.connectionState === "reconnecting" ? "#ffdd00" : "#ff3366",
+              textShadow: ws?.connectionState !== "connected" ? "0 0 10px currentColor" : "none",
             }}>
-              {ws?.connectionState === "connected" ? "已连接" :
-                ws?.connectionState === "connecting" ? "连接中..." :
-                  ws?.connectionState === "reconnecting" ? "重连中..." :
-                    ws?.connectionState === "disconnected" ? "已断开" :
-                      ws?.connectionState === "simulated" ? "模拟模式" : "未知"}
+              {ws?.connectionState === "connected" ? "● 已连接" :
+                ws?.connectionState === "connecting" ? "◌ 连接中..." :
+                  ws?.connectionState === "reconnecting" ? "◌ 重连中..." :
+                    ws?.connectionState === "disconnected" ? "✕ 已断开" :
+                      ws?.connectionState === "simulated" ? "◇ 模拟模式" : "？ 未知"}
             </span>
           </div>
 
@@ -323,17 +391,32 @@ export function Dashboard() {
             </>
           )}
 
-          {/* Disconnected Reason */}
+          {/* Disconnected Reason with Reconnect Button */}
           {(ws?.connectionState === "disconnected" || ws?.connectionState === undefined) && (
             <>
               <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(255,51,102,0.06)] border border-[rgba(255,51,102,0.1)]">
-                <AlertTriangle className="w-3 h-3 text-[#ffaa00]" />
-                <span className="text-[rgba(255,170,0,0.7)]" style={{ fontSize: "0.62rem" }}>
-                  {ws?.connectionState === "disconnected"
-                    ? "WebSocket 服务未连接 — 数据为模拟值"
-                    : "等待连接..."}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(255,51,102,0.08)] border border-[rgba(255,51,102,0.15)]">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#ffaa00]" />
+                  <span className="text-[rgba(255,170,0,0.85)] font-medium" style={{ fontSize: "0.68rem" }}>
+                    {ws?.connectionState === "disconnected"
+                      ? "WebSocket 未连接 — 数据为模拟值"
+                      : "等待连接..."}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (ws?.manualReconnect) {
+                      ws.manualReconnect();
+                      toast.info("正在尝试重新连接...", { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,212,255,0.3)", color: "#e0f0ff" } });
+                    }
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.2)] transition-all"
+                  style={{ fontSize: "0.68rem" }}
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  重连
+                </button>
               </div>
             </>
           )}
@@ -342,11 +425,30 @@ export function Dashboard() {
           {ws?.connectionState === "reconnecting" && (
             <>
               <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
-              <span className="text-[rgba(255,221,0,0.7)]" style={{ fontSize: "0.62rem" }}>
-                正在尝试重新连接...
-              </span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(255,221,0,0.08)] border border-[rgba(255,221,0,0.15)]">
+                <RefreshCw className="w-3.5 h-3.5 text-[#ffdd00] animate-spin" />
+                <span className="text-[rgba(255,221,0,0.85)] font-medium" style={{ fontSize: "0.68rem" }}>
+                  正在尝试重新连接...
+                </span>
+              </div>
             </>
           )}
+
+          {/* Simulated mode indicator */}
+          {ws?.connectionState === "simulated" && (
+            <>
+              <div className="w-px h-5 bg-[rgba(0,180,255,0.12)]" />
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[rgba(170,85,255,0.08)] border border-[rgba(170,85,255,0.15)]">
+                <Cpu className="w-3.5 h-3.5 text-[#aa55ff]" />
+                <span className="text-[rgba(170,85,255,0.85)] font-medium" style={{ fontSize: "0.68rem" }}>
+                  使用模拟数据 — 可在设置中配置 WebSocket
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* AI Model Status */}
+          <ModelStatusBar />
         </div>
       </GlassCard>
 
@@ -548,6 +650,18 @@ export function Dashboard() {
             {nodes.map((node) => (
               <NodeCard key={node.id} node={node} onClick={setSelectedNode} />
             ))}
+            <button
+              onClick={() => {
+                const id = `GPU-${Date.now().toString(36).toUpperCase()}`;
+                addNode({ id, status: "inactive", gpu: 0, mem: 0, temp: 30, model: "", tasks: 0 });
+                toast.success(`节点 ${id} 已添加`, { style: { background: "rgba(8,25,55,0.95)", border: "1px solid rgba(0,255,136,0.3)", color: "#e0f0ff" } });
+              }}
+              className="flex items-center justify-center gap-1.5 p-3 rounded-xl border-2 border-dashed border-[rgba(0,180,255,0.15)] hover:border-[rgba(0,180,255,0.4)] bg-[rgba(0,40,80,0.05)] hover:bg-[rgba(0,40,80,0.15)] transition-all cursor-pointer min-h-[72px]"
+              style={{ fontSize: "0.75rem" }}
+            >
+              <Server className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
+              <span className="text-[rgba(0,212,255,0.4)]">添加节点</span>
+            </button>
           </div>
         </GlassCard>
 

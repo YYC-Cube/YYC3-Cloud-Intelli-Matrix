@@ -2,9 +2,9 @@
  * @file: connection-test-engine.ts
  * @description: 统一连接测试引擎 — 供 AI浮窗/模型设置/SystemSettings/Dashboard 复用
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v1.1.0
  * @created: 2026-04-15
- * @updated: 2026-04-16
+ * @updated: 2026-04-30
  * @status: active
  * @tags: [lib],[engine],[connection-test]
  *
@@ -12,6 +12,7 @@
  * - 从 ServiceConnectionTest.tsx 提取的核心测试逻辑，统一为可复用引擎
  * - 支持 AI 模型连接 / Ollama 本地 / WebSocket / 数据库 连接测试
  * - 每步返回延迟、状态、错误分类、修复建议
+ * - v1.1: Ollama 智能闭环 — 端口探测 + 进程推测 + 环境变量修复建议
  */
 
 // ============================================================
@@ -251,6 +252,43 @@ async function testOllamaModelConnection(
   } else {
     result.steps[0] = { label: "Ollama 端点", status: "fail", detail: `无法连接: ${r.errorMsg || "Ollama 未启动"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
     result.suggestion = "请确认 Ollama 已启动: ollama serve";
+
+    addStep("智能诊断", "running", "分析连接失败原因...");
+    const diagDetails: string[] = [];
+    const diagSuggestions: string[] = [];
+
+    const portMatch = base.match(/:(\d+)/);
+    const port = portMatch ? parseInt(portMatch[1]) : 11434;
+    const host = base.replace(/^https?:\/\//, "").replace(/:\d+.*$/, "");
+
+    diagDetails.push(`目标地址: ${host}:${port}`);
+
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      diagDetails.push("⚠ 非 localhost 地址 — Ollama 默认只监听 127.0.0.1");
+      diagSuggestions.push("设置环境变量: OLLAMA_HOST=0.0.0.0 后重启 Ollama");
+    }
+
+    if (r.errorType === "timeout") {
+      diagDetails.push("连接超时 — 可能原因: 端口未开放 / 防火墙阻止 / 服务未启动");
+      diagSuggestions.push("检查端口是否开放: curl http://localhost:" + port + "/api/tags");
+      diagSuggestions.push("或运行: ollama serve");
+    } else {
+      diagDetails.push("网络错误 — 服务可能未启动或端口不正确");
+      diagSuggestions.push("启动 Ollama: 在终端运行 ollama serve");
+      diagSuggestions.push(`确认端口: 默认 11434, 当前配置 ${port}`);
+    }
+
+    if (port !== 11434) {
+      diagDetails.push(`非默认端口 ${port} — 请确认 Ollama 配置了此端口`);
+      diagSuggestions.push(`如需修改端口: OLLAMA_HOST=0.0.0.0:${port}`);
+    }
+
+    const diagStatus: TestStepStatus = diagSuggestions.length > 0 ? "warn" : "fail";
+    addStep("智能诊断", diagStatus, diagDetails.join("; "));
+
+    if (diagSuggestions.length > 0) {
+      result.suggestion = diagSuggestions.join("\n");
+    }
     finalizeResult(result); return result;
   }
 
@@ -271,12 +309,23 @@ async function testOllamaModelConnection(
     }
   } catch { /* skip on parse error */ }
 
-  // Step 3: Chat/inference ping
+  // Step 3: Chat/inference ping — use first available model from tags
   addStep("推理测试", "running", "发送 ping 请求...");
+  let inferenceModel = config.modelId;
+  try {
+    const tagsCheck = await timedFetch(ollamaTagsUrl);
+    if (tagsCheck.ok) {
+      const tagsData = JSON.parse(tagsCheck.body || "{}");
+      const availableModels = (tagsData.models || []).map((m: { name: string }) => m.name);
+      if (availableModels.length > 0 && !availableModels.includes(inferenceModel)) {
+        inferenceModel = availableModels[0];
+      }
+    }
+  } catch { /* use default modelId */ }
   const chatRes = await timedFetch(ollamaChatUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: config.modelId, messages: [{ role: "user", content: "ping" }], stream: false }),
+    body: JSON.stringify({ model: inferenceModel, messages: [{ role: "user", content: "ping" }], stream: false }),
   }, 15000);
   if (chatRes.ok) {
     result.steps[result.steps.length - 1] = { label: "推理测试", status: "pass", detail: `模型响应正常 (${chatRes.latencyMs}ms)`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };

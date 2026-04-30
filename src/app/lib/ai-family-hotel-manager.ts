@@ -472,6 +472,39 @@ export class AIFamilyHotelManager {
     this.emit("staff:status-changed", { staffId, status, currentTask });
   }
 
+  syncFromGlobalProviders(
+    providers: Array<{ id: string; label: string; baseUrl: string; models: string[]; isLocal: boolean }>,
+    apiKeys: Record<string, string>,
+    modelAssignments: Array<{ memberId: string; providerId: string; modelId: string }>,
+  ): void {
+    const providerMap = new Map(providers.map(p => [p.id, p]));
+
+    this.staffMembers.forEach((member) => {
+      const assignment = modelAssignments.find(a => a.memberId === member.id);
+      if (!assignment) { return; }
+
+      const provider = providerMap.get(assignment.providerId);
+      if (!provider) { return; }
+
+      const apiKey = apiKeys[assignment.providerId] || "";
+      const hasModel = provider.models.includes(assignment.modelId);
+
+      if (hasModel || provider.isLocal) {
+        member.primaryModel = {
+          ...member.primaryModel,
+          provider: assignment.providerId as ModelConfig["provider"],
+          modelId: assignment.modelId,
+          modelName: assignment.modelId,
+          deploymentType: provider.isLocal ? "local" : "cloud",
+          endpointUrl: provider.baseUrl,
+          apiKeyEnvVar: apiKey ? "(configured)" : undefined,
+        };
+      }
+    });
+
+    this.emit("staff:models-synced", { providerCount: providers.length });
+  }
+
   // ============================================================
   // 多模型对话引擎
   // ============================================================

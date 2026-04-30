@@ -9,22 +9,42 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback, useMemo } from "react";
 import {
-  Server, Cloud, Shield, Cpu, Globe, Zap,
-  Search, Check, ChevronDown, ChevronRight,
-  Eye, EyeOff, AlertCircle, CheckCircle2, Loader2,
-  Activity, Download,
-  Volume2, Bot, Sparkles, ArrowRight,
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronDown, ChevronRight,
+  Cpu,
+  Download,
+  Eye, EyeOff,
+  Loader2,
+  Search,
+  Server, Shield,
+  Sparkles,
+  Volume2,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "../GlassCard";
-import { FadeIn } from "./FadeIn";
-import { hexToRgb, DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES, type MemberModelAssignment, type VoiceProfile } from "./shared";
+import React, { useCallback, useMemo, useState } from "react";
 import { useFamilyMemberSlice } from "../../store";
 import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
+import { useProviderSlice } from "../../store/slices/provider-slice";
 import type { UnifiedFamilyMember } from "../../types";
+import { GlassCard } from "../GlassCard";
+import { FadeIn } from "./FadeIn";
+import { DEFAULT_MODEL_ASSIGNMENTS, DEFAULT_VOICE_PROFILES, hexToRgb, type MemberModelAssignment, type VoiceProfile } from "./shared";
 
-// ═══ Provider 定义（自包含） ═══
+const PROVIDER_ICON_MAP: Record<string, React.ElementType> = {
+  zhipu: Cpu, deepseek: Zap, ollama: Server, openai: Bot,
+  anthropic: Shield, qwen: Sparkles, custom: Cpu,
+};
+
+const PROVIDER_COLOR_MAP: Record<string, string> = {
+  zhipu: "#3b82f6", deepseek: "#06b6d4", ollama: "#f59e0b",
+  openai: "#10a37f", anthropic: "#d97706", qwen: "#8b5cf6",
+};
 
 interface ProviderDef {
   id: string;
@@ -35,69 +55,6 @@ interface ProviderDef {
   baseURL: string;
   models: { id: string; name: string; desc: string; ctx?: string }[];
 }
-
-const PROVIDERS: ProviderDef[] = [
-  {
-    id: "openai", name: "OpenAI", icon: Cloud, color: "#10b981",
-    description: "GPT-4o / o3 / o4-mini",
-    baseURL: "https://api.openai.com/v1",
-    models: [
-      { id: "gpt-4o", name: "GPT-4o", desc: "旗舰多模态", ctx: "128K" },
-      { id: "gpt-4o-mini", name: "GPT-4o-mini", desc: "高性价比", ctx: "128K" },
-      { id: "o3-mini", name: "o3-mini", desc: "推理增强", ctx: "128K" },
-    ],
-  },
-  {
-    id: "claude", name: "Anthropic", icon: Shield, color: "#f97316",
-    description: "Claude Sonnet 4 / Haiku",
-    baseURL: "https://api.anthropic.com/v1",
-    models: [
-      { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", desc: "旗舰模型", ctx: "200K" },
-      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", desc: "快速高效", ctx: "200K" },
-    ],
-  },
-  {
-    id: "zhipu", name: "智谱 AI", icon: Cpu, color: "#3b82f6",
-    description: "GLM-5 / GLM-4 系列",
-    baseURL: "https://open.bigmodel.cn/api/paas/v4",
-    models: [
-      { id: "glm-5", name: "GLM-5", desc: "旗舰推理", ctx: "128K" },
-      { id: "glm-4.5", name: "GLM-4.5", desc: "高质量对话", ctx: "128K" },
-      { id: "glm-4.5-air", name: "GLM-4.5-Air", desc: "轻量高速" },
-    ],
-  },
-  {
-    id: "qwen", name: "通义千问", icon: Globe, color: "#a855f7",
-    description: "Qwen3-Max / Qwen-VL",
-    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    models: [
-      { id: "qwen3-max", name: "Qwen3-Max", desc: "旗舰思考", ctx: "128K" },
-      { id: "qwen-plus", name: "Qwen-Plus", desc: "均衡型" },
-      { id: "qwen-vl-max", name: "Qwen-VL-Max", desc: "多模态视觉", ctx: "32K" },
-    ],
-  },
-  {
-    id: "deepseek", name: "DeepSeek", icon: Zap, color: "#06b6d4",
-    description: "DeepSeek V3.2 / R1",
-    baseURL: "https://api.deepseek.com/v1",
-    models: [
-      { id: "deepseek-chat", name: "DeepSeek V3.2", desc: "旗舰对话", ctx: "128K" },
-      { id: "deepseek-reasoner", name: "DeepSeek R1", desc: "推理增强", ctx: "128K" },
-    ],
-  },
-  {
-    id: "ollama", name: "Ollama (本地)", icon: Server, color: "#f59e0b",
-    description: "本地部署 · 私有数据",
-    baseURL: "http://localhost:11434",
-    models: [
-      { id: "llama3.1:8b", name: "Llama 3.1 8B", desc: "通用模型" },
-      { id: "qwen2.5:7b", name: "Qwen 2.5 7B", desc: "通义本地版" },
-      { id: "glm4:9b", name: "GLM4 9B", desc: "智谱本地版" },
-    ],
-  },
-];
-
-const PROVIDERS_MAP = Object.fromEntries(PROVIDERS.map(p => [p.id, p]));
 
 // ═══ 诊断状态 ═══
 
@@ -115,7 +72,7 @@ interface DiagResult {
 
 interface DiagStep {
   label: string;
-  check: (assignment: MemberModelAssignment, apiKeys: Record<string, string>) => { ok: boolean; detail: string };
+  check: (assignment: MemberModelAssignment, apiKeys: Record<string, string>, providersMap?: Record<string, ProviderDef>) => { ok: boolean; detail: string };
 }
 
 const DIAG_STEPS: DiagStep[] = [
@@ -132,10 +89,9 @@ const DIAG_STEPS: DiagStep[] = [
   },
   {
     label: "Endpoint 可达性",
-    check: (a) => {
-      // Simulate
+    check: (a, _keys, pMap) => {
       const ok = Math.random() > 0.1;
-      const provider = PROVIDERS_MAP[a.providerId];
+      const provider = pMap?.[a.providerId];
       return ok
         ? { ok: true, detail: `${provider?.baseURL || "endpoint"} 可达` }
         : { ok: false, detail: `${provider?.baseURL || "endpoint"} 无法连接` };
@@ -170,6 +126,8 @@ function MemberModelCard({
   voiceProfile: _voiceProfile,
   apiKeys,
   diagResult,
+  providers,
+  providersMap,
   onChangeModel,
   onTestConnection,
   onSpeak,
@@ -179,21 +137,23 @@ function MemberModelCard({
   voiceProfile: VoiceProfile;
   apiKeys: Record<string, string>;
   diagResult?: DiagResult;
+  providers: ProviderDef[];
+  providersMap: Record<string, ProviderDef>;
   onChangeModel: (providerId: string, modelId: string) => void;
   onTestConnection: () => void;
   onSpeak: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const provider = PROVIDERS_MAP[assignment.providerId];
-  const model = provider?.models.find(m => m.id === assignment.modelId);
+  const provider = providersMap[assignment.providerId];
+  const model = provider?.models.find((m: { id: string }) => m.id === assignment.modelId);
   const rgb = hexToRgb(member.color);
   const hasKey = !!apiKeys[assignment.providerId];
   const isLocal = assignment.providerId === "ollama";
 
   const statusColor = diagResult?.status === "success" ? "#00FF88"
     : diagResult?.status === "error" ? "#FF4444"
-    : diagResult?.status === "testing" ? "#FFD700"
-    : "rgba(255,255,255,0.2)";
+      : diagResult?.status === "testing" ? "#FFD700"
+        : "rgba(255,255,255,0.2)";
 
   return (
     <FadeIn delay={0.05}>
@@ -262,21 +222,20 @@ function MemberModelCard({
             <div>
               <div className="text-white/40 mb-2" style={{ fontSize: "0.65rem" }}>模型选择</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {PROVIDERS.map(p => (
+                {providers.map((p: ProviderDef) => (
                   <div key={p.id}>
                     <div className="text-white/30 mb-1" style={{ fontSize: "0.6rem" }}>{p.name}</div>
                     <div className="space-y-1">
-                      {p.models.map(m => {
+                      {p.models.map((m: { id: string; name: string; desc: string; ctx?: string }) => {
                         const isActive = assignment.providerId === p.id && assignment.modelId === m.id;
                         return (
                           <button
                             key={`${p.id}-${m.id}`}
                             onClick={() => onChangeModel(p.id, m.id)}
-                            className={`w-full text-left px-2 py-1.5 rounded transition-all ${
-                              isActive
-                                ? "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)]"
-                                : "bg-white/[0.02] border border-transparent hover:bg-white/[0.05] hover:border-white/[0.08]"
-                            }`}
+                            className={`w-full text-left px-2 py-1.5 rounded transition-all ${isActive
+                              ? "bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)]"
+                              : "bg-white/[0.02] border border-transparent hover:bg-white/[0.05] hover:border-white/[0.08]"
+                              }`}
                           >
                             <div className="flex items-center gap-1.5">
                               {isActive && <Check className="w-3 h-3 text-cyan-400" />}
@@ -323,11 +282,10 @@ function MemberModelCard({
 
               {diagResult && diagResult.status !== "idle" && (
                 <span
-                  className={`flex items-center gap-1 px-2 py-1 rounded ${
-                    diagResult.status === "success" ? "bg-emerald-500/10 text-emerald-400"
+                  className={`flex items-center gap-1 px-2 py-1 rounded ${diagResult.status === "success" ? "bg-emerald-500/10 text-emerald-400"
                     : diagResult.status === "error" ? "bg-red-500/10 text-red-400"
-                    : "bg-yellow-500/10 text-yellow-400"
-                  }`}
+                      : "bg-yellow-500/10 text-yellow-400"
+                    }`}
                   style={{ fontSize: "0.65rem" }}
                 >
                   {diagResult.status === "success" && <CheckCircle2 className="w-3 h-3" />}
@@ -374,9 +332,11 @@ function MemberModelCard({
 function ApiKeyPanel({
   apiKeys,
   onKeyChange,
+  providers,
 }: {
   apiKeys: Record<string, string>;
   onKeyChange: (providerId: string, key: string) => void;
+  providers: ProviderDef[];
 }) {
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
@@ -388,7 +348,7 @@ function ApiKeyPanel({
         <span className="text-white/30 ml-auto" style={{ fontSize: "0.6rem" }}>密钥仅存储在本地 localStorage</span>
       </div>
       <div className="space-y-3">
-        {PROVIDERS.filter(p => p.id !== "ollama").map(provider => {
+        {providers.filter((p: ProviderDef) => p.id !== "ollama").map((provider: ProviderDef) => {
           const key = apiKeys[provider.id] || "";
           const visible = showKeys[provider.id] || false;
           return (
@@ -433,6 +393,32 @@ export function FamilyModelSettings() {
   const apiKeys = useFamilySettingsSlice((s) => s.providerKeys);
   const assignments = useFamilySettingsSlice((s) => s.modelAssignments);
   const voiceProfiles = useFamilySettingsSlice((s) => s.voiceProfiles);
+  const providerSlice = useProviderSlice();
+
+  const PROVIDERS: ProviderDef[] = useMemo(() => {
+    return providerSlice.providers.map(p => ({
+      id: p.id,
+      name: p.label,
+      icon: PROVIDER_ICON_MAP[p.id] || Cpu,
+      color: PROVIDER_COLOR_MAP[p.id] || "#00d4ff",
+      description: p.isLocal ? "本地部署 · 私有数据" : `${p.label} 系列`,
+      baseURL: p.baseUrl,
+      models: p.models.map(mId => ({
+        id: mId,
+        name: mId,
+        desc: "",
+        ctx: undefined,
+      })),
+    }));
+  }, [providerSlice.providers]);
+
+  const PROVIDERS_MAP = useMemo(() =>
+    Object.fromEntries(PROVIDERS.map(p => [p.id, p])),
+    [PROVIDERS]);
+
+  const ollamaProviders = useMemo(() =>
+    PROVIDERS.filter(p => p.id === "ollama"),
+    [PROVIDERS]);
   // State
   const [diagnostics, setDiagnostics] = useState<Record<string, DiagResult>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -469,7 +455,7 @@ export function FamilyModelSettings() {
 
       await new Promise(r => setTimeout(r, 300 + Math.random() * 400));
 
-      const result = step.check(assignment, apiKeys);
+      const result = step.check(assignment, apiKeys, PROVIDERS_MAP);
       details.push(`${result.ok ? "✅" : "❌"} ${step.label}: ${result.detail}`);
 
       if (!result.ok) {
@@ -507,7 +493,7 @@ export function FamilyModelSettings() {
   }, [assignments, apiKeys]);
 
   const handleSpeak = useCallback((member: UnifiedFamilyMember, profile: VoiceProfile) => {
-    if (!("speechSynthesis" in window)) {return;}
+    if (!("speechSynthesis" in window)) { return; }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(member.greeting);
     utterance.pitch = profile.pitch;
@@ -604,11 +590,10 @@ export function FamilyModelSettings() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center ${
-                  activeTab === tab.key
-                    ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
-                    : "text-white/40 hover:text-white/60 border border-transparent"
-                }`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all flex-1 justify-center ${activeTab === tab.key
+                  ? "bg-[rgba(0,212,255,0.1)] text-cyan-300 border border-[rgba(0,212,255,0.2)]"
+                  : "text-white/40 hover:text-white/60 border border-transparent"
+                  }`}
                 style={{ fontSize: "0.75rem" }}
               >
                 <tab.icon className="w-3.5 h-3.5" />
@@ -649,6 +634,8 @@ export function FamilyModelSettings() {
                   voiceProfile={profile}
                   apiKeys={apiKeys}
                   diagResult={diagnostics[member.id]}
+                  providers={PROVIDERS}
+                  providersMap={PROVIDERS_MAP}
                   onChangeModel={(pid, mid) => handleChangeModel(member.id, pid, mid)}
                   onTestConnection={() => handleTestConnection(member.id)}
                   onSpeak={() => handleSpeak(member, profile)}
@@ -661,7 +648,7 @@ export function FamilyModelSettings() {
         {/* Keys Tab */}
         {activeTab === "keys" && (
           <FadeIn delay={0.05}>
-            <ApiKeyPanel apiKeys={apiKeys} onKeyChange={handleKeyChange} />
+            <ApiKeyPanel apiKeys={apiKeys} onKeyChange={handleKeyChange} providers={PROVIDERS} />
           </FadeIn>
         )}
 

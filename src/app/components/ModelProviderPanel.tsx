@@ -9,22 +9,33 @@
  * @tags: [component]
  */
 
-import React, { useContext, useState } from "react";
 import {
-  Plus, Trash2, Plug, Server, Cpu,
-  CheckCircle, AlertCircle, HelpCircle, RefreshCw,
-  Edit3, Download, Upload, Globe, ChevronDown, ChevronUp,
+  AlertCircle,
+  CheckCircle,
+  ChevronDown, ChevronUp,
+  Cpu,
+  Download,
+  Edit3,
+  Globe,
+  HelpCircle,
+  Plug,
+  Plus,
+  RefreshCw,
+  Server,
+  Trash2,
+  Upload,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { AddModelModal } from "./AddModelModal";
-import { ProviderEditorModal } from "./ProviderEditorModal";
-import { useModelProvider } from "../hooks/useModelProvider";
+import React, { useContext, useState } from "react";
 import { useI18n } from "../hooks/useI18n";
+import { useModelProvider } from "../hooks/useModelProvider";
 import { ViewContext } from "../lib/view-context";
+import { AddModelModal } from "./AddModelModal";
+import { GlassCard } from "./GlassCard";
+import { ProviderEditorModal } from "./ProviderEditorModal";
 
 function formatSize(bytes: number): string {
-  if (bytes >= 1e9) {return `${(bytes / 1e9).toFixed(1)}GB`;}
-  if (bytes >= 1e6) {return `${(bytes / 1e6).toFixed(0)}MB`;}
+  if (bytes >= 1e9) { return `${(bytes / 1e9).toFixed(1)}GB`; }
+  if (bytes >= 1e6) { return `${(bytes / 1e6).toFixed(0)}MB`; }
   return `${bytes}B`;
 }
 
@@ -47,6 +58,7 @@ export function ModelProviderPanel() {
     removeModel,
     testConnection,
     fetchOllamaModels,
+    presetModels,
     addProvider,
     updateProvider,
     removeProvider,
@@ -70,8 +82,8 @@ export function ModelProviderPanel() {
   const [importResult, setImportResult] = useState<string | null>(null);
 
   const statusConfig = {
-    active:    { color: "#00ff88", icon: CheckCircle, label: t("modelProvider.statusActive") },
-    error:     { color: "#ff3366", icon: AlertCircle, label: t("modelProvider.statusError") },
+    active: { color: "#00ff88", icon: CheckCircle, label: t("modelProvider.statusActive") },
+    error: { color: "#ff3366", icon: AlertCircle, label: t("modelProvider.statusError") },
     unchecked: { color: "rgba(0,212,255,0.3)", icon: HelpCircle, label: t("modelProvider.statusUnchecked") },
   };
 
@@ -89,7 +101,7 @@ export function ModelProviderPanel() {
 
   // Handle import
   const handleImport = () => {
-    if (!importText.trim()) {return;}
+    if (!importText.trim()) { return; }
     const success = importConfig(importText.trim());
     setImportResult(success ? "导入成功" : "导入失败，请检查 JSON 格式");
     if (success) {
@@ -406,56 +418,94 @@ export function ModelProviderPanel() {
 
       {/* ======== 已配置模型 ======== */}
       <GlassCard className="p-4">
-        <h3 className="text-[#e0f0ff] mb-3" style={{ fontSize: "0.88rem" }}>
-          {t("modelProvider.configuredModels")}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.88rem" }}>
+            {t("modelProvider.configuredModels")}
+          </h3>
+          <button
+            onClick={() => presetModels()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.15)] text-cyan-300 hover:bg-[rgba(0,212,255,0.15)] transition-all"
+            style={{ fontSize: "0.7rem" }}
+          >
+            <Download className="w-3 h-3" />
+            一键预设模型
+          </button>
+        </div>
 
         {configuredModels.length > 0 ? (
           <div className="space-y-1.5">
             {configuredModels.map((cm) => {
               const stCfg = statusConfig[cm.status];
               const StIcon = stCfg.icon;
+              const testResult = cm.lastTestResult;
               return (
-                <div
-                  key={cm.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(0,40,80,0.06)] hover:bg-[rgba(0,40,80,0.12)] transition-all"
-                  data-testid={`configured-model-${cm.id}`}
-                >
-                  <StIcon className="w-4 h-4 shrink-0" style={{ color: stCfg.color }} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[#e0f0ff]" style={{ fontSize: "0.78rem" }}>
-                        {cm.model}
-                      </span>
-                      <span
-                        className="px-1.5 py-0.5 rounded"
-                        style={{ fontSize: "0.55rem", color: "#00d4ff", backgroundColor: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.12)" }}
-                      >
-                        {cm.providerLabel}
+                <React.Fragment key={cm.id}>
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(0,40,80,0.06)] hover:bg-[rgba(0,40,80,0.12)] transition-all"
+                    data-testid={`configured-model-${cm.id}`}
+                  >
+                    <StIcon className="w-4 h-4 shrink-0" style={{ color: stCfg.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[#e0f0ff]" style={{ fontSize: "0.78rem" }}>
+                          {cm.model}
+                        </span>
+                        <span
+                          className="px-1.5 py-0.5 rounded"
+                          style={{ fontSize: "0.55rem", color: "#00d4ff", backgroundColor: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.12)" }}
+                        >
+                          {cm.providerLabel}
+                        </span>
+                      </div>
+                      <span className="text-[rgba(0,212,255,0.2)] block" style={{ fontSize: "0.58rem", fontFamily: "'JetBrains Mono', monospace" }}>
+                        {cm.baseUrl}
                       </span>
                     </div>
-                    <span className="text-[rgba(0,212,255,0.2)] block" style={{ fontSize: "0.58rem", fontFamily: "'JetBrains Mono', monospace" }}>
-                      {cm.baseUrl}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={() => testConnection(cm.id)}
-                      className="p-1.5 rounded-lg hover:bg-[rgba(0,180,255,0.08)] transition-all"
-                      title={t("modelProvider.testConnection")}
-                    >
-                      <Plug className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
-                    </button>
-                    <button
-                      onClick={() => removeModel(cm.id)}
-                      className="p-1.5 rounded-lg hover:bg-[rgba(255,51,102,0.08)] transition-all"
-                      title={t("common.delete")}
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.5)]" />
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => testConnection(cm.id)}
+                        className="p-1.5 rounded-lg hover:bg-[rgba(0,180,255,0.08)] transition-all"
+                        title={t("modelProvider.testConnection")}
+                      >
+                        <Plug className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
+                      </button>
+                      <button
+                        onClick={() => removeModel(cm.id)}
+                        className="p-1.5 rounded-lg hover:bg-[rgba(255,51,102,0.08)] transition-all"
+                        title={t("common.delete")}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-[rgba(255,51,102,0.5)]" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                  {testResult && (
+                    <div className="mt-1 ml-7 p-2.5 rounded-lg bg-[rgba(0,20,40,0.3)] border border-white/[0.04] space-y-1">
+                      {testResult.steps.map((step, i) => (
+                        <div key={i} className="flex items-start gap-1.5" style={{ fontSize: "0.62rem" }}>
+                          <span style={{ color: step.status === "pass" ? "#00ff88" : step.status === "fail" ? "#ff3366" : step.status === "warn" ? "#ffaa00" : "rgba(255,255,255,0.3)" }}>
+                            {step.status === "pass" ? "✅" : step.status === "fail" ? "❌" : step.status === "warn" ? "⚠️" : "⏳"}
+                          </span>
+                          <span className="text-white/50">{step.label}:</span>
+                          <span className="text-white/70">{step.detail}</span>
+                          {step.latencyMs && <span className="text-white/20 ml-auto">{step.latencyMs}ms</span>}
+                        </div>
+                      ))}
+                      {testResult.suggestion && (
+                        <div className="flex items-start gap-1.5 mt-1.5 p-1.5 rounded bg-amber-500/[0.06] border border-amber-500/10">
+                          <span style={{ fontSize: "0.6rem" }}>💡</span>
+                          <span className="text-amber-300" style={{ fontSize: "0.6rem" }}>
+                            {testResult.suggestion}
+                          </span>
+                        </div>
+                      )}
+                      <div className="text-white/10 text-right" style={{ fontSize: "0.5rem" }}>
+                        {testResult.testedAt ? new Date(testResult.testedAt).toLocaleTimeString("zh-CN") : ""}
+                        {" · "}{testResult.totalLatencyMs}ms
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })}
           </div>

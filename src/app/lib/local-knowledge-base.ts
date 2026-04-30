@@ -556,3 +556,12 @@ export function formatSearchResultForAI(results: KnowledgeSearchResult[]): strin
     )
     .join("\n\n");
 }
+
+export const KnowledgeBaseAPI = {
+  search: searchKnowledge,
+  getById: getArticleById,
+  getByCategory: getArticlesByCategory,
+  getCategories: getAllCategories,
+  getStats: getKnowledgeStats,
+  formatForAI: formatSearchResultForAI,
+};

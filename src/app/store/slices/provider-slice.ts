@@ -18,15 +18,16 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { testAIConnection, type AIConnectionConfig } from '../../lib/connection-test-engine';
+import { env } from '../../lib/env-config';
+import { getOllamaTagsUrl } from '../../lib/ollama-url';
 import type {
-  ModelProviderId,
-  ModelProviderDef,
   ConfiguredModel,
+  ModelProviderDef,
+  ModelProviderId,
   OllamaModel,
   OllamaTagsResponse,
 } from '../../types';
-import { getOllamaTagsUrl } from '../../lib/ollama-url';
-import { testAIConnection, type AIConnectionConfig } from '../../lib/connection-test-engine';
 
 // ============================================================
 // 内置服务商定义（规范来源）
@@ -35,40 +36,10 @@ import { testAIConnection, type AIConnectionConfig } from '../../lib/connection-
 export const BUILTIN_PROVIDERS: ModelProviderDef[] = [
   {
     id: "zhipu",
-    label: "Z.ai",
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    label: "Z.ai (智谱)",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4",
     authType: "api-key",
-    models: ["glm-4-flash", "glm-4-plus", "glm-4-air", "glm-4-airx", "glm-4-long", "glm-4v-plus"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "zhipu-plan",
-    label: "Z.ai-plan",
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
-    authType: "api-key",
-    models: ["glm-4-plan", "glm-4-plan-plus"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "kimi-cn",
-    label: "Kimi-CN",
-    baseUrl: "https://api.moonshot.cn/v1",
-    authType: "bearer",
-    models: ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "kimi-global",
-    label: "Kimi-Global",
-    baseUrl: "https://api.moonshot.ai/v1",
-    authType: "bearer",
-    models: ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"],
+    models: ["glm-4-flash", "glm-4-plus", "glm-4-air", "glm-4-airx", "glm-4-long", "glm-4v-plus", "glm-4.7", "glm-5", "glm-5-turbo", "glm-5.1"],
     requiresApiKey: true,
     isLocal: false,
     isBuiltin: true,
@@ -78,37 +49,7 @@ export const BUILTIN_PROVIDERS: ModelProviderDef[] = [
     label: "DeepSeek",
     baseUrl: "https://api.deepseek.com/v1",
     authType: "bearer",
-    models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "volcengine",
-    label: "火山引擎",
-    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
-    authType: "bearer",
-    models: ["doubao-pro-32k", "doubao-pro-128k", "doubao-lite-32k"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "volcengine-plan",
-    label: "火山引擎 Plan",
-    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
-    authType: "bearer",
-    models: ["doubao-plan-pro", "doubao-plan-lite"],
-    requiresApiKey: true,
-    isLocal: false,
-    isBuiltin: true,
-  },
-  {
-    id: "openai",
-    label: "OpenAI",
-    baseUrl: "https://api.openai.com/v1",
-    authType: "bearer",
-    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
+    models: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner", "deepseek-4", "deepseek-4-flash"],
     requiresApiKey: true,
     isLocal: false,
     isBuiltin: true,
@@ -118,7 +59,7 @@ export const BUILTIN_PROVIDERS: ModelProviderDef[] = [
     label: "Ollama (本地)",
     baseUrl: "http://localhost:11434",
     authType: "none",
-    models: [],  // 运行时从 /api/tags 自动获取
+    models: [],
     requiresApiKey: false,
     isLocal: true,
     isBuiltin: true,
@@ -141,9 +82,13 @@ function migrateProviders(): ModelProviderDef[] {
     const raw = localStorage.getItem(PROVIDERS_KEY);
     if (raw) {
       const saved: ModelProviderDef[] = JSON.parse(raw);
-      const savedIds = new Set(saved.map((p) => p.id));
-      const missing = BUILTIN_PROVIDERS.filter((bp) => !savedIds.has(bp.id)).map((bp) => ({ ...bp }));
-      return [...saved, ...missing];
+      const builtinIds = new Set(BUILTIN_PROVIDERS.map((bp) => bp.id));
+      const customProviders = saved.filter((p) => !builtinIds.has(p.id) && p.isCustom);
+      const merged = [...BUILTIN_PROVIDERS.map((bp) => {
+        const existing = saved.find((s) => s.id === bp.id);
+        return existing && existing.updatedAt ? { ...bp, ...existing } : { ...bp };
+      }), ...customProviders];
+      return merged;
     }
   } catch { /* ignore */ }
   return BUILTIN_PROVIDERS.map((p) => ({ ...p }));
@@ -168,6 +113,8 @@ export interface ProviderSlice {
   ollamaModels: OllamaModel[];
   ollamaLoading: boolean;
   ollamaError: string | null;
+  activeModelId: string | null;
+  testingIds: string[];
 
   // Provider CRUD
   addProvider: (provider: Omit<ModelProviderDef, "id" | "isBuiltin" | "isCustom" | "createdAt">) => ModelProviderDef;
@@ -182,9 +129,16 @@ export interface ProviderSlice {
   updateModel: (id: string, updates: Partial<ConfiguredModel>) => void;
   removeModel: (id: string) => void;
   testConnection: (id: string) => Promise<void>;
+  testAllConnections: () => Promise<void>;
+  setActiveModel: (id: string | null) => void;
+  getActiveModel: () => ConfiguredModel | undefined;
+  getModelsByStatus: (status: ConfiguredModel["status"]) => ConfiguredModel[];
 
   // Ollama
   fetchOllamaModels: (baseUrl?: string) => Promise<OllamaModel[]>;
+
+  // Preset
+  presetModels: () => void;
 
   // Import/Export
   exportConfig: () => string;
@@ -200,6 +154,8 @@ export const useProviderSlice = create<ProviderSlice>()(
       ollamaModels: [],
       ollamaLoading: false,
       ollamaError: null,
+      activeModelId: null,
+      testingIds: [],
 
       // ── Provider CRUD ──
 
@@ -224,10 +180,10 @@ export const useProviderSlice = create<ProviderSlice>()(
           // 同步更新已配置模型中的 providerLabel / baseUrl
           configuredModels: updates.label || updates.baseUrl
             ? s.configuredModels.map((m) =>
-                m.providerId === id
-                  ? { ...m, providerLabel: updates.label ?? m.providerLabel, baseUrl: updates.baseUrl ?? m.baseUrl }
-                  : m
-              )
+              m.providerId === id
+                ? { ...m, providerLabel: updates.label ?? m.providerLabel, baseUrl: updates.baseUrl ?? m.baseUrl }
+                : m
+            )
             : s.configuredModels,
         }));
       },
@@ -304,10 +260,11 @@ export const useProviderSlice = create<ProviderSlice>()(
         const model = get().configuredModels.find((m) => m.id === id);
         if (!model) { return; }
 
+        set((s) => ({ testingIds: [...s.testingIds, id] }));
+
         const isLocal = model.providerId === "ollama" || model.providerLabel.toLowerCase().includes("ollama");
-        const baseUrl = model.baseUrl || (isLocal ? (typeof window !== "undefined"
-          ? `${window.location.protocol}//${window.location.hostname}:11434`
-          : "http://localhost:11434") : "");
+        const ollamaDefault = env("OLLAMA_BASE_URL") || "http://localhost:11434";
+        const baseUrl = model.baseUrl || (isLocal ? ollamaDefault : "");
 
         try {
           const config: AIConnectionConfig = {
@@ -331,8 +288,15 @@ export const useProviderSlice = create<ProviderSlice>()(
                 ...m,
                 status: result.overallStatus === "pass" || result.overallStatus === "warn" ? "active" as const : "error" as const,
                 lastUsed: Date.now(),
+                lastTestResult: {
+                  steps: result.steps.map(st => ({ label: st.label, status: st.status, detail: st.detail, latencyMs: st.latencyMs })),
+                  suggestion: result.suggestion,
+                  totalLatencyMs: result.totalLatencyMs,
+                  testedAt: Date.now(),
+                },
               };
             }),
+            testingIds: s.testingIds.filter((tid) => tid !== id),
           }));
         } catch {
           set((s) => ({
@@ -340,15 +304,40 @@ export const useProviderSlice = create<ProviderSlice>()(
               if (m.id !== id) { return m; }
               return { ...m, status: "error" as const, lastUsed: Date.now() };
             }),
+            testingIds: s.testingIds.filter((tid) => tid !== id),
           }));
         }
+      },
+
+      testAllConnections: async () => {
+        const models = get().configuredModels;
+        for (const model of models) {
+          await get().testConnection(model.id);
+        }
+      },
+
+      setActiveModel: (id) => {
+        set({ activeModelId: id });
+      },
+
+      getActiveModel: () => {
+        const { activeModelId, configuredModels } = get();
+        if (!activeModelId) {
+          const firstActive = configuredModels.find((m) => m.status === "active");
+          return firstActive || configuredModels[0];
+        }
+        return configuredModels.find((m) => m.id === activeModelId);
+      },
+
+      getModelsByStatus: (status) => {
+        return get().configuredModels.filter((m) => m.status === status);
       },
 
       // ── Ollama ──
 
       fetchOllamaModels: async (baseUrl) => {
         const ollamaProvider = get().providers.find((p) => p.id === "ollama");
-        const url = baseUrl || ollamaProvider?.baseUrl || "http://localhost:11434";
+        const url = baseUrl || ollamaProvider?.baseUrl || env("OLLAMA_BASE_URL") || "http://localhost:11434";
 
         set({ ollamaLoading: true, ollamaError: null });
 
@@ -431,13 +420,142 @@ export const useProviderSlice = create<ProviderSlice>()(
           return false;
         }
       },
+
+      presetModels: () => {
+        const existing = get().configuredModels;
+        const existingKeys = new Set(existing.map((m) => `${m.providerId}:${m.model}`));
+        const presets: ConfiguredModel[] = [];
+
+        const zhipuApiKey = env("ZHIPU_API_KEY");
+        const deepseekApiKey = env("DEEPSEEK_API_KEY");
+        const zhipuBaseUrl = BUILTIN_PROVIDERS.find(p => p.id === "zhipu")?.baseUrl || "https://open.bigmodel.cn/api/coding/paas/v4";
+        const deepseekBaseUrl = BUILTIN_PROVIDERS.find(p => p.id === "deepseek")?.baseUrl || "https://api.deepseek.com/v1";
+
+        const zhipuModels = ["glm-4-flash", "glm-4-plus", "glm-5", "glm-5-turbo"];
+        const deepseekModels = ["deepseek-chat", "deepseek-4", "deepseek-4-flash"];
+
+        for (const model of zhipuModels) {
+          if (!existingKeys.has(`zhipu:${model}`)) {
+            presets.push({
+              id: `preset-zhipu-${model}-${Date.now()}`,
+              providerId: "zhipu",
+              providerLabel: "Z.ai (智谱)",
+              model,
+              apiKey: zhipuApiKey,
+              baseUrl: zhipuBaseUrl,
+              createdAt: Date.now(),
+              lastUsed: null,
+              status: "unchecked",
+            });
+          }
+        }
+
+        for (const model of deepseekModels) {
+          if (!existingKeys.has(`deepseek:${model}`)) {
+            presets.push({
+              id: `preset-deepseek-${model}-${Date.now()}`,
+              providerId: "deepseek",
+              providerLabel: "DeepSeek",
+              model,
+              apiKey: deepseekApiKey,
+              baseUrl: deepseekBaseUrl,
+              createdAt: Date.now(),
+              lastUsed: null,
+              status: "unchecked",
+            });
+          }
+        }
+
+        if (presets.length > 0) {
+          set((s) => ({ configuredModels: [...s.configuredModels, ...presets] }));
+        }
+      },
     }),
     {
       name: 'yyc3-provider-slice',
       partialize: (state) => ({
         providers: state.providers,
         configuredModels: state.configuredModels,
+        activeModelId: state.activeModelId,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) { return; }
+        const zhipuApiKey = env("ZHIPU_API_KEY");
+        const deepseekApiKey = env("DEEPSEEK_API_KEY");
+        const ollamaBaseUrl = env("OLLAMA_BASE_URL") || "http://localhost:11434";
+        const zhipuBaseUrl = BUILTIN_PROVIDERS.find(p => p.id === "zhipu")?.baseUrl || "https://open.bigmodel.cn/api/coding/paas/v4";
+        const deepseekBaseUrl = BUILTIN_PROVIDERS.find(p => p.id === "deepseek")?.baseUrl || "https://api.deepseek.com/v1";
+
+        let needsUpdate = false;
+        const updated = state.configuredModels.map((m) => {
+          const patch: Partial<ConfiguredModel> = {};
+          if (m.providerId === "zhipu" && !m.apiKey && zhipuApiKey) {
+            patch.apiKey = zhipuApiKey;
+            patch.baseUrl = zhipuBaseUrl;
+          } else if (m.providerId === "deepseek" && !m.apiKey && deepseekApiKey) {
+            patch.apiKey = deepseekApiKey;
+            patch.baseUrl = deepseekBaseUrl;
+          } else if (m.providerId === "ollama" && m.baseUrl !== ollamaBaseUrl) {
+            patch.baseUrl = ollamaBaseUrl;
+          }
+          if (Object.keys(patch).length > 0) {
+            needsUpdate = true;
+            return { ...m, ...patch };
+          }
+          return m;
+        });
+
+        if (state.configuredModels.length === 0 && (zhipuApiKey || deepseekApiKey)) {
+          const autoPresets: ConfiguredModel[] = [];
+          const now = Date.now();
+          if (zhipuApiKey) {
+            for (const model of ["glm-4-flash", "glm-4-plus", "glm-5", "glm-5-turbo"]) {
+              autoPresets.push({
+                id: `auto-zhipu-${model}-${now}`,
+                providerId: "zhipu",
+                providerLabel: "Z.ai (智谱)",
+                model,
+                apiKey: zhipuApiKey,
+                baseUrl: zhipuBaseUrl,
+                createdAt: now,
+                lastUsed: null,
+                status: "unchecked",
+              });
+            }
+          }
+          if (deepseekApiKey) {
+            for (const model of ["deepseek-chat", "deepseek-4", "deepseek-4-flash"]) {
+              autoPresets.push({
+                id: `auto-deepseek-${model}-${now}`,
+                providerId: "deepseek",
+                providerLabel: "DeepSeek",
+                model,
+                apiKey: deepseekApiKey,
+                baseUrl: deepseekBaseUrl,
+                createdAt: now,
+                lastUsed: null,
+                status: "unchecked",
+              });
+            }
+          }
+          state.configuredModels = autoPresets;
+          needsUpdate = true;
+        } else if (needsUpdate) {
+          state.configuredModels = updated;
+        }
+
+        if (state.providers) {
+          state.providers = migrateProviders();
+          const ollama = state.providers.find(p => p.id === "ollama");
+          if (ollama) {
+            ollama.baseUrl = ollamaBaseUrl;
+          }
+          const zhipu = state.providers.find(p => p.id === "zhipu");
+          if (zhipu) {
+            zhipu.baseUrl = zhipuBaseUrl;
+          }
+        }
+      },
     }
   )
 );

@@ -9,28 +9,85 @@
  * @tags: [component]
  */
 
-import React from "react";
 import {
-  Folder, FileText, FileJson, FileCode, ChevronRight,
-  ArrowUp, Home,
+  ArrowUp,
+  ChevronRight,
+  Database,
+  FileArchive,
+  FileAudio,
+  FileCheck2,
+  FileCode,
+  FileImage,
+  FileJson,
+  FilePen,
+  FileText,
+  FileVideo,
+  Folder,
+  Home,
+  Settings, Shield, Terminal,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React from "react";
 import type { FileItem } from "../types";
+import { GlassCard } from "./GlassCard";
 
 const extIcon: Record<string, React.ElementType> = {
   log: FileText,
   json: FileJson,
   md: FileCode,
   csv: FileText,
+  txt: FileText,
+  ts: FileCode,
+  tsx: FileCode,
+  js: FileCode,
+  jsx: FileCode,
+  py: FileCode,
+  rs: FileCode,
+  go: FileCode,
+  java: FileCode,
+  css: FileCode,
+  scss: FileCode,
+  html: FileCode,
+  xml: FileCode,
+  yaml: FileCode,
+  yml: FileCode,
+  toml: FileCode,
+  env: Settings,
+  png: FileImage,
+  jpg: FileImage,
+  jpeg: FileImage,
+  gif: FileImage,
+  svg: FileImage,
+  webp: FileImage,
+  mp3: FileAudio,
+  wav: FileAudio,
+  flac: FileAudio,
+  mp4: FileVideo,
+  mkv: FileVideo,
+  avi: FileVideo,
+  zip: FileArchive,
+  tar: FileArchive,
+  gz: FileArchive,
+  sql: Database,
+  db: Database,
+  sh: Terminal,
+  bash: Terminal,
+  pem: Shield,
+  crt: Shield,
+  key: Shield,
+  pdf: FileCheck2,
+  doc: FilePen,
+  docx: FilePen,
+  xls: FilePen,
+  xlsx: FilePen,
 };
 
 function formatTimeAgo(ts: number): string {
   const diff = Date.now() - ts;
   const min = Math.floor(diff / 60000);
-  if (min < 1) {return "刚刚";}
-  if (min < 60) {return `${min}分钟前`;}
+  if (min < 1) { return "刚刚"; }
+  if (min < 60) { return `${min}分钟前`; }
   const hrs = Math.floor(min / 60);
-  if (hrs < 24) {return `${hrs}小时前`;}
+  if (hrs < 24) { return `${hrs}小时前`; }
   return `${Math.floor(hrs / 24)}天前`;
 }
 
@@ -72,9 +129,8 @@ export function FileBrowser({
               {i > 0 && <ChevronRight className="w-3 h-3 text-[rgba(0,212,255,0.2)]" />}
               <button
                 onClick={() => onNavigate(crumb.path)}
-                className={`px-1.5 py-0.5 rounded text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-all ${
-                  i === breadcrumbs.length - 1 ? "text-[#00d4ff]" : ""
-                }`}
+                className={`px-1.5 py-0.5 rounded text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] transition-all ${i === breadcrumbs.length - 1 ? "text-[#00d4ff]" : ""
+                  }`}
                 style={{ fontSize: "0.72rem" }}
                 data-testid={`breadcrumb-${i}`}
               >

@@ -9,34 +9,56 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Music, Newspaper, Play, Pause, SkipForward, SkipBack,
-  Volume2, VolumeX, Heart, Shuffle, Repeat, List, Rss,
-  ExternalLink, Sparkles, Mic, Brain, Wand2, LayoutGrid, ListMusic, Plus,
-  Upload, Music2, MessageCircleHeart
+  Brain,
+  ExternalLink,
+  Heart,
+  LayoutGrid,
+  List,
+  ListMusic,
+  MessageCircleHeart,
+  Mic,
+  Music,
+  Music2,
+  Newspaper,
+  Pause,
+  Play,
+  Plus,
+  Repeat,
+  Rss,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+  Sparkles,
+  Trash2,
+  Upload,
+  Volume2, VolumeX,
+  Wand2,
+  X
 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAudioEngine, type AudioTrack } from "../../hooks/useAudioEngine";
+import { useEmotionMusic } from "../../hooks/useEmotionMusic";
+import musicEventBus, { type MusicCommand } from "../../lib/MusicEventBus";
+import smartPlaylistGenerator, { type PlaylistConfig, type TrackInfo } from "../../lib/SmartPlaylistGenerator";
+import { type ParsedCommand } from "../../lib/VoiceCommandParser";
+import { DMUSIC_PHOTOS, DMUSIC_VIDEOS, MUSIC_LIBRARY, type MusicTrack } from "../../lib/dmusic-resources";
+import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
 import { GlassCard } from "../GlassCard";
+import { CoverFlow, type MusicTrack as CoverFlowTrack } from "./CoverFlow";
+import { CreationStudio } from "./CreationStudio";
+import { type EmotionType } from "./EmotionRipple";
+import { EmotionVisualizer } from "./EmotionVisualizer";
 import { FadeIn } from "./FadeIn";
 import { FamilyPageHeader } from "./FamilyPageHeader";
+import { MVPlayerOverlay, VinylPhotoPlayer } from "./VinylPhotoPlayer";
 import { VoiceMusicControlPanel } from "./VoiceMusicControlPanel";
-import { EmotionVisualizer } from "./EmotionVisualizer";
-import { CoverFlow, type MusicTrack as CoverFlowTrack } from "./CoverFlow";
-import { type EmotionType } from "./EmotionRipple";
-import { VinylPhotoPlayer, MVPlayerOverlay } from "./VinylPhotoPlayer";
-import { CreationStudio } from "./CreationStudio";
 import {
   FamilyAnthemPlayer,
   SongUploadZone,
   createCareLanguageEngine,
   type CareResponse
 } from "./ai-family-local";
-import musicEventBus, { type MusicCommand } from "../../lib/MusicEventBus";
-import { type ParsedCommand } from "../../lib/VoiceCommandParser";
-import { useEmotionMusic } from "../../hooks/useEmotionMusic";
-import { useAudioEngine, type AudioTrack } from "../../hooks/useAudioEngine";
-import smartPlaylistGenerator, { type TrackInfo, type PlaylistConfig } from "../../lib/SmartPlaylistGenerator";
-import { MUSIC_LIBRARY, type MusicTrack, DMUSIC_PHOTOS, DMUSIC_VIDEOS } from "../../lib/dmusic-resources";
 
 const EMOTION_COLORS: Record<string, string> = {
   happy: "#FFD700",
@@ -81,6 +103,8 @@ export function FamilyMusic() {
   const [viewMode, setViewMode] = useState<"coverflow" | "list">("list");
   const [showCreationStudio, setShowCreationStudio] = useState(false);
   const [showMVPlayer, setShowMVPlayer] = useState(false);
+  const [showMyWorks, setShowMyWorks] = useState(false);
+  const { musicWorks, removeMusicWork } = useFamilySettingsSlice();
   const [playlist, setPlaylist] = useState<MusicTrack[]>(MUSIC_LIBRARY);
 
   const [showAnthemPlayer, setShowAnthemPlayer] = useState(false);
@@ -171,7 +195,7 @@ export function FamilyMusic() {
   });
 
   const _currentEmotionType: EmotionType = useMemo(() => {
-    if (!currentTrackData) {return "neutral";}
+    if (!currentTrackData) { return "neutral"; }
     const emotionMap: Record<string, EmotionType> = {
       happy: "happy",
       sad: "sad",
@@ -185,7 +209,7 @@ export function FamilyMusic() {
 
   const handleVoiceCommand = useCallback((command: ParsedCommand) => {
     setLastVoiceCommand(command);
-    
+
     setTimeout(() => {
       setLastVoiceCommand(null);
     }, 3000);
@@ -314,7 +338,7 @@ export function FamilyMusic() {
   const toggleLike = (id: string) => {
     setLiked(prev => {
       const next = new Set(prev);
-      if (next.has(id)) {next.delete(id);} else {next.add(id);}
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -365,22 +389,20 @@ export function FamilyMusic() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setShowEmotionPanel(!showEmotionPanel)}
-                      className={`p-2 rounded-lg transition-all ${
-                        showEmotionPanel
-                          ? "bg-purple-500/20 text-purple-300"
-                          : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                      }`}
+                      className={`p-2 rounded-lg transition-all ${showEmotionPanel
+                        ? "bg-purple-500/20 text-purple-300"
+                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                        }`}
                       title="情感感知"
                     >
                       <Brain className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setShowVoicePanel(!showVoicePanel)}
-                      className={`p-2 rounded-lg transition-all ${
-                        showVoicePanel
-                          ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
-                          : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                      }`}
+                      className={`p-2 rounded-lg transition-all ${showVoicePanel
+                        ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                        }`}
                       title="语音控制"
                     >
                       <Mic className="w-4 h-4" />
@@ -484,22 +506,20 @@ export function FamilyMusic() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setViewMode("coverflow")}
-                    className={`p-2 rounded-lg transition-all ${
-                      viewMode === "coverflow"
-                        ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
-                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                    }`}
+                    className={`p-2 rounded-lg transition-all ${viewMode === "coverflow"
+                      ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                      : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                      }`}
                     title="3D 封面流"
                   >
                     <LayoutGrid className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-lg transition-all ${
-                      viewMode === "list"
-                        ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
-                        : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                    }`}
+                    className={`p-2 rounded-lg transition-all ${viewMode === "list"
+                      ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
+                      : "bg-white/[0.04] text-white/40 hover:text-white/60"
+                      }`}
                     title="列表视图"
                   >
                     <ListMusic className="w-4 h-4" />
@@ -522,13 +542,22 @@ export function FamilyMusic() {
                     <Plus className="w-3.5 h-3.5" />
                     AI 创作
                   </button>
+                  {musicWorks.length > 0 && (
+                    <button
+                      onClick={() => setShowMyWorks(!showMyWorks)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showMyWorks ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"}`}
+                      style={{ fontSize: "0.7rem" }}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      我的创作 ({musicWorks.length})
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAnthemPlayer(!showAnthemPlayer)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                      showAnthemPlayer
-                        ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300"
-                        : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showAnthemPlayer
+                      ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300"
+                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
+                      }`}
                     style={{ fontSize: "0.7rem" }}
                     title="Family AI · 智慧工坊之歌"
                   >
@@ -537,11 +566,10 @@ export function FamilyMusic() {
                   </button>
                   <button
                     onClick={() => setShowUploadZone(!showUploadZone)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                      showUploadZone
-                        ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-300"
-                        : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showUploadZone
+                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-300"
+                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
+                      }`}
                     style={{ fontSize: "0.7rem" }}
                     title="上传原创歌曲到AI Family音乐库"
                   >
@@ -624,8 +652,20 @@ export function FamilyMusic() {
                               </p>
                               <p className="text-[rgba(224,240,255,0.3)] truncate" style={{ fontSize: "0.6rem" }}>{t.artist}</p>
                             </div>
-                            <button onClick={e => { e.stopPropagation(); toggleLike(t.id); }} className="shrink-0 p-1">
+                            <button onClick={e => { e.stopPropagation(); toggleLike(t.id); }} title="收藏" className="shrink-0 p-1">
                               <Heart className="w-3.5 h-3.5 transition-colors" style={{ color: liked.has(t.id) ? "#FF69B4" : "rgba(224,240,255,0.15)", fill: liked.has(t.id) ? "#FF69B4" : "none" }} />
+                            </button>
+                            <button
+                              title="从列表移除"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setPlaylist(prev => prev.filter((_, idx) => idx !== i));
+                                if (i === currentTrackIndex) { pause(); }
+                                else if (i < currentTrackIndex) { setCurrentTrackIndex(prev => prev - 1); }
+                              }}
+                              className="shrink-0 p-1 text-white/10 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                             <span className="text-[rgba(224,240,255,0.2)] shrink-0" style={{ fontSize: "0.65rem" }}>{formatDuration(t.duration)}</span>
                           </div>
@@ -679,6 +719,45 @@ export function FamilyMusic() {
           setPlaylist((prev) => [...prev, track]);
         }}
       />
+
+      {showMyWorks && musicWorks.length > 0 && (
+        <FadeIn>
+          <div className="max-w-5xl mx-auto px-4 md:px-8 mt-4">
+            <GlassCard className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#00d4ff]" />
+                  <span className="text-[#e0f0ff]" style={{ fontSize: "0.85rem" }}>我的创作</span>
+                  <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.65rem" }}>{musicWorks.length} 首作品</span>
+                </div>
+                <button onClick={() => setShowMyWorks(false)} className="text-white/20 hover:text-white/50">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {musicWorks.map((work) => (
+                  <div key={work.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-all group">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(120,80,255,0.1)", border: "1px solid rgba(120,80,255,0.2)" }}>
+                      <Music className="w-4 h-4 text-purple-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[#e0f0ff] truncate" style={{ fontSize: "0.78rem" }}>{work.title}</div>
+                      <div className="text-[rgba(0,212,255,0.3)] truncate" style={{ fontSize: "0.65rem" }}>{work.theme} · {work.mode} · {new Date(work.createdAt).toLocaleDateString("zh-CN")}</div>
+                    </div>
+                    <button
+                      onClick={() => removeMusicWork(work.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                      title="删除作品"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </div>
+        </FadeIn>
+      )}
 
       {showAnthemPlayer && (
         <FadeIn>
@@ -740,8 +819,8 @@ export function FamilyMusic() {
                       <div className="flex items-center gap-2 mt-2">
                         <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}>
                           {careResponse.emotion === 'peaceful' ? '🕊️ 平和' :
-                           careResponse.emotion === 'encouraging' ? '💪 鼓励' :
-                           careResponse.emotion === 'warm' ? '❤️ 温暖' : '✨ 关爱'}
+                            careResponse.emotion === 'encouraging' ? '💪 鼓励' :
+                              careResponse.emotion === 'warm' ? '❤️ 温暖' : '✨ 关爱'}
                         </span>
                         <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.6rem" }}>
                           AI Family 关爱引擎响应
@@ -782,14 +861,15 @@ export function FamilyMusic() {
 
               <SongUploadZone
                 onUploadSuccess={(song: { title: string; url: string }) => {
-                  setUploadedSongs(prev => [...prev, song]);
+                  const newSong: UploadedSong = { id: `upload-${Date.now()}`, title: song.title, url: song.url, artist: "本地" };
+                  setUploadedSongs(prev => [...prev, newSong]);
                   careEngine.encourage({
                     achievement: `上传了原创歌曲《${song.title}》`,
                     context: '音乐创作',
                   }).then((response: CareResponse) => {
                     setCareResponse(response);
                     setTimeout(() => setCareResponse(null), 8000);
-                  });
+                  }).catch(() => { });
                 }}
                 onError={(error: Error) => {
                   console.error('[FamilyMusic] 上传失败:', error);
@@ -810,6 +890,13 @@ export function FamilyMusic() {
                         <span>{song.title}</span>
                         <span className="text-[rgba(224,240,255,0.3)]">· {song.artist}</span>
                         <span className="text-[rgba(224,240,255,0.3)]">· {song.duration?.toFixed(1)}s</span>
+                        <button
+                          title="删除歌曲"
+                          onClick={() => setUploadedSongs(prev => prev.filter((_, i) => i !== index))}
+                          className="ml-auto p-1 text-red-400/40 hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
                       </div>
                     ))}
                   </div>

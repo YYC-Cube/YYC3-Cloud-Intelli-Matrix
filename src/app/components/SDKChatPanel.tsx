@@ -9,19 +9,28 @@
  * @tags: [component]
  */
 
-import React, { useState, useRef, useEffect, useCallback, useContext, memo } from "react";
 import {
-  MessageSquare, Send, Square, Plus, Trash2, User,
-  Activity, Zap, BarChart3, Clock, AlertCircle,
-  ChevronDown, Loader2, Cpu,
+  Activity,
+  AlertCircle,
+  BarChart3,
+  ChevronDown,
+  Clock,
+  Cpu,
+  Loader2,
+  MessageSquare,
+  Plus,
+  Send, Square,
+  Trash2, User,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { useModelProvider } from "../hooks/useModelProvider";
-import { useBigModelSDK, PROVIDER_CAPABILITIES } from "../hooks/useBigModelSDK";
+import React, { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { PROVIDER_CAPABILITIES, useBigModelSDK } from "../hooks/useBigModelSDK";
 import { useI18n } from "../hooks/useI18n";
+import { useModelProvider } from "../hooks/useModelProvider";
 import { ViewContext } from "../lib/view-context";
+import type { ChatMessage, ConfiguredModel, SDKConnectionStatus } from "../types";
+import { GlassCard } from "./GlassCard";
 import { YYC3LogoSvg } from "./YYC3LogoSvg";
-import type { ChatMessage, SDKConnectionStatus, ConfiguredModel } from "../types";
 
 // ============================================================
 // 子组件: 连接状态指示器
@@ -29,10 +38,10 @@ import type { ChatMessage, SDKConnectionStatus, ConfiguredModel } from "../types
 
 function StatusBadge({ status, t }: { status: SDKConnectionStatus; t: (key: string, vars?: Record<string, string | number>) => string }) {
   const cfg: Record<SDKConnectionStatus, { color: string; label: string }> = {
-    idle:       { color: "rgba(0,212,255,0.4)", label: t("sdk.connectionIdle") },
+    idle: { color: "rgba(0,212,255,0.4)", label: t("sdk.connectionIdle") },
     connecting: { color: "rgba(255,200,0,0.6)", label: t("sdk.connectionConnecting") },
-    connected:  { color: "rgba(0,255,120,0.6)", label: t("sdk.connectionConnected") },
-    error:      { color: "rgba(255,60,60,0.6)", label: t("sdk.connectionError") },
+    connected: { color: "rgba(0,255,120,0.6)", label: t("sdk.connectionConnected") },
+    error: { color: "rgba(255,60,60,0.6)", label: t("sdk.connectionError") },
   };
   const { color, label } = cfg[status];
 
@@ -79,9 +88,8 @@ const MessageBubble = memo(function MessageBubble({ msg, t }: { msg: ChatMessage
             : isError
               ? "rgba(255,60,60,0.08)"
               : "rgba(120,80,255,0.06)",
-          border: `1px solid ${
-            isUser ? "rgba(0,212,255,0.15)" : isError ? "rgba(255,60,60,0.2)" : "rgba(120,80,255,0.12)"
-          }`,
+          border: `1px solid ${isUser ? "rgba(0,212,255,0.15)" : isError ? "rgba(255,60,60,0.2)" : "rgba(120,80,255,0.12)"
+            }`,
           fontSize: "0.8rem",
           lineHeight: "1.5",
           color: isError ? "#ff6666" : "rgba(224,232,255,0.9)",
@@ -111,7 +119,7 @@ const MessageBubble = memo(function MessageBubble({ msg, t }: { msg: ChatMessage
 // 主组件
 // ============================================================
 
-export function SDKChatPanel() {
+export function SDKChatPanel({ embedded = false }: { embedded?: boolean }) {
   const view = useContext(ViewContext);
   const isMobile = view?.isMobile ?? false;
   const { t } = useI18n();
@@ -142,7 +150,7 @@ export function SDKChatPanel() {
 
   // 发送消息
   const handleSend = useCallback(async () => {
-    if (!input.trim() || !selectedModel || sdk.streaming) {return;}
+    if (!input.trim() || !selectedModel || sdk.streaming) { return; }
 
     const content = input.trim();
     setInput("");
@@ -159,7 +167,7 @@ export function SDKChatPanel() {
 
   // 新建对话
   const handleNewChat = useCallback(() => {
-    if (!selectedModel) {return;}
+    if (!selectedModel) { return; }
     sdk.createSession(selectedModel.id);
   }, [selectedModel, sdk]);
 
@@ -175,7 +183,7 @@ export function SDKChatPanel() {
   const isMock = selectedModel && !selectedModel.apiKey && selectedModel.providerId !== "ollama";
 
   return (
-    <div className={`flex ${isMobile ? "flex-col" : ""} gap-4 h-full`} style={{ minHeight: "500px" }}>
+    <div className={`flex ${isMobile ? "flex-col" : ""} gap-4 ${embedded ? "" : "h-full"}`} style={{ minHeight: embedded ? "400px" : "500px" }}>
       {/* ========== 左侧: 会话列表 (桌面端) ========== */}
       {!isMobile && (
         <div className="w-56 shrink-0 flex flex-col gap-3">

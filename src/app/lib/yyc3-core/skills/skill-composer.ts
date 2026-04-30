@@ -1,9 +1,14 @@
 /**
- * @file 技能组合编排器
- * @description 支持多技能的组合执行和编排
+ * @file: 技能组合编排器
+ * @description: 支持多技能的组合执行和编排
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { ExecutionContext, SkillExecutionResult } from './types.js'
 

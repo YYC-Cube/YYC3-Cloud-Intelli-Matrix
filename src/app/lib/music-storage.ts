@@ -15,7 +15,8 @@
  * - 元数据管理：标题、艺术家、专辑、流派、情感标签
  * - 自动获取音频时长（通过 Audio 元素分析）
  * - 与 FamilyMusic 组件无缝集成
- */
+
+ * @updated: 2026-04-30 */
 
 import type { MusicTrack } from "./dmusic-resources";
 import { idbDelete, idbGet, idbGetAll, idbPut } from "./yyc3-storage";

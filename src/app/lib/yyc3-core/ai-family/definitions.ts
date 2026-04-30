@@ -1,9 +1,14 @@
 /**
- * @file AI Family 智能体定义
- * @description 定义 8 个专业智能体的详细信息
+ * @file: AI Family 智能体定义
+ * @description: 定义 8 个专业智能体的详细信息
  * @module @family-pai/core/ai-family
- * @author FAmily PAI Team
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import type { AgentDefinition, AgentRole } from './types.js'
 

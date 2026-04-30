@@ -1,9 +1,14 @@
 /**
- * @file 图像处理器
- * @description 图像分析和处理
+ * @file: 图像处理器
+ * @description: 图像分析和处理
  * @module @family-pai/core/multimodal
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [multimodal] */
 
 import type { UnifiedAuthManager } from '../auth/unified-auth.js'
 import type {

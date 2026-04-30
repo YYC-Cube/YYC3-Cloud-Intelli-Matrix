@@ -1,9 +1,14 @@
 /**
- * @file MCP 传输层实现
- * @description 实现 Stdio 和 HTTP 传输
+ * @file: MCP 传输层实现
+ * @description: 实现 Stdio 和 HTTP 传输
  * @module @family-pai/core/mcp
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [mcp] */
 
 import type { MCPMessage, MCPTransport } from './types.js'
 

@@ -1,9 +1,14 @@
 /**
- * @file Auth模块入口
- * @description 导出认证管理相关功能
+ * @file: Auth模块入口
+ * @description: 导出认证管理相关功能
  * @module @family-pai/core/auth
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [auth] */
 
 export { UnifiedAuthManager } from './unified-auth.js'
 export { OpenAIProvider } from './openai-provider.js'

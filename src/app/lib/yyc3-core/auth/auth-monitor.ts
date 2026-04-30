@@ -1,9 +1,14 @@
 /**
- * @file 认证状态监控器
- * @description 监控认证状态和提供商健康度
+ * @file: 认证状态监控器
+ * @description: 监控认证状态和提供商健康度
  * @module @family-pai/core/auth
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [auth] */
 
 import { EventEmitter } from 'eventemitter3'
 import type { AIProviderType } from '../types.js'

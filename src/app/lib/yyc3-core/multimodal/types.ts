@@ -1,9 +1,14 @@
 /**
- * @file 多模态类型定义
- * @description 定义图像、音频、文档等多模态处理类型
+ * @file: 多模态类型定义
+ * @description: 定义图像、音频、文档等多模态处理类型
  * @module @family-pai/core/multimodal
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [multimodal] */
 
 /**
  * 多模态类型

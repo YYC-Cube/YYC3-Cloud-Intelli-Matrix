@@ -1,9 +1,14 @@
 /**
- * @file 技能管理器
- * @description 管理技能注册、执行和编排
+ * @file: 技能管理器
+ * @description: 管理技能注册、执行和编排
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { 
   SkillDefinition, 

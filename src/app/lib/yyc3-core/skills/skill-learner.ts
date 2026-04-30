@@ -1,9 +1,14 @@
 /**
- * @file 技能学习系统
- * @description 基于执行反馈学习和优化技能
+ * @file: 技能学习系统
+ * @description: 基于执行反馈学习和优化技能
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { SkillExecutionResult } from './types.js'
 

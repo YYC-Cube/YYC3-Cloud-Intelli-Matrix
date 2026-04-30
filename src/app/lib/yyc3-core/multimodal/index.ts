@@ -1,9 +1,14 @@
 /**
- * @file 多模态入口
- * @description 导出多模态处理系统
+ * @file: 多模态入口
+ * @description: 导出多模态处理系统
  * @module @family-pai/core/multimodal
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [multimodal] */
 
 export { MultimodalManager, type MultimodalEvents } from './manager.js'
 export { ImageProcessor } from './image-processor.js'

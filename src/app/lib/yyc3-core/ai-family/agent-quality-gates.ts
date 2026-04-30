@@ -1,9 +1,14 @@
 /**
- * @file Agent质量门系统
- * @description 实现Agent执行的质量检查和验证
+ * @file: Agent质量门系统
+ * @description: 实现Agent执行的质量检查和验证
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import type {
   AgentRole,

@@ -1,9 +1,14 @@
 /**
- * @file 文档处理器
- * @description 文档解析和内容提取
+ * @file: 文档处理器
+ * @description: 文档解析和内容提取
  * @module @family-pai/core/multimodal
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [multimodal] */
 
 import type { 
   DocumentInput, 

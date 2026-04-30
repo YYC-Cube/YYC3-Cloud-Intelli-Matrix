@@ -1,9 +1,14 @@
 /**
- * @file AI Family 管理器
- * @description 管理和协调所有智能体
+ * @file: AI Family 管理器
+ * @description: 管理和协调所有智能体
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import { EventEmitter } from 'eventemitter3'
 import type { UnifiedAuthManager } from '../auth/unified-auth.js'

@@ -1,9 +1,14 @@
 /**
- * @file 音频处理器
- * @description 音频转录和语音合成
+ * @file: 音频处理器
+ * @description: 音频转录和语音合成
  * @module @family-pai/core/multimodal
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [multimodal] */
 
 import type {
   AudioInput,

@@ -1,9 +1,14 @@
 /**
- * @file MCP 类型定义
- * @description 定义 MCP 协议相关的类型接口
+ * @file: MCP 类型定义
+ * @description: 定义 MCP 协议相关的类型接口
  * @module @family-pai/core/mcp
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [mcp] */
 
 /**
  * MCP 消息类型

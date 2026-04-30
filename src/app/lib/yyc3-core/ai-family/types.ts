@@ -1,9 +1,14 @@
 /**
- * @file AI Family 类型定义
- * @description 定义 AI Family 智能体系统的核心类型
+ * @file: AI Family 类型定义
+ * @description: 定义 AI Family 智能体系统的核心类型
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import type { ChatMessage } from '../types.js'
 

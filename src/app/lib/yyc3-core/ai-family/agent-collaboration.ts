@@ -1,9 +1,14 @@
 /**
- * @file Agent协同系统
- * @description 实现智能体间的协同通信和协作
+ * @file: Agent协同系统
+ * @description: 实现智能体间的协同通信和协作
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import { EventEmitter } from 'eventemitter3'
 import type { BaseAgent } from './base-agent.js'

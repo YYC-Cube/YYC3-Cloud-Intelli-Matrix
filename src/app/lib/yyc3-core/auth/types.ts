@@ -1,9 +1,14 @@
 /**
- * @file 认证系统类型定义
- * @description 定义认证相关的类型接口
+ * @file: 认证系统类型定义
+ * @description: 定义认证相关的类型接口
  * @module @family-pai/core/auth
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [auth] */
 
 import type { AIProviderType, ChatMessage, ChatCompletionResponse } from '../types.js'
 

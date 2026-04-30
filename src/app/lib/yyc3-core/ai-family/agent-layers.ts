@@ -1,9 +1,14 @@
 /**
- * @file Agent三层架构
- * @description 实现指挥层、执行层、支持层的多层协同架构
+ * @file: Agent三层架构
+ * @description: 实现指挥层、执行层、支持层的多层协同架构
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import { EventEmitter } from 'eventemitter3'
 import type { BaseAgent } from './base-agent.js'

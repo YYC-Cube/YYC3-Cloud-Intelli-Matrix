@@ -1,9 +1,14 @@
 /**
- * @file 内置技能
- * @description 提供核心推理、生成、分析技能
+ * @file: 内置技能
+ * @description: 提供核心推理、生成、分析技能
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { SkillDefinition, ExecutionContext, SkillExecutionResult } from './types.js'
 

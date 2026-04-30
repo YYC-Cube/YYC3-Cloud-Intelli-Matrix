@@ -1,9 +1,14 @@
 /**
- * @file 技能系统入口
- * @description 导出技能管理器和核心技能
+ * @file: 技能系统入口
+ * @description: 导出技能管理器和核心技能
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 export { SkillManager } from './manager.js'
 export { SkillRecommender } from './skill-recommender.js'

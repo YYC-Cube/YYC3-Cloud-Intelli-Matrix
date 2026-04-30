@@ -1,9 +1,14 @@
 /**
- * @file 技能质量门
- * @description 技能执行的质量检查和验证
+ * @file: 技能质量门
+ * @description: 技能执行的质量检查和验证
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { SkillExecutionResult, SkillRegistryItem } from './types.js'
 

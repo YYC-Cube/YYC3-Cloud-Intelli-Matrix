@@ -1,9 +1,14 @@
 /**
- * @file 技能系统类型定义
- * @description 定义技能相关的类型接口
+ * @file: 技能系统类型定义
+ * @description: 定义技能相关的类型接口
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { ChatMessage, AIProviderType } from '../types.js'
 

@@ -1,9 +1,14 @@
 /**
- * @file MCP 客户端实现
- * @description 实现 MCP 协议客户端
+ * @file: MCP 客户端实现
+ * @description: 实现 MCP 协议客户端
  * @module @family-pai/core/mcp
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [mcp] */
 
 import EventEmitter from 'eventemitter3'
 import type {

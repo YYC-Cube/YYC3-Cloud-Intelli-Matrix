@@ -1,9 +1,14 @@
 /**
- * @file 技能推荐引擎
- * @description 基于多维度推荐最优技能
+ * @file: 技能推荐引擎
+ * @description: 基于多维度推荐最优技能
  * @module @family-pai/core/skills
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [skills] */
 
 import type { SkillRegistryItem } from './types.js'
 

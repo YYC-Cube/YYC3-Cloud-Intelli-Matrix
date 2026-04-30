@@ -1,9 +1,14 @@
 /**
- * @file 具体智能体实现
- * @description 实现 8 个专业智能体
+ * @file: 具体智能体实现
+ * @description: 实现 8 个专业智能体
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import { BaseAgent, type BaseAgentConfig } from './base-agent.js'
 import type { AgentTask, TaskResult } from './types.js'

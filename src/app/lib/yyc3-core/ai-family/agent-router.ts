@@ -1,9 +1,14 @@
 /**
- * @file Agent智能路由器
- * @description 实现任务到Agent的智能路由和分配
+ * @file: Agent智能路由器
+ * @description: 实现任务到Agent的智能路由和分配
  * @module @family-pai/core/ai-family
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [ai-family],[agent] */
 
 import type { BaseAgent } from './base-agent.js'
 import type {

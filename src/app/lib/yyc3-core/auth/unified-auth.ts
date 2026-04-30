@@ -1,9 +1,14 @@
 /**
- * @file 统一认证管理器
- * @description 自动检测和管理 OpenAI/Ollama 认证
+ * @file: 统一认证管理器
+ * @description: 自动检测和管理 OpenAI/Ollama 认证
  * @module @family-pai/core/auth
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [auth] */
 
 import type { AIProviderType, ChatCompletionResponse, ChatMessage } from '../types.js'
 import { OllamaProvider } from './ollama-provider.js'

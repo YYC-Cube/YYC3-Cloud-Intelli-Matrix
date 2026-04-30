@@ -20,7 +20,8 @@
  * - shared.ts (FAMILY_MEMBERS)
  * - local-knowledge-base.ts (KnowledgeBaseAPI)
  * - mcp/mcp-types.ts (MCP 协议类型)
- */
+
+ * @updated: 2026-04-30 */
 
 import { FAMILY_MEMBERS, MEMBERS_MAP, type FamilyMember } from "../components/ai-family/shared";
 import { KnowledgeBaseAPI, type DevKnowledgeArticle, type KnowledgeSearchResult } from "./local-knowledge-base";

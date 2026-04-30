@@ -1,9 +1,14 @@
 /**
- * @file Ollama 认证提供商
- * @description 实现 Ollama 本地服务的认证和调用
+ * @file: Ollama 认证提供商
+ * @description: 实现 Ollama 本地服务的认证和调用
  * @module @family-pai/core/auth
- * @author YYC
- */
+ * @author: YanYuCloudCube Team
+
+ * @updated: 2026-04-30
+ * @version: v1.0.0
+ * @created: 2026-04-30
+ * @status: active
+ * @tags: [auth] */
 
 import type { ChatCompletionResponse, ChatMessage } from '../types.js'
 import type { AuthProvider, AuthProviderInfo, ChatOptions } from './types.js'

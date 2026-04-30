@@ -13,7 +13,8 @@
  *   Layer 1 (Primary):   真实 LLM API — ZhipuAI / OpenAI-compatible
  *   Layer 2 (Fallback):  Agent 智能引擎 — 意图识别 + 知识库检索 + 上下文生成
  *   Layer 3 (Last Resort): 增强型 Mock — 关键词匹配 + 人格注入 + 对话记忆
- */
+
+ * @updated: 2026-04-30 */
 
 import { AI_RESPONSES, FAMILY_MEMBERS, MEMBERS_MAP, type FamilyMember } from "../components/ai-family/shared";
 import { getAPIConfig } from "./api-config";

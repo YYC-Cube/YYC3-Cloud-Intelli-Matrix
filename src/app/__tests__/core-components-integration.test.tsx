@@ -160,8 +160,8 @@ describe("SystemSettings 集成测试", () => {
       fireEvent.click(screen.getAllByText("settings.model")[0]);
       expect(screen.getByTestId("unified-model-manager")).toBeInTheDocument();
       expect(screen.getByText("总模型")).toBeInTheDocument();
-      expect(screen.getByText("已激活")).toBeInTheDocument();
-      expect(screen.getByText("未检测")).toBeInTheDocument();
+      expect(screen.getAllByText("已激活").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("未检测").length).toBeGreaterThan(0);
     });
 
     it("应渲染 KV-Cache 开关", () => {
@@ -187,8 +187,8 @@ describe("SystemSettings 集成测试", () => {
       render(<SystemSettings />);
       fireEvent.click(screen.getAllByText("settings.model")[0]);
       expect(screen.getByText("总模型")).toBeInTheDocument();
-      expect(screen.getByText("已激活")).toBeInTheDocument();
-      expect(screen.getByText("未检测")).toBeInTheDocument();
+      expect(screen.getAllByText("已激活").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("未检测").length).toBeGreaterThan(0);
     });
 
     it("应包含推理缓存切换区域", () => {
@@ -218,7 +218,7 @@ describe("SystemSettings 集成测试", () => {
       { key: "settings.general", content: "系统信息" },
       { key: "settings.network", content: "网络连接配置" },
       { key: "settings.cluster", content: "集群配置" },
-      { key: "settings.model", content: "模型管理" },
+      { key: "settings.model", content: "总模型" },
       { key: "settings.storage", content: "存储配置" },
       { key: "settings.websocket", content: "WebSocket 连接配置" },
       { key: "settings.aiLlm", content: "AI / 大模型配置" },

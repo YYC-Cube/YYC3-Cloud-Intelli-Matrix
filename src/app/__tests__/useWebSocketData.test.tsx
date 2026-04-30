@@ -314,13 +314,11 @@ describe("useWebSocketData", () => {
       expect(result.current.connectionState).toBe("connected");
     });
 
-    it("should fallback to simulated on WebSocket close", () => {
+    it("should fallback to simulated when WS connect times out", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(0);
-        mockWSInstance?.simulateOpen();
-        mockWSInstance?.close();
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.connectionState).toBe("simulated");

@@ -10,8 +10,8 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWebSocketData } from "../hooks/useWebSocketData";
 
 class MockWebSocket {
@@ -31,14 +31,14 @@ class MockWebSocket {
 
   close() {
     this.readyState = MockWebSocket.CLOSED;
-    if (this.onclose) {this.onclose();}
+    if (this.onclose) { this.onclose(); }
   }
 
-  send(_data: string) {}
+  send(_data: string) { }
 
   simulateOpen() {
     this.readyState = MockWebSocket.OPEN;
-    if (this.onopen) {this.onopen();}
+    if (this.onopen) { this.onopen(); }
   }
 
   simulateMessage(data: object) {
@@ -48,7 +48,7 @@ class MockWebSocket {
   }
 
   simulateError() {
-    if (this.onerror) {this.onerror();}
+    if (this.onerror) { this.onerror(); }
   }
 }
 
@@ -153,11 +153,11 @@ describe("useWebSocketData", () => {
   });
 
   describe("模拟数据 (Simulation)", () => {
-    it("should run simulation after interval", () => {
+    it("should run simulation after WS timeout fallback", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.throughputHistory.length).toBeGreaterThan(0);
@@ -167,7 +167,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.nodes.length).toBeGreaterThan(0);
@@ -177,7 +177,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.liveQPS).toBeDefined();
@@ -188,7 +188,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.liveLatency).toBeDefined();
@@ -199,7 +199,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.activeNodes).toMatch(/^\d+\/\d+$/);
@@ -209,7 +209,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.gpuUtil).toMatch(/^\d+\.\d+%$/);
@@ -219,7 +219,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.tokenThroughput).toMatch(/^\d+K\/s$/);
@@ -229,7 +229,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.qpsTrend).toMatch(/^[+-]\d+\.\d+%$/);
@@ -239,7 +239,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.latencyTrend).toMatch(/^[+-]\d+\.\d+%$/);
@@ -249,6 +249,7 @@ describe("useWebSocketData", () => {
       const { result } = renderHook(() => useWebSocketData());
 
       act(() => {
+        vi.advanceTimersByTime(9000);
         for (let i = 0; i < 65; i++) {
           vi.advanceTimersByTime(2100);
         }
@@ -259,10 +260,9 @@ describe("useWebSocketData", () => {
 
     it("should update lastSyncTime during simulation", () => {
       const { result } = renderHook(() => useWebSocketData());
-      const initialTime = result.current.lastSyncTime;
 
       act(() => {
-        vi.advanceTimersByTime(2100);
+        vi.advanceTimersByTime(9000);
       });
 
       expect(result.current.lastSyncTime).toBeDefined();

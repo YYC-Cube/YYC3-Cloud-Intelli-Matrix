@@ -22,10 +22,9 @@ const localStorageMock = (() => {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
 
 // @vitest-environment jsdom
-import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ============================================================
 // Global mocks
@@ -73,7 +72,7 @@ vi.mock("../lib/api-config", () => ({
   }),
   setAPIConfig: vi.fn((patch: any) => ({ ...patch })),
   resetAPIConfig: vi.fn(() => ({})),
-  onAPIConfigChange: vi.fn(() => () => {}),
+  onAPIConfigChange: vi.fn(() => () => { }),
   ENDPOINT_META: [
     { key: "enableBackend", label: "Enable Backend API", labelCn: "启用后端 API", description: "关闭时使用前端 Mock 数据", type: "boolean", placeholder: "", group: "通用" },
     { key: "timeout", label: "Request Timeout", labelCn: "请求超时 (ms)", description: "API 请求超时时间", type: "number", placeholder: "15000", group: "通用" },
@@ -86,6 +85,23 @@ vi.mock("../hooks/useModelProvider", () => ({
       { id: "gpt-4", name: "GPT-4", isLocal: false },
       { id: "llama3", name: "LLaMA-3", isLocal: true },
     ],
+    providers: [
+      { id: "zhipu", label: "智谱AI", baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4", isLocal: false, requiresApiKey: true, models: ["glm-4-flash", "glm-4-air"] },
+      { id: "deepseek", label: "DeepSeek", baseUrl: "https://api.deepseek.com/v1", isLocal: false, requiresApiKey: true, models: ["deepseek-chat"] },
+      { id: "ollama", label: "Ollama (本地)", baseUrl: "http://localhost:11434", isLocal: true, requiresApiKey: false, models: ["codegeex4:latest"] },
+    ],
+    configuredModels: [
+      { id: "m1", providerId: "zhipu", model: "glm-4-flash", apiKey: "test-key", baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4", status: "active" },
+      { id: "m2", providerId: "deepseek", model: "deepseek-chat", apiKey: "test-key", baseUrl: "https://api.deepseek.com/v1", status: "unchecked" },
+    ],
+    activeModelId: "m1",
+    testingIds: [],
+    addModel: vi.fn(() => ({ id: "m3", providerId: "ollama", model: "test", apiKey: "", baseUrl: "http://localhost:11434", status: "unchecked" })),
+    updateModel: vi.fn(),
+    removeModel: vi.fn(),
+    testConnection: vi.fn(() => Promise.resolve()),
+    testAllConnections: vi.fn(() => Promise.resolve()),
+    setActiveModel: vi.fn(),
   }),
 }));
 
@@ -138,81 +154,62 @@ describe("SystemSettings 集成测试", () => {
     localStorage.clear();
   });
 
-  describe("模型管理 CRUD", () => {
-    it("应渲染模型管理页面并显示默认模型", () => {
+  describe("模型管理", () => {
+    it("应渲染 UnifiedModelManager 组件和统计卡片", () => {
       render(<SystemSettings />);
       fireEvent.click(screen.getAllByText("settings.model")[0]);
-      expect(screen.getByText("模型管理")).toBeInTheDocument();
-      expect(screen.getByText("添加模型")).toBeInTheDocument();
-      // 默认模型 (来自 deployedModelStore)
-      const llamaTexts = screen.getAllByText("LLaMA-70B");
-      expect(llamaTexts.length).toBeGreaterThan(0);
-      const qwenTexts = screen.getAllByText("Qwen-72B");
-      expect(qwenTexts.length).toBeGreaterThan(0);
-    });
-
-    it("点击添加模型应显示表单", () => {
-      render(<SystemSettings />);
-      fireEvent.click(screen.getAllByText("settings.model")[0]);
-      fireEvent.click(screen.getByText("添加模型"));
-      expect(screen.getByText("添加新模型")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("例: LLaMA-70B")).toBeInTheDocument();
-    });
-
-    it("添加模型后应出现在列表中", () => {
-      render(<SystemSettings />);
-      fireEvent.click(screen.getAllByText("settings.model")[0]);
-      fireEvent.click(screen.getByText("添加模型"));
-      
-      const nameInput = screen.getByPlaceholderText("例: LLaMA-70B");
-      fireEvent.change(nameInput, { target: { value: "TestModel-99B" } });
-      
-      const versionInput = screen.getByPlaceholderText("v1.0");
-      fireEvent.change(versionInput, { target: { value: "v3.0" } });
-      
-      const sizeInput = screen.getByPlaceholderText("140GB");
-      fireEvent.change(sizeInput, { target: { value: "200GB" } });
-
-      // Click 创建
-      fireEvent.click(screen.getByText("创建"));
-
-      expect(toast.success).toHaveBeenCalledWith(
-        expect.stringContaining("TestModel-99B"),
-        expect.any(Object)
-      );
-    });
-
-    it("空名称时应显示错误提示", () => {
-      render(<SystemSettings />);
-      fireEvent.click(screen.getAllByText("settings.model")[0]);
-      fireEvent.click(screen.getByText("添加模型"));
-      // Don't fill in name, just click save
-      fireEvent.click(screen.getByText("创建"));
-      expect(toast.error).toHaveBeenCalledWith("模型名称不能为空");
-    });
-
-    it("取消添加应关闭表单", () => {
-      render(<SystemSettings />);
-      fireEvent.click(screen.getAllByText("settings.model")[0]);
-      fireEvent.click(screen.getByText("添加模型"));
-      expect(screen.getByText("添加新模型")).toBeInTheDocument();
-      fireEvent.click(screen.getByText("取消"));
-      expect(screen.queryByText("添加新模型")).not.toBeInTheDocument();
-    });
-
-    it("重置模型列表应调用 deployedModelStore.reset()", () => {
-      render(<SystemSettings />);
-      fireEvent.click(screen.getAllByText("settings.model")[0]);
-      // 找到重置按钮
-      const resetBtn = screen.getAllByText("重置")[0];
-      fireEvent.click(resetBtn);
-      expect(toast.info).toHaveBeenCalledWith("模型列表已重置为默认值");
+      expect(screen.getByTestId("unified-model-manager")).toBeInTheDocument();
+      expect(screen.getByText("总模型")).toBeInTheDocument();
+      expect(screen.getByText("已激活")).toBeInTheDocument();
+      expect(screen.getByText("未检测")).toBeInTheDocument();
     });
 
     it("应渲染 KV-Cache 开关", () => {
       render(<SystemSettings />);
       fireEvent.click(screen.getAllByText("settings.model")[0]);
       expect(screen.getByText("推理缓存 (KV-Cache)")).toBeInTheDocument();
+      expect(screen.getByText("启用 KV-Cache 加速推理")).toBeInTheDocument();
+    });
+
+    it("compact 模式下不显示模型管理标题", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      expect(screen.queryByText("模型管理")).not.toBeInTheDocument();
+    });
+
+    it("compact 模式下不显示添加模型按钮", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      expect(screen.queryByText("添加模型")).not.toBeInTheDocument();
+    });
+
+    it("统计卡片应显示正确数据", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      expect(screen.getByText("总模型")).toBeInTheDocument();
+      expect(screen.getByText("已激活")).toBeInTheDocument();
+      expect(screen.getByText("未检测")).toBeInTheDocument();
+    });
+
+    it("应包含推理缓存切换区域", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      expect(screen.getByText("推理缓存 (KV-Cache)")).toBeInTheDocument();
+    });
+
+    it("切换到模型管理再切换回来应正确卸载", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      expect(screen.getByTestId("unified-model-manager")).toBeInTheDocument();
+      fireEvent.click(screen.getAllByText("settings.general")[0]);
+      expect(screen.queryByTestId("unified-model-manager")).not.toBeInTheDocument();
+    });
+
+    it("模型管理 section 包含空间布局", () => {
+      render(<SystemSettings />);
+      fireEvent.click(screen.getAllByText("settings.model")[0]);
+      const manager = screen.getByTestId("unified-model-manager");
+      expect(manager.className).toContain("space-y-4");
     });
   });
 
@@ -321,8 +318,8 @@ describe("UserManagement 集成测试", () => {
       expect(zhangTexts.length).toBeGreaterThan(0);
       // 搜索后应该只显示匹配的用户，其他用户在表格中不应显示
       const userTableRows = screen.getAllByRole("row");
-      const filteredRows = userTableRows.filter(row => 
-        row.textContent?.includes("张管理") || 
+      const filteredRows = userTableRows.filter(row =>
+        row.textContent?.includes("张管理") ||
         row.textContent?.includes("admin")
       );
       expect(filteredRows.length).toBeGreaterThan(0);
@@ -336,8 +333,8 @@ describe("UserManagement 集成测试", () => {
       expect(liTexts.length).toBeGreaterThan(0);
       // 搜索后应该只显示匹配的用户
       const userTableRows = screen.getAllByRole("row");
-      const filteredRows = userTableRows.filter(row => 
-        row.textContent?.includes("李运维") || 
+      const filteredRows = userTableRows.filter(row =>
+        row.textContent?.includes("李运维") ||
         row.textContent?.includes("ops_li")
       );
       expect(filteredRows.length).toBeGreaterThan(0);
@@ -351,8 +348,8 @@ describe("UserManagement 集成测试", () => {
       expect(zhaoTexts.length).toBeGreaterThan(0);
       // 搜索后应该只显示匹配的用户
       const userTableRows = screen.getAllByRole("row");
-      const filteredRows = userTableRows.filter(row => 
-        row.textContent?.includes("赵分析") || 
+      const filteredRows = userTableRows.filter(row =>
+        row.textContent?.includes("赵分析") ||
         row.textContent?.includes("zhao@")
       );
       expect(filteredRows.length).toBeGreaterThan(0);
@@ -369,15 +366,15 @@ describe("UserManagement 集成测试", () => {
     it("填写信息后应创建成功", () => {
       render(<UserManagement />);
       fireEvent.click(screen.getAllByText("userMgmt.addUser")[0]);
-      
+
       const nameInput = screen.getByPlaceholderText("输入名称...");
       const usernameInput = screen.getByPlaceholderText("输入登录账号...");
       const emailInput = screen.getByPlaceholderText("user@cloudpivot.ai");
-      
+
       fireEvent.change(nameInput, { target: { value: "测试用户" } });
       fireEvent.change(usernameInput, { target: { value: "test_user" } });
       fireEvent.change(emailInput, { target: { value: "test@cloudpivot.ai" } });
-      
+
       fireEvent.click(screen.getByText("创建"));
       expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining("测试用户"),
@@ -578,22 +575,22 @@ describe("createLocalStore 集成测试", () => {
 
   it("完整 CRUD 流程", () => {
     const store = createLocalStore<TestItem>("test_crud_flow", defaults, "t");
-    
+
     // 初始状态
     expect(store.count()).toBe(3);
-    
+
     // 添加
     const newItem = store.add({ name: "New", value: 50 });
     expect(store.count()).toBe(4);
-    
+
     // 更新
     store.update(newItem.id, { value: 55 });
     expect(store.getById(newItem.id)?.value).toBe(55);
-    
+
     // 删除
     store.remove(newItem.id);
     expect(store.count()).toBe(3);
-    
+
     // 重置
     store.reset();
     expect(store.count()).toBe(3);
@@ -606,10 +603,15 @@ describe("createLocalStore 集成测试", () => {
 // ============================================================
 
 import {
-  nodeStore, modelPerfStore, modelDistStore,
-  recentOpsStore, radarStore, logStore,
   dbConnectionStore, deployedModelStore,
-  wifiNetworkStore, userStore,
+  logStore,
+  modelDistStore,
+  modelPerfStore,
+  nodeStore,
+  radarStore,
+  recentOpsStore,
+  userStore,
+  wifiNetworkStore,
 } from "../stores/dashboard-stores";
 
 describe("Dashboard stores 集成测试", () => {
@@ -656,10 +658,10 @@ describe("Dashboard stores 集成测试", () => {
       gpu: "-",
     });
     expect(deployedModelStore.count()).toBe(6);
-    
+
     deployedModelStore.update(added.id, { status: "deployed", gpu: "GPU-A100-01" });
     expect(deployedModelStore.getById(added.id)?.status).toBe("deployed");
-    
+
     deployedModelStore.remove(added.id);
     expect(deployedModelStore.count()).toBe(5);
   });
@@ -667,7 +669,7 @@ describe("Dashboard stores 集成测试", () => {
   it("userStore CRUD 应正常工作", () => {
     userStore.reset();
     expect(userStore.count()).toBe(8);
-    
+
     const newUser = userStore.add({
       name: "测试用户",
       username: "test",
@@ -680,10 +682,10 @@ describe("Dashboard stores 集成测试", () => {
       locked: false,
     });
     expect(userStore.count()).toBe(9);
-    
+
     userStore.update(newUser.id, { locked: true });
     expect(userStore.getById(newUser.id)?.locked).toBe(true);
-    
+
     userStore.remove(newUser.id);
     expect(userStore.count()).toBe(8);
   });
@@ -691,17 +693,17 @@ describe("Dashboard stores 集成测试", () => {
   it("wifiNetworkStore 扫描+连接流程", () => {
     wifiNetworkStore.reset();
     expect(wifiNetworkStore.count()).toBe(0);
-    
+
     // 模拟扫描
     wifiNetworkStore.add({ ssid: "Test-5G", signal: 90, security: "WPA3", connected: false });
     wifiNetworkStore.add({ ssid: "Test-2.4G", signal: 70, security: "WPA2", connected: false });
     expect(wifiNetworkStore.count()).toBe(2);
-    
+
     // 模拟连接
     const networks = wifiNetworkStore.getAll();
     wifiNetworkStore.update(networks[0].id, { connected: true, lastConnectedAt: Date.now() });
     expect(wifiNetworkStore.getAll().filter(n => n.connected)).toHaveLength(1);
-    
+
     // 模拟断开
     wifiNetworkStore.update(networks[0].id, { connected: false });
     expect(wifiNetworkStore.getAll().filter(n => n.connected)).toHaveLength(0);

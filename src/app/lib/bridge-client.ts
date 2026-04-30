@@ -421,3 +421,47 @@ export const shellClient = {
     return bridge.shell.execute(command, args);
   },
 };
+
+export const notificationClient = {
+  async show(options: { title: string; body?: string; icon?: string; tag?: string; silent?: boolean; requireInteraction?: boolean }): Promise<string> {
+    const bridge = getBridgeAPI();
+    if (bridge) {
+      return bridge.notification.show(options);
+    }
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+      return "denied";
+    }
+    try {
+      new Notification(options.title, {
+        body: options.body,
+        icon: options.icon,
+        tag: options.tag,
+      });
+      return "sent";
+    } catch {
+      return "failed";
+    }
+  },
+
+  async getPermission(): Promise<string> {
+    const bridge = getBridgeAPI();
+    if (bridge) {
+      return bridge.notification.getPermission();
+    }
+    if (typeof Notification === "undefined") {
+      return "unsupported";
+    }
+    return Notification.permission;
+  },
+
+  async requestPermission(): Promise<string> {
+    const bridge = getBridgeAPI();
+    if (bridge) {
+      return bridge.notification.requestPermission();
+    }
+    if (typeof Notification === "undefined") {
+      return "unsupported";
+    }
+    return Notification.requestPermission();
+  },
+};

@@ -1,58 +1,75 @@
 /**
  * @file: usePushNotifications.ts
- * @description: usePushNotifications Hook
+ * @description: 统一推送通知 Hook — 自动适配 Electron 原生通知 / Web Notification API
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v2.0.0
  * @created: 2026-04-08
- * @updated: 2026-04-08
+ * @updated: 2026-04-30
  * @status: active
- * @tags: [hook]
+ * @tags: [hook],[notification],[electron]
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+
+import { isElectron, notificationClient } from "../lib/bridge-client";
 import type { AlertLevel } from "../types";
 
+function detectSupport(): boolean {
+  if (isElectron()) {
+    return true;
+  }
+  return typeof Notification !== "undefined";
+}
+
+function detectPermission(): NotificationPermission {
+  if (isElectron()) {
+    return "granted";
+  }
+  if (typeof Notification === "undefined") {
+    return "denied";
+  }
+  return Notification.permission;
+}
+
 export function usePushNotifications() {
-  const [permission, setPermission] =
-    useState<NotificationPermission>(() => {
-      const isSupported = "Notification" in window;
-      return isSupported ? Notification.permission : "default";
-    });
-  const [supported, _setSupported] = useState(() => "Notification" in window);
+  const [supported] = useState(detectSupport);
+  const [permission, setPermission] = useState<NotificationPermission>(detectPermission);
 
   const requestPermission = useCallback(async () => {
-    if (!supported) {return "denied" as NotificationPermission;}
-    const result = await Notification.requestPermission();
-    setPermission(result);
-    return result;
-  }, [supported]);
+    const result = await notificationClient.requestPermission();
+    setPermission(result as NotificationPermission);
+    return result as NotificationPermission;
+  }, []);
 
   const showNotification = useCallback(
-    (title: string, options: NotificationOptions = {}) => {
-      if (permission !== "granted") {return null;}
+    async (title: string, options: NotificationOptions = {}) => {
+      if (permission !== "granted" && !isElectron()) {
+        return null;
+      }
 
       try {
-        return new Notification(title, {
-          icon: "/yyc3-icons/Web App/android-chrome-192.png",
-          badge: "/yyc3-icons/Android/hdpi.png",
-          tag: "cpim-notification",
-          ...options,
+        const result = await notificationClient.show({
+          title,
+          body: options.body,
+          icon: options.icon || "/yyc3-icons/Web App/android-chrome-192.png",
+          tag: options.tag || "cpim-notification",
+          silent: options.silent ?? undefined,
+          requireInteraction: options.requireInteraction,
         });
+
+        if (result === "denied" || result === "failed") {
+          return null;
+        }
+        return result;
       } catch {
-        // 通知创建失败（可能在不支持的环境中）
         return null;
       }
     },
-    [permission]
+    [permission],
   );
 
-  /** 发送系统告警通知 */
   const sendAlert = useCallback(
-    (
-      level: AlertLevel,
-      message: string,
-      detail?: string
-    ) => {
+    (level: AlertLevel, message: string, detail?: string) => {
       const titles: Record<AlertLevel, string> = {
         info: "CP-IM 信息",
         warning: "CP-IM 告警",
@@ -66,7 +83,7 @@ export function usePushNotifications() {
         requireInteraction: level === "error" || level === "critical",
       });
     },
-    [showNotification]
+    [showNotification],
   );
 
   return {

@@ -4,11 +4,11 @@
  * Electron 主进程 IPC 处理器
  */
 
-import { ipcMain, dialog, app, shell } from "electron";
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
 import { execFile } from "child_process";
+import { app, dialog, Notification as ElectronNotification, ipcMain, shell } from "electron";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { IPCChannel, type IPCResponse } from "../src/shared/ipc-types";
 import { permissionManager } from "./permission-manager";
 
@@ -406,12 +406,50 @@ export function registerShellHandlers(): void {
 /**
  * 注册所有 IPC 处理器
  */
+export function registerNotificationHandlers(): void {
+  ipcMain.handle(IPCChannel.NOTIFICATION_SHOW, async (_, options: { title: string; body?: string; icon?: string; tag?: string; silent?: boolean; requireInteraction?: boolean }) => {
+    try {
+      if (!ElectronNotification.isSupported()) {
+        return createErrorResponse("Notifications not supported on this system");
+      }
+
+      const notif = new ElectronNotification({
+        title: options.title,
+        body: options.body || "",
+        icon: options.icon,
+        silent: options.silent,
+      });
+
+      notif.on("click", () => {
+        const win = require("electron").BrowserWindow.getAllWindows()[0];
+        if (win) {
+          win.show();
+          win.focus();
+        }
+      });
+
+      return createSuccessResponse("sent");
+    } catch (error) {
+      return createErrorResponse(error instanceof Error ? error.message : String(error));
+    }
+  });
+
+  ipcMain.handle(IPCChannel.NOTIFICATION_PERMISSION, async () => {
+    return createSuccessResponse("granted");
+  });
+
+  ipcMain.handle(IPCChannel.NOTIFICATION_REQUEST, async () => {
+    return createSuccessResponse("granted");
+  });
+}
+
 export function registerAllIPCHandlers(): void {
   registerFileSystemHandlers();
   registerSystemMonitorHandlers();
   registerAppControlHandlers();
   registerDialogHandlers();
   registerShellHandlers();
+  registerNotificationHandlers();
 
   console.info("[IPC] All handlers registered");
 }

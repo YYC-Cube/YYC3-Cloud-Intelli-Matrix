@@ -45,6 +45,10 @@ jobs:
         run: pnpm build
         env:
           VITE_BASE_URL: /
+          VITE_ENABLE_GHOST_MODE: true
+          VITE_MOCK_ADMIN_PASSWORD: admin
+          VITE_MOCK_DEV_PASSWORD: dev
+          VITE_USE_MOCK_AUTH: true
 
       - name: Add custom domain CNAME
         run: echo "${{ env.CUSTOM_DOMAIN }}" > ./dist/CNAME

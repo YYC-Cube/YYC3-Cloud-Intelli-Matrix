@@ -396,7 +396,7 @@ export function FamilyModelSettings() {
   const providerSlice = useProviderSlice();
 
   const PROVIDERS: ProviderDef[] = useMemo(() => {
-    return providerSlice.providers.map(p => ({
+    const mapped = providerSlice.providers.map(p => ({
       id: p.id,
       name: p.label,
       icon: PROVIDER_ICON_MAP[p.id] || Cpu,
@@ -410,6 +410,7 @@ export function FamilyModelSettings() {
         ctx: undefined,
       })),
     }));
+    return [...mapped].sort((a, b) => (a.id === "ollama" ? -1 : b.id === "ollama" ? 1 : 0));
   }, [providerSlice.providers]);
 
   const PROVIDERS_MAP = useMemo(() =>

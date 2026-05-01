@@ -199,7 +199,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
         });
       }
     });
-    return models;
+    return models.sort((a, b) => (a.isLocal === b.isLocal ? 0 : a.isLocal ? -1 : 1));
   }, [_configuredModels, ollamaModels]);
 
   // ★ 从 useSettingsStore 获取全局 AI 配置 (设置页 = 唯一数据源)

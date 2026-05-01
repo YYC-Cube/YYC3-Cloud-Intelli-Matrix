@@ -100,9 +100,13 @@ async function timedFetch(url: string, options: RequestInit = {}, timeoutMs = 80
     let errorType: FetchResult["errorType"] = "unknown";
     if (msg.includes("Failed to fetch") || msg.includes("CORS") || msg.includes("cross-origin") || msg.includes("net::ERR_FAILED")) {
       errorType = "cors";
+    } else if (msg.includes("net::ERR_ABORTED")) {
+      errorType = "network";
     } else if (msg.includes("AbortError") || msg.includes("timeout") || msg.includes("aborted")) {
       errorType = "timeout";
     } else if (msg.includes("ECONNREFUSED") || msg.includes("connection refused")) {
+      errorType = "network";
+    } else if (msg.includes("net::ERR_CONNECTION_REFUSED")) {
       errorType = "network";
     }
     return { ok: false, status: 0, statusText: "", latencyMs, errorType, errorMsg: msg };

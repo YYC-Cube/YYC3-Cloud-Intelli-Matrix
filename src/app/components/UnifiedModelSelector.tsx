@@ -156,7 +156,11 @@ export function UnifiedModelSelector({
           m.providerLabel.toLowerCase().includes(q)
       );
     }
-    return models;
+    return [...models].sort((a, b) => {
+      const aLocal = a.providerId === "ollama" ? 0 : 1;
+      const bLocal = b.providerId === "ollama" ? 0 : 1;
+      return aLocal - bLocal;
+    });
   }, [configuredModels, filterByProvider, search]);
 
   const grouped = useMemo(() => {

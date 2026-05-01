@@ -9,24 +9,38 @@
  * @tags: [component]
  */
 
-import * as React from "react";
-import { useState, useCallback, useRef, useContext } from "react";
 import {
-  Zap, Play, RotateCcw, CheckCircle2, XCircle, AlertTriangle,
-  Loader2, Globe, Server, Database, Radio, Shield,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
   ChevronDown, ChevronUp, Clock,
-  ArrowRight, Terminal, Info, Copy,
-  Activity, Network,
+  Copy,
+  Database,
+  Globe,
+  Info,
+  Loader2,
+  Network,
+  Play,
+  Radio,
+  RotateCcw,
+  Server,
+  Shield,
+  Terminal,
+  XCircle,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { ViewContext } from "../lib/view-context";
-import { useModelProvider } from "../hooks/useModelProvider";
-import type { DBConnection } from "../types";
-import { useDbConnSlice } from "../store/slices/db-conn-slice";
-import { env } from "../lib/env-config";
-import { getOllamaEndpointInfo, getOllamaChatUrl, getOllamaTagsUrl } from "../lib/ollama-url";
+import * as React from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
+import { env } from "../lib/env-config";
+import { getOllamaChatUrl, getOllamaEndpointInfo, getOllamaTagsUrl } from "../lib/ollama-url";
+import { ViewContext } from "../lib/view-context";
+import { useDbConnSlice } from "../store/slices/db-conn-slice";
+import { useProviderSlice } from "../store/slices/provider-slice";
 import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
+import type { DBConnection } from "../types";
+import { GlassCard } from "./GlassCard";
 
 // ============================================================
 // Types
@@ -62,12 +76,12 @@ const toastStyle = {
 };
 
 const STATUS_META: Record<TestStatus, { label: string; color: string; icon: React.ElementType }> = {
-  idle:    { label: "待测试", color: "rgba(0,212,255,0.3)", icon: Clock },
+  idle: { label: "待测试", color: "rgba(0,212,255,0.3)", icon: Clock },
   running: { label: "测试中", color: "#ffdd00", icon: Loader2 },
-  pass:    { label: "通过",   color: "#00ff88", icon: CheckCircle2 },
-  fail:    { label: "失败",   color: "#ff3366", icon: XCircle },
-  warn:    { label: "警告",   color: "#ffaa00", icon: AlertTriangle },
-  skip:    { label: "跳过",   color: "rgba(0,212,255,0.2)", icon: Clock },
+  pass: { label: "通过", color: "#00ff88", icon: CheckCircle2 },
+  fail: { label: "失败", color: "#ff3366", icon: XCircle },
+  warn: { label: "警告", color: "#ffaa00", icon: AlertTriangle },
+  skip: { label: "跳过", color: "rgba(0,212,255,0.2)", icon: Clock },
 };
 
 // ============================================================
@@ -116,7 +130,7 @@ export function ServiceConnectionTest() {
   const view = useContext(ViewContext);
   const isMobile = (view as { isMobile?: boolean })?.isMobile ?? false;
 
-  const { providers, configuredModels } = useModelProvider();
+  const { providers, configuredModels } = useProviderSlice();
   const { connections: dbConnections } = useDbConnSlice();
 
   const sliceResults = useUIPrefsSlice((s) => s.connectionTestResults);
@@ -317,7 +331,7 @@ export function ServiceConnectionTest() {
         addStep("CORS 代理通道", "running", `通过代理 ${proxy} 测试...`);
         const proxyTestUrl = `${proxy.replace(/\/$/, "")}/${chatEndpoint}`;
         const proxyHeaders: Record<string, string> = { "Content-Type": "application/json" };
-        if (apiKey) {proxyHeaders["Authorization"] = `Bearer ${apiKey}`;}
+        if (apiKey) { proxyHeaders["Authorization"] = `Bearer ${apiKey}`; }
         const proxyRes = await testFetch(proxyTestUrl, {
           method: "POST",
           headers: proxyHeaders,
@@ -336,10 +350,10 @@ export function ServiceConnectionTest() {
 
     // Determine overall status
     const statuses = result.steps.map((s) => s.status);
-    if (statuses.includes("fail")) {result.overallStatus = "fail";}
-    else if (statuses.includes("warn")) {result.overallStatus = "warn";}
-    else if (statuses.every((s) => s === "pass" || s === "skip")) {result.overallStatus = "pass";}
-    else {result.overallStatus = "warn";}
+    if (statuses.includes("fail")) { result.overallStatus = "fail"; }
+    else if (statuses.includes("warn")) { result.overallStatus = "warn"; }
+    else if (statuses.every((s) => s === "pass" || s === "skip")) { result.overallStatus = "pass"; }
+    else { result.overallStatus = "warn"; }
 
     result.completedAt = Date.now();
     return result;
@@ -449,9 +463,9 @@ export function ServiceConnectionTest() {
       `4. 使用云端数据库 HTTP API (Supabase / PlanetScale / Neon)`;
 
     const statuses = result.steps.map((s) => s.status);
-    if (statuses.includes("fail")) {result.overallStatus = "fail";}
-    else if (statuses.every((s) => s === "pass")) {result.overallStatus = "pass";}
-    else {result.overallStatus = "warn";}
+    if (statuses.includes("fail")) { result.overallStatus = "fail"; }
+    else if (statuses.every((s) => s === "pass")) { result.overallStatus = "pass"; }
+    else { result.overallStatus = "warn"; }
 
     result.completedAt = Date.now();
     return result;
@@ -609,9 +623,9 @@ export function ServiceConnectionTest() {
     }
 
     const statuses = result.steps.map((s) => s.status);
-    if (statuses.includes("fail")) {result.overallStatus = "fail";}
-    else if (statuses.every((s) => s === "pass" || s === "skip")) {result.overallStatus = "pass";}
-    else {result.overallStatus = "warn";}
+    if (statuses.includes("fail")) { result.overallStatus = "fail"; }
+    else if (statuses.every((s) => s === "pass" || s === "skip")) { result.overallStatus = "pass"; }
+    else { result.overallStatus = "warn"; }
 
     result.completedAt = Date.now();
     return result;
@@ -644,9 +658,9 @@ export function ServiceConnectionTest() {
 
     // 3. AI providers (configured models)
     for (const cm of configuredModels) {
-      if (abortRef.current) {break;}
+      if (abortRef.current) { break; }
       const provider = providers.find((p) => p.id === cm.providerId);
-      if (!provider) {continue;}
+      if (!provider) { continue; }
       const res = await testAIProvider(
         cm.providerId,
         cm.providerLabel,
@@ -664,7 +678,7 @@ export function ServiceConnectionTest() {
     // If no configured models, test all providers with a probe
     if (configuredModels.length === 0) {
       for (const p of providers) {
-        if (abortRef.current) {break;}
+        if (abortRef.current) { break; }
         const model = p.models[0] || "test";
         const res = await testAIProvider(
           p.id, p.label, p.baseUrl, p.authType, "", model, p.isLocal, proxyUrl || undefined,
@@ -676,7 +690,7 @@ export function ServiceConnectionTest() {
 
     // 4. Database connections
     for (const db of dbConnections) {
-      if (abortRef.current) {break;}
+      if (abortRef.current) { break; }
       const res = await testDB(db);
       allResults.push(res);
       setResults([...allResults]);

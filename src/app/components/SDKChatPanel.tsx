@@ -13,7 +13,6 @@ import {
   Activity,
   AlertCircle,
   BarChart3,
-  ChevronDown,
   Clock,
   Cpu,
   Loader2,
@@ -23,13 +22,14 @@ import {
   Trash2, User,
   Zap,
 } from "lucide-react";
-import React, { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { PROVIDER_CAPABILITIES, useBigModelSDK } from "../hooks/useBigModelSDK";
 import { useI18n } from "../hooks/useI18n";
-import { useModelProvider } from "../hooks/useModelProvider";
 import { ViewContext } from "../lib/view-context";
+import { useProviderSlice } from "../store/slices/provider-slice";
 import type { ChatMessage, ConfiguredModel, SDKConnectionStatus } from "../types";
 import { GlassCard } from "./GlassCard";
+import { UnifiedModelSelector } from "./UnifiedModelSelector";
 import { YYC3LogoSvg } from "./YYC3LogoSvg";
 
 // ============================================================
@@ -124,19 +124,19 @@ export function SDKChatPanel({ embedded = false }: { embedded?: boolean }) {
   const isMobile = view?.isMobile ?? false;
   const { t } = useI18n();
 
-  const { configuredModels } = useModelProvider();
+  const { configuredModels } = useProviderSlice();
   const sdk = useBigModelSDK();
 
   const [selectedModelId, setSelectedModelId] = useState<string>("");
   const [input, setInput] = useState("");
-  const [showModelSelect, setShowModelSelect] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 选中的模型对象
-  const selectedModel: ConfiguredModel | undefined = configuredModels.find((m) => m.id === selectedModelId);
+  const selectedModel: ConfiguredModel | undefined = useMemo(
+    () => configuredModels.find((m) => m.id === selectedModelId),
+    [configuredModels, selectedModelId],
+  );
 
-  // 自动选择第一个模型
   useEffect(() => {
     if (!selectedModelId && configuredModels.length > 0) {
       setSelectedModelId(configuredModels[0].id);
@@ -250,58 +250,13 @@ export function SDKChatPanel({ embedded = false }: { embedded?: boolean }) {
         <GlassCard className="px-4 py-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             {/* 模型选择器 */}
-            <div className="relative">
-              <button
-                onClick={() => setShowModelSelect(!showModelSelect)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all"
-                style={{
-                  background: "rgba(0,212,255,0.06)",
-                  border: "1px solid rgba(0,212,255,0.15)",
-                  fontSize: "0.78rem",
-                  color: "rgba(224,232,255,0.85)",
-                }}
-              >
-                <Cpu className="w-3.5 h-3.5" style={{ color: "#00d4ff" }} />
-                {selectedModel ? `${selectedModel.providerLabel} / ${selectedModel.model}` : t("sdk.selectModel")}
-                <ChevronDown className="w-3 h-3" style={{ color: "rgba(0,212,255,0.5)" }} />
-              </button>
-
-              {/* 下拉列表 */}
-              {showModelSelect && (
-                <div
-                  className="absolute top-full left-0 mt-1 z-50 rounded-lg overflow-hidden"
-                  style={{
-                    background: "rgba(8,25,55,0.95)",
-                    border: "1px solid rgba(0,212,255,0.2)",
-                    backdropFilter: "blur(20px)",
-                    minWidth: "220px",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {configuredModels.length === 0 ? (
-                    <div className="p-3" style={{ fontSize: "0.72rem", color: "rgba(224,232,255,0.4)" }}>
-                      {t("modelProvider.noConfigured")}
-                    </div>
-                  ) : (
-                    configuredModels.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => { setSelectedModelId(m.id); setShowModelSelect(false); }}
-                        className="w-full text-left px-3 py-2 transition-all hover:bg-[rgba(0,212,255,0.08)]"
-                        style={{
-                          fontSize: "0.75rem",
-                          color: m.id === selectedModelId ? "#00d4ff" : "rgba(224,232,255,0.7)",
-                          borderBottom: "1px solid rgba(0,212,255,0.06)",
-                        }}
-                      >
-                        <div>{m.providerLabel} / {m.model}</div>
-                        <div style={{ fontSize: "0.65rem", color: "rgba(0,212,255,0.35)" }}>{m.baseUrl}</div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+            <UnifiedModelSelector
+              value={selectedModelId}
+              onChange={(id, _model) => setSelectedModelId(id)}
+              label=""
+              placeholder={t("sdk.selectModel")}
+              compact
+            />
 
             {/* 状态 */}
             <div className="flex items-center gap-2">

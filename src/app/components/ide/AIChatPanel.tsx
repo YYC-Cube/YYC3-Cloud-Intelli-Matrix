@@ -33,12 +33,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useBigModelSDK } from "../../hooks/useBigModelSDK";
 import { useCopyFeedback } from "../../hooks/useCopyFeedback";
 import { useI18n } from "../../hooks/useI18n";
-import { useModelProvider } from "../../hooks/useModelProvider";
 import type { KnowledgeSearchResult } from "../../lib/local-knowledge-base";
 import {
   formatSearchResultForAI,
   searchKnowledge,
 } from "../../lib/local-knowledge-base";
+import { useProviderSlice } from "../../store/slices/provider-slice";
+import type { ConfiguredModel } from "../../types";
 import { MOCK_CHAT_HISTORY } from "./ide-mock-data";
 import type { ChatMessage } from "./ide-types";
 
@@ -97,7 +98,7 @@ const getCurrentTimestamp = (): string => {
 
 export function AIChatPanel() {
   const { t } = useI18n();
-  const modelProvider = useModelProvider();
+  const { configuredModels } = useProviderSlice();
   const sdk = useBigModelSDK();
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CHAT_HISTORY);
   const [input, setInput] = useState("");
@@ -129,7 +130,7 @@ export function AIChatPanel() {
     setKbResults(kbHits);
     const _kbContext = kbHits.length > 0 ? formatSearchResultForAI(kbHits) : "";
 
-    const activeModel = modelProvider.configuredModels[0];
+    const activeModel: ConfiguredModel | undefined = configuredModels[0];
     const hasActiveProvider = !!activeModel;
 
     if (hasActiveProvider) {
@@ -165,7 +166,7 @@ export function AIChatPanel() {
       return;
     }
     setIsTyping(false);
-  }, [input, modelProvider.configuredModels, sdk]);
+  }, [input, configuredModels, sdk]);
 
   const handleQuickAction = useCallback((action: typeof AI_QUICK_ACTIONS[0]) => {
     handleSend(action.prompt);

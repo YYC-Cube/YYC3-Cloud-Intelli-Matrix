@@ -9,25 +9,55 @@
  * @tags: [component]
  */
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useCopyFeedback } from "../hooks/useCopyFeedback";
 import {
-  X, Send, Sparkles, Settings,
-  Zap, Server, Database, Shield, RotateCcw, Play, Copy, Check,
-  Cpu, HardDrive, Activity, Network, Layers, Key, Sliders, MessageSquare,
-  BookOpen, Command, Minimize2, Maximize2, Trash2,
-  Gauge, Thermometer, MemoryStick, Wifi, Radio,
-  GripVertical, CheckCircle2, XCircle, Loader2, Eye,
-  ShieldCheck, AlertTriangle
+  Activity,
+  AlertTriangle,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  Command,
+  Copy,
+  Cpu,
+  Database,
+  Eye,
+  Gauge,
+  GripVertical,
+  HardDrive,
+  Key,
+  Layers,
+  Loader2,
+  Maximize2,
+  MemoryStick,
+  MessageSquare,
+  Minimize2,
+  Network,
+  Play,
+  Radio,
+  RotateCcw,
+  Send,
+  Server,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Sliders,
+  Sparkles,
+  Thermometer,
+  Trash2,
+  Wifi,
+  X,
+  XCircle,
+  Zap
 } from "lucide-react";
-import { YYC3LogoSvg } from "./YYC3LogoSvg";
-import { useModelProvider } from "../hooks/useModelProvider";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCopyFeedback } from "../hooks/useCopyFeedback";
 import { useSettingsStore } from "../hooks/useSettingsStore";
-import { useNodeSlice } from "../store/slices/node-slice";
-import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 import { useWebSocketData } from "../hooks/useWebSocketData";
-import { testAIConnection, runFullSystemDiagnostic, type SystemDiagnosticResult, type AIConnectionConfig } from "../lib/connection-test-engine";
+import { runFullSystemDiagnostic, testAIConnection, type AIConnectionConfig, type SystemDiagnosticResult } from "../lib/connection-test-engine";
+import { useNodeSlice } from "../store/slices/node-slice";
+import { useProviderSlice } from "../store/slices/provider-slice";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 import type { ChatMessage, CommandCategory } from "../types";
+import { YYC3LogoSvg } from "./YYC3LogoSvg";
 
 // ============================================================
 // Types (local to AIAssistant)
@@ -142,8 +172,34 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   const { nodes } = useNodeSlice();
   const wsData = useWebSocketData();
 
-  // 从 useModelProvider 获取动态模型列表
-  const { availableModels, ollamaLoading } = useModelProvider();
+  // 从 provider-slice 获取动态模型列表
+  const { configuredModels: _configuredModels, ollamaModels, ollamaLoading, fetchOllamaModels } = useProviderSlice();
+
+  const availableModels = useMemo(() => {
+    const models: Array<{ id: string; name: string; provider: string; isLocal: boolean }> = [];
+    _configuredModels.forEach((cm) => {
+      models.push({
+        id: cm.id,
+        name: `${cm.model} (${cm.providerLabel})`,
+        provider: cm.providerLabel,
+        isLocal: cm.providerId === "ollama",
+      });
+    });
+    const configuredOllamaNames = new Set(
+      _configuredModels.filter((cm) => cm.providerId === "ollama").map((cm) => cm.model)
+    );
+    ollamaModels.forEach((om) => {
+      if (!configuredOllamaNames.has(om.name)) {
+        models.push({
+          id: `ollama-live-${om.name}`,
+          name: om.name,
+          provider: "Ollama (本地)",
+          isLocal: true,
+        });
+      }
+    });
+    return models;
+  }, [_configuredModels, ollamaModels]);
 
   // ★ 从 useSettingsStore 获取全局 AI 配置 (设置页 = 唯一数据源)
   const { values: settingsValues, updateValue: updateSettingsValue } = useSettingsStore();
@@ -197,7 +253,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
   // Send message
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) {return;}
+    if (!content.trim()) { return; }
 
     const userMsg: ChatMessage = {
       id: generateMessageId(),
@@ -486,11 +542,10 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeTab === tab.key
-                  ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                  : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${activeTab === tab.key
+                ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
+                : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+                }`}
               style={{ fontSize: "0.72rem" }}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -509,17 +564,15 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
               <div className="flex-1 overflow-auto p-3 space-y-3">
                 {messages.map(msg => (
                   <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] relative group ${
-                      msg.role === "user"
-                        ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.2)] rounded-2xl rounded-br-sm"
-                        : msg.role === "system"
-                          ? "bg-[rgba(255,221,0,0.08)] border border-[rgba(255,221,0,0.15)] rounded-2xl"
-                          : "bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] rounded-2xl rounded-bl-sm"
-                    } px-3.5 py-2.5`}>
+                    <div className={`max-w-[85%] relative group ${msg.role === "user"
+                      ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.2)] rounded-2xl rounded-br-sm"
+                      : msg.role === "system"
+                        ? "bg-[rgba(255,221,0,0.08)] border border-[rgba(255,221,0,0.15)] rounded-2xl"
+                        : "bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] rounded-2xl rounded-bl-sm"
+                      } px-3.5 py-2.5`}>
                       <div
-                        className={`whitespace-pre-wrap ${
-                          msg.role === "user" ? "text-[#e0f0ff]" : msg.role === "system" ? "text-[#ffdd00]" : "text-[#c0dcf0]"
-                        }`}
+                        className={`whitespace-pre-wrap ${msg.role === "user" ? "text-[#e0f0ff]" : msg.role === "system" ? "text-[#ffdd00]" : "text-[#c0dcf0]"
+                          }`}
                         style={{ fontSize: "0.78rem", lineHeight: "1.6" }}
                       >
                         {msg.content}
@@ -592,11 +645,10 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                     key={cat.key}
                     onClick={() => setCmdFilter(cat.key)}
                     data-testid={`cmd-cat-${cat.key}`}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${
-                      cmdFilter === cat.key
-                        ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                        : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
-                    }`}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${cmdFilter === cat.key
+                      ? "bg-[rgba(0,212,255,0.12)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
+                      : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff] border border-transparent"
+                      }`}
                     style={{ fontSize: "0.68rem" }}
                   >
                     {cat.label}
@@ -642,11 +694,10 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                 {PROMPT_PRESETS.map(preset => (
                   <div
                     key={preset.id}
-                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                      systemPrompt === preset.prompt
-                        ? "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)]"
-                        : "bg-[rgba(0,40,80,0.15)] border-[rgba(0,180,255,0.08)] hover:border-[rgba(0,180,255,0.2)]"
-                    }`}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${systemPrompt === preset.prompt
+                      ? "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)]"
+                      : "bg-[rgba(0,40,80,0.15)] border-[rgba(0,180,255,0.08)] hover:border-[rgba(0,180,255,0.2)]"
+                      }`}
                     onClick={() => applyPreset(preset)}
                   >
                     <div className="flex items-center justify-between mb-1.5">
@@ -948,11 +999,10 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                         key={model.id}
                         onClick={() => setSelectedModel(model.id)}
                         data-testid={`model-btn-${model.id}`}
-                        className={`w-full px-3 py-2 rounded-lg text-left transition-all flex items-center gap-2 ${
-                          selectedModel === model.id
-                            ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
-                            : "bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.08)] text-[rgba(0,212,255,0.5)] hover:border-[rgba(0,180,255,0.2)]"
-                        }`}
+                        className={`w-full px-3 py-2 rounded-lg text-left transition-all flex items-center gap-2 ${selectedModel === model.id
+                          ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff]"
+                          : "bg-[rgba(0,40,80,0.2)] border border-[rgba(0,180,255,0.08)] text-[rgba(0,212,255,0.5)] hover:border-[rgba(0,180,255,0.2)]"
+                          }`}
                         style={{ fontSize: "0.72rem" }}
                       >
                         {model.isLocal && (

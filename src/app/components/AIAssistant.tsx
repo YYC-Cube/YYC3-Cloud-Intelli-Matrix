@@ -1120,6 +1120,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="0.05"
                   value={temperature}
                   onChange={e => setTemperature(Number(e.target.value))}
+                  title="温度"
+                  aria-label="温度"
                   className="w-full accent-[#00d4ff]"
                 />
                 <div className="flex justify-between mt-1">
@@ -1145,6 +1147,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="0.05"
                   value={topP}
                   onChange={e => setTopP(Number(e.target.value))}
+                  title="核采样 Top-P"
+                  aria-label="核采样 Top-P"
                   className="w-full accent-[#aa55ff]"
                 />
                 <div className="flex justify-between mt-1">
@@ -1170,6 +1174,8 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                   step="256"
                   value={maxTokens}
                   onChange={e => setMaxTokens(Number(e.target.value))}
+                  title="最大 Token"
+                  aria-label="最大 Token"
                   className="w-full accent-[#00ff88]"
                 />
                 <div className="flex justify-between mt-1">

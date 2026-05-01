@@ -312,13 +312,20 @@ async function testOllamaModelConnection(
   // Step 3: Chat/inference ping — use first available model from tags
   addStep("推理测试", "running", "发送 ping 请求...");
   let inferenceModel = config.modelId;
+  const EMBED_PATTERNS = /embed|e5-|bge-|text-embedding|nomic-embed|m3e|gte-|jina-embed|sentence-/i;
   try {
     const tagsCheck = await timedFetch(ollamaTagsUrl);
     if (tagsCheck.ok) {
       const tagsData = JSON.parse(tagsCheck.body || "{}");
-      const availableModels = (tagsData.models || []).map((m: { name: string }) => m.name);
-      if (availableModels.length > 0 && !availableModels.includes(inferenceModel)) {
-        inferenceModel = availableModels[0];
+      const allModels: Array<{ name: string; details?: { family?: string } }> = tagsData.models || [];
+      const chatModels = allModels.filter(m => !EMBED_PATTERNS.test(m.name) && m.details?.family !== "bert" && m.details?.family !== "nomic-bert");
+      const chatModelNames = chatModels.map(m => m.name);
+      if (chatModelNames.length > 0) {
+        if (!chatModelNames.includes(inferenceModel) || EMBED_PATTERNS.test(inferenceModel)) {
+          inferenceModel = chatModelNames[0];
+        }
+      } else if (allModels.length > 0) {
+        inferenceModel = allModels[0].name;
       }
     }
   } catch { /* use default modelId */ }
@@ -339,6 +346,9 @@ async function testOllamaModelConnection(
       } catch { /* use raw body */ }
       if (errorDetail.includes("model") || errorDetail.includes("not found")) {
         suggestion = `模型 "${inferenceModel}" 推理失败。请运行: ollama pull ${inferenceModel}`;
+      } else if (errorDetail.includes("does not support chat")) {
+        suggestion = `"${inferenceModel}" 是嵌入模型，不支持对话推理。请选择对话模型进行测试。`;
+        errorDetail = `推理测试跳过: ${inferenceModel} 为嵌入模型`;
       } else {
         suggestion = `推理请求格式错误: ${errorDetail}。尝试: ollama run ${inferenceModel}`;
       }

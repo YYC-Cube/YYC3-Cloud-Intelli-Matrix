@@ -25,7 +25,8 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useProviderSlice } from "../store/slices/provider-slice";
 import type { ConfiguredModel } from "../types";
 import { GlassCard } from "./GlassCard";
@@ -71,8 +72,8 @@ function ModelItem({
   return (
     <div
       className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${isSelected
-          ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)]"
-          : "hover:bg-white/[0.04] border border-transparent"
+        ? "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)]"
+        : "hover:bg-white/[0.04] border border-transparent"
         }`}
       onClick={onSelect}
     >
@@ -180,6 +181,34 @@ export function UnifiedModelSelector({
     }
   };
 
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+
+  const updatePos = useCallback(() => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: Math.max(rect.width, 280),
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePos();
+      const onScroll = () => updatePos();
+      const onResize = () => updatePos();
+      window.addEventListener("scroll", onScroll, true);
+      window.addEventListener("resize", onResize);
+      return () => {
+        window.removeEventListener("scroll", onScroll, true);
+        window.removeEventListener("resize", onResize);
+      };
+    }
+  }, [isOpen, updatePos]);
+
   return (
     <div className={`relative ${className}`}>
       {label && (
@@ -189,6 +218,7 @@ export function UnifiedModelSelector({
       )}
 
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-left ${isOpen
           ? "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.25)]"
@@ -213,8 +243,11 @@ export function UnifiedModelSelector({
         <ChevronDown className={`w-4 h-4 text-white/30 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
-      {isOpen && (
-        <div className="absolute z-50 mt-1 w-full min-w-[280px] rounded-xl bg-[rgba(10,15,30,0.98)] border border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden">
+      {isOpen && typeof window !== "undefined" && createPortal(
+        <div
+          className="fixed z-[9999] rounded-xl bg-[rgba(10,15,30,0.98)] border border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden"
+          style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+        >
           <div className="p-2 border-b border-white/[0.06]">
             <div className="flex items-center gap-2">
               <div className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
@@ -301,7 +334,8 @@ export function UnifiedModelSelector({
               关闭
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

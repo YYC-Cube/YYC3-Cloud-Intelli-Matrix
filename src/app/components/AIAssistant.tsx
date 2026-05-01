@@ -167,6 +167,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
   const [connTestStatus, setConnTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [connTestResult, setConnTestResult] = useState<string>("");
   const [connTestTime, setConnTestTime] = useState<number>(0);
+  const [connTestSteps, setConnTestSteps] = useState<Array<{ label: string; status: string; detail: string; latencyMs?: number }>>([]);
 
   // Data hooks for overview tab
   const { nodes } = useNodeSlice();
@@ -393,6 +394,7 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
     setConnTestStatus("testing");
     setConnTestResult("");
     setConnTestTime(0);
+    setConnTestSteps([]);
     const t0 = Date.now();
     try {
       const config: AIConnectionConfig = {
@@ -409,8 +411,9 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
       };
       const result = await testAIConnection(config);
       setConnTestStatus(result.overallStatus === "pass" ? "success" : "error");
+      setConnTestSteps(result.steps.map(s => ({ label: s.label, status: s.status, detail: s.detail, latencyMs: s.latencyMs })));
       setConnTestResult(result.steps.map(s => `[${s.status === "pass" ? "✅" : s.status === "warn" ? "⚠️" : "❌"}] ${s.label}: ${s.detail}`).join(" | "));
-      setConnTestTime(Date.now() - t0);
+      setConnTestTime(result.totalLatencyMs || (Date.now() - t0));
     } catch (err: unknown) {
       setConnTestStatus("error");
       const msg = err instanceof Error ? err.message : String(err);
@@ -983,10 +986,22 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
 
               {/* Model Selection */}
               <div>
-                <h4 className="text-[#e0f0ff] mb-2 flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
-                  <Cpu className="w-4 h-4 text-[#00d4ff]" />
-                  模型选择
-                </h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[#e0f0ff] flex items-center gap-2" style={{ fontSize: "0.82rem" }}>
+                    <Cpu className="w-4 h-4 text-[#00d4ff]" />
+                    模型选择
+                  </h4>
+                  <button
+                    onClick={() => fetchOllamaModels()}
+                    disabled={ollamaLoading}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.04] text-white/30 hover:text-cyan-400 transition-all disabled:opacity-50"
+                    style={{ fontSize: "0.6rem" }}
+                    title="刷新 Ollama 模型列表"
+                  >
+                    <RotateCcw className={`w-3 h-3 ${ollamaLoading ? "animate-spin" : ""}`} />
+                    刷新
+                  </button>
+                </div>
                 {ollamaLoading && (
                   <p className="text-[rgba(0,212,255,0.35)] mb-2" style={{ fontSize: "0.65rem" }}>
                     正在检测 Ollama 本地模型...
@@ -1058,15 +1073,32 @@ export function AIAssistant({ isMobile }: AIAssistantProps) {
                       <><Play className="w-4 h-4" /> 测试模型连接</>
                     )}
                   </button>
-                  {(connTestStatus === "success" || connTestStatus === "error") && connTestResult && (
-                    <p className="mt-1.5 px-2.5 py-1.5 rounded-lg text-[0.65rem] leading-relaxed"
+                  {(connTestStatus === "success" || connTestStatus === "error") && connTestSteps.length > 0 && (
+                    <div className="mt-2 p-2 rounded-lg space-y-1"
                       style={{
-                        color: connTestStatus === "success" ? "rgba(0,255,136,0.6)" : "rgba(255,51,102,0.6)",
                         background: connTestStatus === "success" ? "rgba(0,255,136,0.04)" : "rgba(255,51,102,0.04)",
+                        border: `1px solid ${connTestStatus === "success" ? "rgba(0,255,136,0.15)" : "rgba(255,51,102,0.15)"}`,
                       }}
                     >
-                      {connTestResult}
-                    </p>
+                      {connTestSteps.map((step, i) => (
+                        <div key={i} className="flex items-start gap-1.5">
+                          <span style={{ fontSize: "0.6rem" }}>
+                            {step.status === "pass" ? "✅" : step.status === "warn" ? "⚠️" : "❌"}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[rgba(224,240,255,0.6)]" style={{ fontSize: "0.62rem" }}>
+                              {step.label}
+                              {step.latencyMs !== undefined && (
+                                <span className="text-[rgba(0,212,255,0.35)] ml-1">{step.latencyMs}ms</span>
+                              )}
+                            </span>
+                            <p className="text-[rgba(224,240,255,0.35)] truncate" style={{ fontSize: "0.55rem" }}>
+                              {step.detail}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}

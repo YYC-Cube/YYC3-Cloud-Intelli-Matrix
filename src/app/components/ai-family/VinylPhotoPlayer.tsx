@@ -348,7 +348,6 @@ export function MVPlayerOverlay({
                   src={videoUrl}
                   className="w-full h-full object-contain"
                   playsInline
-                  muted
                   loop
                 />
               ) : (

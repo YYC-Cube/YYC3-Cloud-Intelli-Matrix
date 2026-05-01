@@ -109,6 +109,7 @@ export function FamilyMusic() {
 
   const [showAnthemPlayer, setShowAnthemPlayer] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(false);
+  const [showAddTracks, setShowAddTracks] = useState(false);
   const [careResponse, setCareResponse] = useState<CareResponse | null>(null);
 
   interface UploadedSong {
@@ -179,6 +180,7 @@ export function FamilyMusic() {
       id: t.id,
       title: t.title,
       artist: t.artist,
+      albumCover: t.coverUrl,
       color: EMOTION_COLORS[t.emotion] || "#9370DB",
     }));
   }, [playlist]);
@@ -576,6 +578,18 @@ export function FamilyMusic() {
                     <Upload className="w-3.5 h-3.5" />
                     上传歌曲
                   </button>
+                  <button
+                    onClick={() => setShowAddTracks(!showAddTracks)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showAddTracks
+                      ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-300"
+                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
+                      }`}
+                    style={{ fontSize: "0.7rem" }}
+                    title="从音乐库添加歌曲到播放列表"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    添加歌曲
+                  </button>
                 </div>
               </div>
 
@@ -593,6 +607,64 @@ export function FamilyMusic() {
                   </div>
                   <p className="text-purple-300/60" style={{ fontSize: "0.65rem" }}>{smartPlaylist.description}</p>
                 </div>
+              )}
+
+              {/* 从音乐库添加歌曲 */}
+              {showAddTracks && (
+                <FadeIn>
+                  <GlassCard className="p-3 mb-4" glowColor="rgba(0,212,255,0.03)">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Music className="w-4 h-4 text-cyan-400" />
+                        <span className="text-cyan-300 text-xs font-medium">音乐库</span>
+                        <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.6rem" }}>
+                          {MUSIC_LIBRARY.filter(t => !playlist.some(p => p.id === t.id)).length} 首可添加
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setShowAddTracks(false)}
+                        className="p-1.5 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                      {MUSIC_LIBRARY.filter(t => !playlist.some(p => p.id === t.id)).map((t) => (
+                        <div key={t.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/[0.04] transition-all group">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[rgba(224,240,255,0.7)] truncate" style={{ fontSize: "0.78rem" }}>{t.title}</p>
+                            <p className="text-[rgba(224,240,255,0.3)] truncate" style={{ fontSize: "0.6rem" }}>{t.artist} · {t.album}</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setPlaylist(prev => [...prev, t]);
+                            }}
+                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 hover:bg-cyan-500/20 transition-all"
+                            style={{ fontSize: "0.65rem" }}
+                          >
+                            <Plus className="w-3 h-3" />
+                            添加
+                          </button>
+                        </div>
+                      ))}
+                      {MUSIC_LIBRARY.filter(t => !playlist.some(p => p.id === t.id)).length === 0 && (
+                        <p className="text-center text-[rgba(224,240,255,0.3)] py-4" style={{ fontSize: "0.75rem" }}>
+                          所有歌曲已在播放列表中
+                        </p>
+                      )}
+                      {playlist.length > 0 && (
+                        <button
+                          onClick={() => setPlaylist([...MUSIC_LIBRARY])}
+                          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60 hover:bg-white/[0.08] transition-all"
+                          style={{ fontSize: "0.7rem" }}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          恢复全部默认歌曲
+                        </button>
+                      )}
+                    </div>
+                  </GlassCard>
+                </FadeIn>
               )}
 
               {/* CoverFlow 3D 展示 */}

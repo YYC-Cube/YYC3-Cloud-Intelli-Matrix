@@ -559,3 +559,7 @@ export const useProviderSlice = create<ProviderSlice>()(
     }
   )
 );
+
+if (typeof window !== "undefined") {
+  setTimeout(() => useProviderSlice.getState().fetchOllamaModels(), 100);
+}

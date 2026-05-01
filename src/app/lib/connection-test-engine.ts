@@ -330,7 +330,23 @@ async function testOllamaModelConnection(
   if (chatRes.ok) {
     result.steps[result.steps.length - 1] = { label: "推理测试", status: "pass", detail: `模型响应正常 (${chatRes.latencyMs}ms)`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
   } else {
-    result.steps[result.steps.length - 1] = { label: "推理测试", status: chatRes.status === 404 ? "warn" : "fail", detail: chatRes.errorMsg || `HTTP ${chatRes.status}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    let errorDetail = chatRes.errorMsg || `HTTP ${chatRes.status}`;
+    let suggestion = "";
+    if (chatRes.status === 400) {
+      try {
+        const errBody = JSON.parse(chatRes.body || "{}");
+        errorDetail = errBody.error || errorDetail;
+      } catch { /* use raw body */ }
+      if (errorDetail.includes("model") || errorDetail.includes("not found")) {
+        suggestion = `模型 "${inferenceModel}" 推理失败。请运行: ollama pull ${inferenceModel}`;
+      } else {
+        suggestion = `推理请求格式错误: ${errorDetail}。尝试: ollama run ${inferenceModel}`;
+      }
+      result.steps[result.steps.length - 1] = { label: "推理测试", status: "warn", detail: `推理测试失败: ${errorDetail}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    } else {
+      result.steps[result.steps.length - 1] = { label: "推理测试", status: chatRes.status === 404 ? "warn" : "fail", detail: errorDetail, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    }
+    if (suggestion) { result.suggestion = suggestion; }
   }
 
   finalizeResult(result);

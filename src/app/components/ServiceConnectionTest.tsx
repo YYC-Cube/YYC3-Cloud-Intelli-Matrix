@@ -232,6 +232,11 @@ export function ServiceConnectionTest() {
         }, 15000);
         if (chatRes.ok) {
           result.steps[result.steps.length - 1] = { label: "推理测试", status: "pass", detail: `模型响应正常 (${chatRes.latencyMs}ms)`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+        } else if (chatRes.status === 400) {
+          let errDetail = chatRes.body?.slice(0, 200) || `HTTP 400`;
+          try { errDetail = JSON.parse(chatRes.body || "{}").error || errDetail; } catch { /* use raw */ }
+          result.steps[result.steps.length - 1] = { label: "推理测试", status: "warn", detail: `推理失败: ${errDetail}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+          result.suggestion = `模型 "${model}" 推理异常。建议: ollama pull ${model} 后重试`;
         } else {
           result.steps[result.steps.length - 1] = { label: "推理测试", status: chatRes.status === 404 ? "warn" : "fail", detail: chatRes.errorMsg || `HTTP ${chatRes.status}: ${chatRes.body?.slice(0, 100)}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
         }

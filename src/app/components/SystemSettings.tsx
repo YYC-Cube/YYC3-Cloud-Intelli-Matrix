@@ -945,8 +945,8 @@ export function SystemSettings() {
               </p>
             </div>
             <div className="space-y-3">
-              <EditableField label="OpenAI API Key" value={values.aiApiKey} onChange={v => updateValue("aiApiKey", v)} type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" description="留空使用本地模拟模式" />
-              <EditableField label="API Base URL" value={values.aiBaseUrl} onChange={v => updateValue("aiBaseUrl", v)} type="url" mono description="兼容 OpenAI 协议的 API 端点" />
+              <EditableField label="AI API 密钥" value={values.aiApiKey} onChange={v => updateValue("aiApiKey", v)} type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx" description="留空使用本地模拟模式" />
+              <EditableField label="API 基础地址" value={values.aiBaseUrl} onChange={v => updateValue("aiBaseUrl", v)} type="url" mono description="兼容 OpenAI 协议的 API 端点" />
               <div className="flex items-center justify-between p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                 <div>
                   <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>默认模型</p>
@@ -969,10 +969,10 @@ export function SystemSettings() {
                   )}
                 </select>
               </div>
-              <EditableField label="温度 (Temperature)" value={values.aiTemperature} onChange={v => updateValue("aiTemperature", v)} type="number" description="0=精确，2=创意" />
-              <EditableField label="Top-P (核采样)" value={values.aiTopP} onChange={v => updateValue("aiTopP", v)} type="number" description="控制采样多样性" />
+              <EditableField label="温度" value={values.aiTemperature} onChange={v => updateValue("aiTemperature", v)} type="number" description="0=精确，2=创意" />
+              <EditableField label="核采样 (Top-P)" value={values.aiTopP} onChange={v => updateValue("aiTopP", v)} type="number" description="控制采样多样性" />
               <EditableField label="最大 Token" value={values.aiMaxTokens} onChange={v => updateValue("aiMaxTokens", v)} type="number" description="单次对话最大生成长度" />
-              <EditableField label="API 超时 (ms)" value={values.aiTimeout} onChange={v => updateValue("aiTimeout", v)} type="number" description="API 请求超时时间" />
+              <EditableField label="API 超时" value={values.aiTimeout} onChange={v => updateValue("aiTimeout", v)} type="number" description="API 请求超时时间（毫秒）" />
               <div className="flex items-center justify-between p-3 rounded-xl bg-[rgba(0,40,80,0.15)] border border-[rgba(0,180,255,0.06)]">
                 <div>
                   <p className="text-[#c0dcf0]" style={{ fontSize: "0.82rem" }}>流式输出 (Stream)</p>
@@ -1161,7 +1161,7 @@ export function SystemSettings() {
                 </div>
               </div>
               <EditableField label="通知邮箱" value={values.alertEmailAddr} onChange={v => updateValue("alertEmailAddr", v)} type="email" />
-              <EditableField label="Webhook URL" value={values.webhookUrl} onChange={v => updateValue("webhookUrl", v)} type="url" placeholder="https://hooks.slack.com/..." description="Slack / 飞书 / 钉钉 Webhook 地址" />
+              <EditableField label="Webhook 地址" value={values.webhookUrl} onChange={v => updateValue("webhookUrl", v)} type="url" placeholder="https://hooks.slack.com/..." description="Slack / 飞书 / 钉钉 Webhook 地址" />
             </div>
           </div>
         );

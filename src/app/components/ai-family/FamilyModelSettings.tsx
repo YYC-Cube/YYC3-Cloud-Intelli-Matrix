@@ -27,7 +27,7 @@ import {
   Volume2,
   Zap,
 } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useFamilyMemberSlice } from "../../store";
 import { useFamilySettingsSlice } from "../../store/slices/family-settings-slice";
 import { useProviderSlice } from "../../store/slices/provider-slice";
@@ -423,6 +423,10 @@ export function FamilyModelSettings() {
   const [diagnostics, setDiagnostics] = useState<Record<string, DiagResult>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"members" | "keys" | "overview">("members");
+
+  useEffect(() => {
+    providerSlice.fetchOllamaModels();
+  }, []);
 
   // Handlers
   const handleKeyChange = useCallback((providerId: string, key: string) => {

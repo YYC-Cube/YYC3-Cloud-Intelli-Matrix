@@ -1,0 +1,6 @@
+name: YYC3 Custom CodeQL Configuration
+
+paths-ignore:
+  - "docs/**"
+  - "**/*.md"
+  - "scripts/**"

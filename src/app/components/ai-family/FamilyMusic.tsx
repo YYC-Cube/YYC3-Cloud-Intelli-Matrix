@@ -861,8 +861,21 @@ export function FamilyMusic() {
 
               <SongUploadZone
                 onUploadSuccess={(song: { title: string; url: string }) => {
-                  const newSong: UploadedSong = { id: `upload-${Date.now()}`, title: song.title, url: song.url, artist: "本地" };
+                  const id = `upload-${Date.now()}`;
+                  const newSong: UploadedSong = { id, title: song.title, url: song.url, artist: "本地" };
                   setUploadedSongs(prev => [...prev, newSong]);
+                  const newTrack: MusicTrack = {
+                    id,
+                    title: song.title,
+                    artist: "本地",
+                    album: "用户上传",
+                    duration: 0,
+                    audioUrl: song.url,
+                    coverUrl: "/yyc3-icons/Web App/android-chrome-192.png",
+                    genre: "unknown",
+                    emotion: "happy",
+                  };
+                  setPlaylist(prev => [...prev, newTrack]);
                   careEngine.encourage({
                     achievement: `上传了原创歌曲《${song.title}》`,
                     context: '音乐创作',
@@ -885,14 +898,29 @@ export function FamilyMusic() {
                   </div>
                   <div className="space-y-1">
                     {uploadedSongs.map((song, index) => (
-                      <div key={song.id || index} className="flex items-center gap-2 text-xs text-[rgba(224,240,255,0.6)]">
+                      <div key={song.id || index} className="flex items-center gap-2 text-xs text-[rgba(224,240,255,0.6)] group">
                         <span className="text-emerald-400">✓</span>
-                        <span>{song.title}</span>
+                        <button
+                          title={`播放 ${song.title}`}
+                          onClick={() => {
+                            const idx = playlist.findIndex(t => t.id === song.id);
+                            if (idx >= 0) {
+                              setCurrentTrackIndex(idx);
+                            }
+                          }}
+                          className="text-white/40 hover:text-[#00d4ff] transition-colors"
+                        >
+                          {song.title}
+                        </button>
                         <span className="text-[rgba(224,240,255,0.3)]">· {song.artist}</span>
-                        <span className="text-[rgba(224,240,255,0.3)]">· {song.duration?.toFixed(1)}s</span>
                         <button
                           title="删除歌曲"
-                          onClick={() => setUploadedSongs(prev => prev.filter((_, i) => i !== index))}
+                          onClick={() => {
+                            setUploadedSongs(prev => prev.filter((_, i) => i !== index));
+                            if (song.id) {
+                              setPlaylist(prev => prev.filter(t => t.id !== song.id));
+                            }
+                          }}
                           className="ml-auto p-1 text-red-400/40 hover:text-red-400 transition-colors"
                         >
                           <Trash2 className="w-3 h-3" />

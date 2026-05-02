@@ -140,6 +140,9 @@ const MOBILE_NAV: MobileNavCategory[] = [
       { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
       { key: "nav.pwa", path: "/pwa", icon: Smartphone },
+      { key: "nav.storageManager", path: "/storage", icon: HardDrive },
+      { key: "nav.configCenter", path: "/config-center", icon: Settings },
+      { key: "nav.variableCenter", path: "/variables", icon: Cog },
     ],
   },
 ];

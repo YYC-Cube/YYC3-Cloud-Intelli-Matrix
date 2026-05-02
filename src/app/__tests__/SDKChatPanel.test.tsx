@@ -25,9 +25,8 @@
  * - 会话列表
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock scrollIntoView for jsdom
 Element.prototype.scrollIntoView = vi.fn();
@@ -81,6 +80,15 @@ vi.mock("../hooks/useModelProvider", () => ({
   MODEL_PROVIDERS: [],
 }));
 
+vi.mock("../store/slices/provider-slice", () => ({
+  useProviderSlice: () => ({
+    configuredModels: mockConfiguredModels,
+    providers: [],
+    ollamaModels: [],
+    ollamaLoading: false,
+  }),
+}));
+
 // Mock useBigModelSDK
 const mockCreateSession = vi.fn().mockReturnValue({ id: "new-session", title: "Test", modelId: "zhipu-glm4-1", messages: [], createdAt: Date.now(), updatedAt: Date.now() });
 const mockDeleteSession = vi.fn() as any;
@@ -92,10 +100,12 @@ const mockSetActiveSessionId = vi.fn() as any;
 vi.mock("../hooks/useBigModelSDK", () => ({
   useBigModelSDK: () => ({
     sessions: [
-      { id: "s1", title: "Test Session", modelId: "zhipu-glm4-1", messages: [
-        { id: "m1", role: "user", content: "hello", timestamp: Date.now() },
-        { id: "m2", role: "assistant", content: "Hi there!", timestamp: Date.now(), model: "glm-4-flash" },
-      ], createdAt: Date.now(), updatedAt: Date.now() },
+      {
+        id: "s1", title: "Test Session", modelId: "zhipu-glm4-1", messages: [
+          { id: "m1", role: "user", content: "hello", timestamp: Date.now() },
+          { id: "m2", role: "assistant", content: "Hi there!", timestamp: Date.now(), model: "glm-4-flash" },
+        ], createdAt: Date.now(), updatedAt: Date.now()
+      },
     ],
     activeSession: {
       id: "s1",
@@ -221,8 +231,8 @@ describe("SDKChatPanel", () => {
 
   it("应显示模型选择器", () => {
     render(<SDKChatPanel />);
-    // 默认选中第一个模型
-    expect(screen.getAllByText("Z.ai / glm-4-flash")[0]).toBeTruthy();
+    expect(screen.getAllByText("glm-4-flash")[0]).toBeTruthy();
+    expect(screen.getAllByText("Z.ai")[0]).toBeTruthy();
   });
 
   it("应显示 Mock Mode 标签 (无 API Key)", () => {

@@ -436,7 +436,7 @@ export function FamilyModelSettings() {
 
   useEffect(() => {
     providerSlice.fetchOllamaModels();
-  }, []);
+  }, [providerSlice]);
 
   // Handlers
   const handleKeyChange = useCallback((providerId: string, key: string) => {
@@ -507,7 +507,7 @@ export function FamilyModelSettings() {
         timestamp: new Date().toISOString(),
       },
     }));
-  }, [assignments, apiKeys]);
+  }, [assignments, apiKeys, PROVIDERS_MAP]);
 
   const handleSpeak = useCallback((member: UnifiedFamilyMember, profile: VoiceProfile) => {
     if (!("speechSynthesis" in window)) { return; }
@@ -548,9 +548,7 @@ export function FamilyModelSettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, []);
-
-  // Filter members
+  }, [providerSlice]);
   const filteredMembers = useMemo(() => {
     if (!searchQuery) { return members; }
     const q = searchQuery.toLowerCase();

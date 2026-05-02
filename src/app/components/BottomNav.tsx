@@ -81,6 +81,7 @@ const MORE_CATEGORIES: MoreCategory[] = [
       { key: "nav.serviceLoop", path: "/loop", icon: Settings },
       { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
       { key: "nav.exportCenter", path: "/export-center", icon: Package },
+      { key: "nav.connectionMonitor", path: "/connection-monitor", icon: Activity },
     ],
   },
   {
@@ -134,6 +135,9 @@ const MORE_CATEGORIES: MoreCategory[] = [
       { key: "nav.settings", path: "/settings", icon: Cog },
       { key: "nav.securityMonitor", path: "/security", icon: ShieldCheck },
       { key: "nav.pwa", path: "/pwa", icon: Smartphone },
+      { key: "nav.storageManager", path: "/storage", icon: HardDrive },
+      { key: "nav.configCenter", path: "/config-center", icon: Settings },
+      { key: "nav.variableCenter", path: "/variables", icon: Cog },
     ],
   },
 ];
@@ -292,8 +296,8 @@ export function BottomNav() {
                   <div className="relative">
                     <Icon
                       className={`w-[22px] h-[22px] transition-all duration-200 ${isActive
-                          ? "text-[#00d4ff]"
-                          : "text-[rgba(0,212,255,0.3)]"
+                        ? "text-[#00d4ff]"
+                        : "text-[rgba(0,212,255,0.3)]"
                         }`}
                       style={isActive ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                     />
@@ -326,8 +330,8 @@ export function BottomNav() {
               <div className="relative">
                 <MoreHorizontal
                   className={`w-[22px] h-[22px] transition-all duration-200 ${isInMoreSection || moreOpen
-                      ? "text-[#00d4ff]"
-                      : "text-[rgba(0,212,255,0.3)]"
+                    ? "text-[#00d4ff]"
+                    : "text-[rgba(0,212,255,0.3)]"
                     }`}
                   style={(isInMoreSection || moreOpen) ? { filter: "drop-shadow(0 0 6px rgba(0,212,255,0.5))" } : undefined}
                 />

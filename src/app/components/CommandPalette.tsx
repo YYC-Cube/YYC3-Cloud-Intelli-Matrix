@@ -67,6 +67,10 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: "nav-dataeditor", labelKey: "nav.dataEditor",    descKey: "palette.navigate",          category: "nav",  icon: "Package",    path: "/data-editor" },
   { id: "nav-performance", labelKey: "nav.performance",  descKey: "palette.navigate",          category: "nav",  icon: "Gauge",      path: "/performance" },
   { id: "nav-envconfig",   labelKey: "nav.envConfig",    descKey: "palette.navigate",          category: "nav",  icon: "ServerCog",  path: "/env-config" },
+  { id: "nav-storage",     labelKey: "nav.storageManager", descKey: "palette.navigate",         category: "nav",  icon: "HardDrive",  path: "/storage" },
+  { id: "nav-configcenter", labelKey: "nav.configCenter", descKey: "palette.navigate",         category: "nav",  icon: "Settings",   path: "/config-center" },
+  { id: "nav-variables",   labelKey: "nav.variableCenter", descKey: "palette.navigate",        category: "nav",  icon: "Settings",   path: "/variables" },
+  { id: "nav-connmonitor",  labelKey: "nav.connectionMonitor", descKey: "palette.navigate",     category: "nav",  icon: "Activity",   path: "/connection-monitor" },
 ];
 
 interface CommandPaletteProps {

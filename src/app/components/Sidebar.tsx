@@ -98,6 +98,7 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.serviceLoop", path: "/loop", icon: SettingsIcon },
       { key: "nav.reportExport", path: "/reports", icon: FileBarChart },
       { key: "nav.exportCenter", path: "/export-center", icon: Package },
+      { key: "nav.connectionMonitor", path: "/connection-monitor", icon: Activity },
     ],
   },
   {
@@ -160,6 +161,9 @@ const NAV_CATEGORIES: NavCategory[] = [
       { key: "nav.dataEditor", path: "/data-editor", icon: Package },
       { key: "nav.performance", path: "/performance", icon: Gauge },
       { key: "nav.envConfig", path: "/env-config", icon: ServerCog },
+      { key: "nav.storageManager", path: "/storage", icon: HardDrive },
+      { key: "nav.configCenter", path: "/config-center", icon: SettingsIcon },
+      { key: "nav.variableCenter", path: "/variables", icon: Cog },
     ],
   },
 ];

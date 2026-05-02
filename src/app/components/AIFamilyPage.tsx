@@ -20,7 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useClock } from "../hooks/useClock";
+import { useClockMinutes } from "../hooks/useClock";
 import { useI18n } from "../hooks/useI18n";
 import { useFamilyMemberSlice } from "../store";
 import type { UnifiedFamilyMember } from "../types";
@@ -86,7 +86,7 @@ function formatDateInfo(date: Date) {
 
 export function AIFamilyPage() {
   const { t } = useI18n();
-  const time = useClock();
+  const time = useClockMinutes();
   const { members } = useFamilyMemberSlice();
   const [selectedMember, setSelectedMember] = useState<ClockMember | null>(null);
   const [hoveredMember, setHoveredMember] = useState<string | null>(null);
@@ -104,17 +104,16 @@ export function AIFamilyPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSpeaker((prev) => (prev + 1) % clockMembers.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(timer);
   }, [clockMembers.length]);
 
   // Clock hands
   const hours = time.getHours() % 12;
   const minutes = time.getMinutes();
-  const seconds = time.getSeconds();
   const hourAngle = (hours * 30) + (minutes * 0.5) - 90;
-  const minuteAngle = (minutes * 6) + (seconds * 0.1) - 90;
-  const secondAngle = (seconds * 6) - 90;
+  const minuteAngle = (minutes * 6) - 90;
+  const secondAngleBase = (time.getSeconds() * 6) - 90;
 
   const timeStr = time.toLocaleTimeString("zh-CN", { hour12: false });
   const { dateStr, dayLabel, isWeekend } = formatDateInfo(time);
@@ -217,8 +216,8 @@ export function AIFamilyPage() {
           {/* Second hand */}
           <line
             x1={0} y1={0}
-            x2={Math.cos(secondAngle * Math.PI / 180) * (RING_RADIUS * 0.7)}
-            y2={Math.sin(secondAngle * Math.PI / 180) * (RING_RADIUS * 0.7)}
+            x2={Math.cos(secondAngleBase * Math.PI / 180) * (RING_RADIUS * 0.7)}
+            y2={Math.sin(secondAngleBase * Math.PI / 180) * (RING_RADIUS * 0.7)}
             stroke="rgba(255,0,110,0.6)"
             strokeWidth={1}
             strokeLinecap="round"

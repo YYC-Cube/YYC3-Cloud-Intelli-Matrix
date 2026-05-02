@@ -9,21 +9,53 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect } from "react";
 import {
-  Brain, Users, Heart, Music, Newspaper, TrendingUp,
-  Sparkles, BookOpen, Gamepad2, GraduationCap,
-  Shield, Network, MessageCircle, Zap,
-  ChevronRight, ChevronDown, Play, Pause,
-  Home, Headphones, Radio, Globe, Target,
-  Award, Rocket, GitBranch, Layers, Code, Terminal,
-  BarChart3, Activity, Database,
-  Sun, Clock, Compass,
-  FileText, FolderOpen, Settings, Bell,
-  Quote, Mic, Volume2, Rss,
+  Activity,
+  Award,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Brain,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Code,
+  Compass,
+  Database,
+  FileText, FolderOpen,
+  Gamepad2,
+  GitBranch,
+  Globe,
+  GraduationCap,
+  Headphones,
+  Heart,
+  Home,
+  Layers,
+  MessageCircle,
+  Mic,
+  Music,
+  Network,
+  Newspaper,
+  Pause,
+  Play,
+  Quote,
+  Radio,
+  Rocket,
+  Rss,
+  Settings,
+  Shield,
+  Sparkles,
+  Sun,
+  Target,
+  Terminal,
+  TrendingUp,
+  Users,
+  Volume2,
+  Zap,
 } from "lucide-react";
-import { GlassCard } from "../GlassCard";
+import React, { useEffect, useRef, useState } from "react";
 import { useFamilyMemberSlice } from "../../store";
+import { GlassCard } from "../GlassCard";
 
 // ═══════════════════════════════════════════════
 // 安全动画 wrapper — 不依赖 IntersectionObserver
@@ -244,7 +276,7 @@ function HeroBanner() {
             transition: "opacity 0.6s ease",
           }}
         >
-          集众思成家逸 · 构建AI之家 · 纵向丝滑之极致协同
+          万象归元于云枢 | 深栈智启新纪元
         </p>
 
         <div
@@ -361,7 +393,7 @@ function ModulesOverview({ onSelectModule }: { onSelectModule: (id: string) => v
 /** 模块详情面板 */
 function ModuleDetailPanel({ moduleId, onClose }: { moduleId: string; onClose: () => void }) {
   const section = DESIGN_SECTIONS.find((s) => s.id === moduleId);
-  if (!section) {return null;}
+  if (!section) { return null; }
 
   const details = getModuleDetails(moduleId);
 
@@ -671,9 +703,22 @@ function RoadmapSection() {
 function SongSection() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeLine, setActiveLine] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (!isPlaying) {return;}
+    if (!isPlaying) {
+      audioRef.current?.pause();
+      return;
+    }
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/Music-Mp3/FAmily-AI/沫言-Family-AI-智慧工坊.mp3");
+      audioRef.current.addEventListener("ended", () => {
+        setIsPlaying(false);
+        setActiveLine(0);
+      });
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(() => { });
     const timer = setInterval(() => {
       setActiveLine((prev) => {
         const next = prev + 1;
@@ -706,7 +751,7 @@ function SongSection() {
               </span>
             </div>
             <button
-              onClick={() => { setIsPlaying(!isPlaying); if (!isPlaying) {setActiveLine(0);} }}
+              onClick={() => { setIsPlaying(!isPlaying); if (!isPlaying) { setActiveLine(0); } }}
               className="w-10 h-10 rounded-full flex items-center justify-center border border-[rgba(255,105,180,0.3)] hover:bg-[rgba(255,105,180,0.1)] transition-colors"
             >
               {isPlaying ? (
@@ -719,7 +764,7 @@ function SongSection() {
 
           <div className="space-y-2">
             {SONG_LYRICS.map((line, i) => {
-              if (line === "") {return <div key={`empty-${i}`} className="h-3" />}
+              if (line === "") { return <div key={`empty-${i}`} className="h-3" /> }
               const isActive = isPlaying && i === activeLine;
               return (
                 <p
@@ -877,7 +922,7 @@ function ModuleWireframe({ moduleId, color }: { moduleId: string; color: string 
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3">
-          {[1,2,3,4,5,6,7,8].map(i => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
             <div key={i} className="aspect-square rounded-full border flex items-center justify-center"
               style={{ borderColor: `rgba(${hexToRgb(color)}, 0.2)`, background: `rgba(${hexToRgb(color)}, 0.03)` }}>
               <div className="w-4 h-4 rounded-full" style={{ background: `rgba(${hexToRgb(color)}, 0.2)` }} />
@@ -1029,7 +1074,7 @@ function ModuleWireframe({ moduleId, color }: { moduleId: string; color: string 
 
 function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) {return "0,212,255";}
+  if (!result) { return "0,212,255"; }
   return `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`;
 }
 

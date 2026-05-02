@@ -11,7 +11,7 @@
 
 import { Disc3, Film, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DMUSIC_PHOTOS } from "../../lib/dmusic-resources";
 
 interface VinylPhotoPlayerProps {
@@ -285,25 +285,57 @@ interface MVPlayerOverlayProps {
 
 export function MVPlayerOverlay({
   isOpen, onClose, videoUrl, trackTitle,
-  isPlaying, currentTime, duration, onSeek, formatTime,
+  isPlaying: _externalIsPlaying, currentTime, duration, onSeek, formatTime,
 }: MVPlayerOverlayProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 80, y: 60 });
   const [size, setSize] = useState({ w: 640, h: 420 });
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoTime, setVideoTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoVolume, setVideoVolume] = useState(1);
+  const [showControls, setShowControls] = useState(true);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
-  useEffect(() => {
-    if (!videoRef.current || !videoUrl) { return; }
-    if (isPlaying) { videoRef.current.play().catch(() => { }); } else { videoRef.current.pause(); }
-  }, [isPlaying, videoUrl]);
+  const togglePlay = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || !videoUrl) { return; }
+    if (v.paused) { v.play().catch(() => { }); setVideoPlaying(true); }
+    else { v.pause(); setVideoPlaying(false); }
+  }, [videoUrl]);
+
+  const changeVolume = useCallback((delta: number) => {
+    const v = videoRef.current;
+    if (!v) { return; }
+    const vol = Math.max(0, Math.min(1, v.volume + delta));
+    v.volume = vol;
+    v.muted = vol === 0;
+    setVideoVolume(vol);
+  }, []);
 
   useEffect(() => {
-    if (!videoRef.current || !videoUrl) { return; }
-    const diff = Math.abs(videoRef.current.currentTime - currentTime);
-    if (diff > 0.5) { videoRef.current.currentTime = currentTime; }
-  }, [currentTime, videoUrl]);
+    const v = videoRef.current;
+    if (!v || !videoUrl) { return; }
+    const onPlay = () => setVideoPlaying(true);
+    const onPause = () => setVideoPlaying(false);
+    const onTime = () => setVideoTime(v.currentTime);
+    const onDur = () => setVideoDuration(v.duration);
+    v.addEventListener("play", onPlay);
+    v.addEventListener("pause", onPause);
+    v.addEventListener("timeupdate", onTime);
+    v.addEventListener("loadedmetadata", onDur);
+    return () => { v.removeEventListener("play", onPlay); v.removeEventListener("pause", onPause); v.removeEventListener("timeupdate", onTime); v.removeEventListener("loadedmetadata", onDur); };
+  }, [videoUrl]);
+
+  useEffect(() => {
+    if (!isOpen) { return; }
+    setVideoPlaying(false);
+    setVideoTime(0);
+    setVideoDuration(0);
+  }, [isOpen, videoUrl]);
 
   useEffect(() => {
     if (!isOpen) { return; }
@@ -328,16 +360,27 @@ export function MVPlayerOverlay({
   useEffect(() => {
     if (!isOpen) { return; }
     const handleKey = (e: KeyboardEvent) => {
+      const v = videoRef.current;
       if (e.key === "Escape") { onClose(); return; }
-      if (e.key === " ") { e.preventDefault(); }
-      if (e.key === "ArrowLeft") { onSeek(Math.max(0, currentTime / duration - 0.05)); }
-      if (e.key === "ArrowRight") { onSeek(Math.min(1, currentTime / duration + 0.05)); }
+      if (e.key === " ") { e.preventDefault(); togglePlay(); return; }
+      if (e.key === "ArrowLeft" && v) { v.currentTime = Math.max(0, v.currentTime - 5); }
+      if (e.key === "ArrowRight" && v) { v.currentTime = Math.min(v.duration || 0, v.currentTime + 5); }
+      if (e.key === "ArrowUp") { e.preventDefault(); changeVolume(0.1); }
+      if (e.key === "ArrowDown") { e.preventDefault(); changeVolume(-0.1); }
+      if (e.key === "f" || e.key === "F") { setSize({ w: window.innerWidth - 40, h: window.innerHeight - 40 }); setPos({ x: 20, y: 20 }); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen, onClose, onSeek, currentTime, duration]);
+  }, [isOpen, onClose, togglePlay, changeVolume]);
 
-  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const scheduleHideControls = useCallback(() => {
+    setShowControls(true);
+    if (hideTimerRef.current) { clearTimeout(hideTimerRef.current); }
+    if (videoPlaying) { hideTimerRef.current = setTimeout(() => setShowControls(false), 3000); }
+  }, [videoPlaying]);
+
+  const progressPct = videoDuration > 0 ? (videoTime / videoDuration) * 100 : 0;
+  const effectiveDuration = videoDuration || duration;
 
   return (
     <AnimatePresence>
@@ -350,10 +393,12 @@ export function MVPlayerOverlay({
             transition={{ type: "spring", damping: 26, stiffness: 280 }}
             className="fixed bg-black/95 backdrop-blur-2xl rounded-2xl border border-white/10 z-[70] flex flex-col overflow-hidden shadow-2xl"
             style={{ left: pos.x, top: pos.y, width: size.w, height: size.h }}
+            onMouseMove={scheduleHideControls}
           >
             {/* Header — drag handle */}
             <div
-              className="flex items-center justify-between p-3 border-b border-white/[0.06] cursor-move select-none"
+              className="flex items-center justify-between p-3 border-b border-white/[0.06] cursor-move select-none shrink-0"
+              style={{ opacity: showControls ? 1 : 0, transition: "opacity 0.3s" }}
               onMouseDown={(e) => { if ((e.target as HTMLElement).closest("button")) { return; } dragRef.current = { startX: e.clientX, startY: e.clientY, startPosX: pos.x, startPosY: pos.y }; }}
             >
               <div className="flex items-center gap-2">
@@ -362,14 +407,14 @@ export function MVPlayerOverlay({
                 </div>
                 <div>
                   <h3 className="text-white font-semibold" style={{ fontSize: "0.82rem" }}>{trackTitle}</h3>
-                  <p className="text-white/30" style={{ fontSize: "0.55rem" }}>D-Music MV · 拖拽标题栏移动 · 拖拽右下角调整大小</p>
+                  <p className="text-white/30" style={{ fontSize: "0.55rem" }}>拖拽标题栏移动 · 右下角调整大小</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setSize({ w: 640, h: 420 })} className="p-1.5 text-white/30 hover:text-white/60 transition-colors rounded hover:bg-white/[0.06]" title="默认大小">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
                 </button>
-                <button onClick={() => { setSize({ w: window.innerWidth - 40, h: window.innerHeight - 40 }); setPos({ x: 20, y: 20 }); }} className="p-1.5 text-white/30 hover:text-white/60 transition-colors rounded hover:bg-white/[0.06]" title="最大化">
+                <button onClick={() => { setSize({ w: window.innerWidth - 40, h: window.innerHeight - 40 }); setPos({ x: 20, y: 20 }); }} className="p-1.5 text-white/30 hover:text-white/60 transition-colors rounded hover:bg-white/[0.06]" title="最大化 (F)">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" /></svg>
                 </button>
                 <button onClick={onClose} className="p-1.5 text-white/40 hover:text-white transition-colors rounded hover:bg-white/[0.06]" title="关闭 (Esc)">
@@ -379,7 +424,7 @@ export function MVPlayerOverlay({
             </div>
 
             {/* Video Area */}
-            <div className="flex-1 relative bg-black flex items-center justify-center min-h-0">
+            <div className="flex-1 relative bg-black flex items-center justify-center min-h-0" onClick={togglePlay}>
               {videoUrl ? (
                 <video ref={videoRef as React.RefObject<HTMLVideoElement>} src={videoUrl} className="w-full h-full object-contain" playsInline loop />
               ) : (
@@ -388,22 +433,58 @@ export function MVPlayerOverlay({
                   <p className="text-sm">暂无 MV 视频</p>
                 </div>
               )}
+              {!videoPlaying && videoUrl && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                    <svg className="w-6 h-6 text-white/80 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Progress bar */}
-            <div className="px-3 pt-2 pb-2 border-t border-white/[0.04]">
+            {/* Controls */}
+            <div className="shrink-0 px-3 pt-2 pb-2 border-t border-white/[0.04]" style={{ opacity: showControls ? 1 : 0, transition: "opacity 0.3s" }}>
               <div
-                className="w-full h-1.5 bg-white/10 rounded-full cursor-pointer group relative"
-                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSeek(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}
+                className="w-full h-1.5 bg-white/10 rounded-full cursor-pointer group relative mb-2"
+                onClick={(e) => {
+                  const v = videoRef.current;
+                  if (!v || !v.duration) { return; }
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  v.currentTime = ((e.clientX - rect.left) / rect.width) * v.duration;
+                }}
               >
                 <div className="h-full bg-gradient-to-r from-purple-500 via-violet-400 to-blue-500 rounded-full relative" style={{ width: `${progressPct}%` }}>
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform" />
                 </div>
               </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-white/30 font-mono" style={{ fontSize: "0.6rem" }}>{formatTime(currentTime)}</span>
-                <span className="text-white/20" style={{ fontSize: "0.55rem" }}>← → 快进5s · Esc 关闭</span>
-                <span className="text-white/30 font-mono" style={{ fontSize: "0.6rem" }}>{formatTime(duration)}</span>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { const v = videoRef.current; if (v) { v.currentTime = Math.max(0, v.currentTime - 10); } }} className="p-1 text-white/50 hover:text-white transition-colors" title="后退10s (←)">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 4v6h6M23 20a10 10 0 00-17.32-6.5L1 10" /></svg>
+                </button>
+                <button onClick={togglePlay} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all" title={videoPlaying ? "暂停 (Space)" : "播放 (Space)"}>
+                  {videoPlaying ? (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                  )}
+                </button>
+                <button onClick={() => { const v = videoRef.current; if (v) { v.currentTime = Math.min(v.duration || 0, v.currentTime + 10); } }} className="p-1 text-white/50 hover:text-white transition-colors" title="前进10s (→)">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20a10 10 0 0017.32-6.5L23 10" /></svg>
+                </button>
+                <span className="text-white/30 font-mono ml-1" style={{ fontSize: "0.6rem" }}>{formatTime(videoTime)} / {formatTime(effectiveDuration)}</span>
+                <div className="flex-1" />
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => { const v = videoRef.current; if (v) { v.muted = !v.muted; setVideoVolume(v.muted ? 0 : v.volume); } }} className="p-1 text-white/50 hover:text-white transition-colors" title="静音">
+                    {videoVolume === 0 ? (
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z M23 9l-6 6M17 9l6 6" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" /></svg>
+                    )}
+                  </button>
+                  <div className="w-16 h-1 bg-white/10 rounded-full cursor-pointer relative" onClick={(e) => { const v = videoRef.current; if (!v) { return; } const rect = e.currentTarget.getBoundingClientRect(); const vol = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)); v.volume = vol; v.muted = vol === 0; setVideoVolume(vol); }}>
+                    <div className="h-full bg-white/40 rounded-full" style={{ width: `${videoVolume * 100}%` }} />
+                  </div>
+                </div>
               </div>
             </div>
 

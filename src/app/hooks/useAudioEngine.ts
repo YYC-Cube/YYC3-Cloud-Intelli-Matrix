@@ -444,83 +444,90 @@ export function useAudioEngine(config: AudioEngineConfig = {}): AudioEngineRetur
     const ctx = audioCtxRef.current!;
     const masterGain = masterGainRef.current!;
 
-    if (ctx.state === "suspended") {
-      ctx.resume();
-    }
-
-    masterGain.gain.cancelScheduledValues(ctx.currentTime);
-    masterGain.gain.setTargetAtTime(volumeRef.current, ctx.currentTime, 0.15);
-
-    if (audioModeRef.current === "demo") {
-      if (oscillatorsRef.current.length === 0) {
-        setupOscillators();
-      }
-
-      startWallTimeRef.current = performance.now();
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      timerRef.current = setInterval(() => {
-        const elapsed = (performance.now() - startWallTimeRef.current) / 1000;
-        const newTime = accumulatedTimeRef.current + elapsed;
-        if (newTime >= demoDurationRef.current) {
-          accumulatedTimeRef.current = 0;
-          startWallTimeRef.current = performance.now();
-          setCurrentTime(0);
-          isPlayingRef.current = false;
-          setIsPlaying(false);
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
-          cancelAnimationFrame(animFrameRef.current);
-          animFrameRef.current = 0;
-          const mg = masterGainRef.current;
-          const c = audioCtxRef.current;
-          if (c && mg) {
-            mg.gain.cancelScheduledValues(c.currentTime);
-            mg.gain.setTargetAtTime(0, c.currentTime, 0.15);
-          }
-          setTimeout(() => {
-            if (!isPlayingRef.current) {
-              setFrequencyData(new Uint8Array(64));
-              setAudioEnergy(0);
-              setBassEnergy(0);
-              setTrebleEnergy(0);
-            }
-          }, 300);
-          onTrackEndRef.current?.();
-        } else {
-          setCurrentTime(newTime);
-          onTimeUpdateRef.current?.(newTime);
-          updateChord(newTime);
+    const doPlay = () => {
+      if (audioModeRef.current === "demo") {
+        if (oscillatorsRef.current.length === 0) {
+          setupOscillators();
         }
-      }, 50);
-    } else {
-      const audio = audioElRef.current!;
-      const currentTrack = currentTrackRef.current;
 
-      if (currentTrack?.audioUrl && (!audio.src || audio.src === "")) {
-        audio.src = currentTrack.audioUrl;
-        audio.load();
-      }
-
-      const attemptPlay = () => {
-        audio.play().catch((err) => {
-          console.error("Audio play error:", err);
-        });
-      };
-
-      if (audio.readyState >= 2) {
-        attemptPlay();
+        startWallTimeRef.current = performance.now();
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        timerRef.current = setInterval(() => {
+          const elapsed = (performance.now() - startWallTimeRef.current) / 1000;
+          const newTime = accumulatedTimeRef.current + elapsed;
+          if (newTime >= demoDurationRef.current) {
+            accumulatedTimeRef.current = 0;
+            startWallTimeRef.current = performance.now();
+            setCurrentTime(0);
+            isPlayingRef.current = false;
+            setIsPlaying(false);
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+            cancelAnimationFrame(animFrameRef.current);
+            animFrameRef.current = 0;
+            const mg = masterGainRef.current;
+            const c = audioCtxRef.current;
+            if (c && mg) {
+              mg.gain.cancelScheduledValues(c.currentTime);
+              mg.gain.setTargetAtTime(0, c.currentTime, 0.15);
+            }
+            setTimeout(() => {
+              if (!isPlayingRef.current) {
+                setFrequencyData(new Uint8Array(64));
+                setAudioEnergy(0);
+                setBassEnergy(0);
+                setTrebleEnergy(0);
+              }
+            }, 300);
+            onTrackEndRef.current?.();
+          } else {
+            setCurrentTime(newTime);
+            onTimeUpdateRef.current?.(newTime);
+            updateChord(newTime);
+          }
+        }, 50);
       } else {
-        audio.addEventListener("canplay", attemptPlay, { once: true });
-      }
-    }
+        const audio = audioElRef.current!;
+        const currentTrack = currentTrackRef.current;
 
-    isPlayingRef.current = true;
-    setIsPlaying(true);
-    startAnalysisLoop();
+        if (currentTrack?.audioUrl && (!audio.src || audio.src === "")) {
+          audio.src = currentTrack.audioUrl;
+          audio.load();
+        }
+
+        const attemptPlay = () => {
+          audio.play().catch((err) => {
+            console.error("Audio play error:", err);
+          });
+        };
+
+        if (audio.readyState >= 2) {
+          attemptPlay();
+        } else {
+          audio.addEventListener("canplay", attemptPlay, { once: true });
+        }
+      }
+
+      isPlayingRef.current = true;
+      setIsPlaying(true);
+      startAnalysisLoop();
+    };
+
+    if (ctx.state === "suspended") {
+      ctx.resume().then(() => {
+        masterGain.gain.cancelScheduledValues(ctx.currentTime);
+        masterGain.gain.setTargetAtTime(volumeRef.current, ctx.currentTime, 0.01);
+        doPlay();
+      }).catch(() => { });
+    } else {
+      masterGain.gain.cancelScheduledValues(ctx.currentTime);
+      masterGain.gain.setTargetAtTime(volumeRef.current, ctx.currentTime, 0.01);
+      doPlay();
+    }
   }, [initAudio, setupOscillators, startAnalysisLoop, updateChord]);
 
   const pause = useCallback(() => {
@@ -617,8 +624,6 @@ export function useAudioEngine(config: AudioEngineConfig = {}): AudioEngineRetur
         setAudioMode("file");
 
         const audio = audioElRef.current!;
-        const isSameOrigin = newTrack.audioUrl.startsWith("/") || newTrack.audioUrl.startsWith(window.location.origin);
-        audio.crossOrigin = isSameOrigin ? null : "anonymous";
         audio.src = newTrack.audioUrl;
         audio.load();
       } else {

@@ -116,6 +116,7 @@ export function Layout() {
               userEmail={auth.userEmail}
               userRole={auth.userRole}
               onToggleTerminal={() => setTerminalOpen(prev => !prev)}
+              onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             />
 
             {/* Main area: Sidebar (desktop) + Content */}

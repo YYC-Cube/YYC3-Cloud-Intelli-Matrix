@@ -390,10 +390,19 @@ function ApiKeyPanel({
 
 export function FamilyModelSettings() {
   const { members } = useFamilyMemberSlice();
-  const apiKeys = useFamilySettingsSlice((s) => s.providerKeys);
   const assignments = useFamilySettingsSlice((s) => s.modelAssignments);
   const voiceProfiles = useFamilySettingsSlice((s) => s.voiceProfiles);
   const providerSlice = useProviderSlice();
+
+  const apiKeys = useMemo(() => {
+    const keys: Record<string, string> = {};
+    for (const cm of providerSlice.configuredModels) {
+      if (cm.apiKey && !keys[cm.providerId]) {
+        keys[cm.providerId] = cm.apiKey;
+      }
+    }
+    return keys;
+  }, [providerSlice.configuredModels]);
 
   const PROVIDERS: ProviderDef[] = useMemo(() => {
     const mapped = providerSlice.providers.map(p => ({
@@ -417,7 +426,7 @@ export function FamilyModelSettings() {
     Object.fromEntries(PROVIDERS.map(p => [p.id, p])),
     [PROVIDERS]);
 
-  const ollamaProviders = useMemo(() =>
+  const _ollamaProviders = useMemo(() =>
     PROVIDERS.filter(p => p.id === "ollama"),
     [PROVIDERS]);
   // State
@@ -431,8 +440,11 @@ export function FamilyModelSettings() {
 
   // Handlers
   const handleKeyChange = useCallback((providerId: string, key: string) => {
-    useFamilySettingsSlice.getState().updateProviderKey(providerId, key);
-  }, []);
+    const existing = providerSlice.configuredModels.find(cm => cm.providerId === providerId);
+    if (existing) {
+      providerSlice.updateModel(existing.id, { apiKey: key });
+    }
+  }, [providerSlice]);
 
   const handleChangeModel = useCallback((memberId: string, providerId: string, modelId: string) => {
     useFamilySettingsSlice.getState().updateModelAssignment(memberId, { providerId, modelId });
@@ -514,8 +526,15 @@ export function FamilyModelSettings() {
 
   const handleExportConfig = useCallback(() => {
     const sliceState = useFamilySettingsSlice.getState();
+    const providerState = providerSlice;
+    const aggregatedKeys: Record<string, string> = {};
+    for (const cm of providerState.configuredModels) {
+      if (cm.apiKey && !aggregatedKeys[cm.providerId]) {
+        aggregatedKeys[cm.providerId] = cm.apiKey;
+      }
+    }
     const data = {
-      apiKeys: sliceState.providerKeys,
+      apiKeys: aggregatedKeys,
       assignments: sliceState.modelAssignments,
       voiceProfiles: sliceState.voiceProfiles,
       exportDate: new Date().toISOString(),

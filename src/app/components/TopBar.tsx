@@ -156,6 +156,7 @@ interface TopBarProps {
   userEmail: string;
   userRole: string;
   onToggleTerminal?: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export function TopBar({
@@ -172,6 +173,7 @@ export function TopBar({
   userEmail,
   userRole,
   onToggleTerminal,
+  onOpenCommandPalette,
 }: TopBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -286,8 +288,12 @@ export function TopBar({
                   }
                 `}
                 style={{ fontSize: "0.72rem", height: 32 }}
-                onFocus={() => setSearchFocused(true)}
+                onFocus={() => {
+                  setSearchFocused(true);
+                  if (onOpenCommandPalette) { onOpenCommandPalette(); }
+                }}
                 onBlur={() => setSearchFocused(false)}
+                readOnly
               />
               <kbd
                 className="absolute right-2 px-1.5 py-0.5 rounded bg-[rgba(0,180,255,0.06)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.25)] hidden lg:block"
@@ -551,6 +557,10 @@ export function TopBar({
                     placeholder={t("palette.placeholder")}
                     className="w-full pl-10 pr-4 rounded-xl bg-[rgba(0,40,80,0.25)] border border-[rgba(0,180,255,0.08)] text-[#e0f0ff] placeholder-[rgba(0,212,255,0.2)] focus:outline-none focus:border-[rgba(0,212,255,0.25)]"
                     style={{ height: 40, fontSize: "0.8rem" }}
+                    onFocus={() => {
+                      if (onOpenCommandPalette) { onOpenCommandPalette(); }
+                    }}
+                    readOnly
                   />
                 </div>
               </div>

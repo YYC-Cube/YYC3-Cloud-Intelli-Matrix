@@ -9,7 +9,7 @@
  * @tags: [hook]
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type Emotion = "happy" | "sad" | "energetic" | "calm" | "neutral";
 export type AudioMode = "demo" | "file" | "stream";
@@ -617,6 +617,8 @@ export function useAudioEngine(config: AudioEngineConfig = {}): AudioEngineRetur
         setAudioMode("file");
 
         const audio = audioElRef.current!;
+        const isSameOrigin = newTrack.audioUrl.startsWith("/") || newTrack.audioUrl.startsWith(window.location.origin);
+        audio.crossOrigin = isSameOrigin ? null : "anonymous";
         audio.src = newTrack.audioUrl;
         audio.load();
       } else {

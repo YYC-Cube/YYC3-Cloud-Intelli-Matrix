@@ -701,24 +701,30 @@ function RoadmapSection() {
 
 /** Family AI 之歌 */
 function SongSection() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [activeLine, setActiveLine] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio("/Music-Mp3/FAmily-AI/沫言-Family-AI-智慧工坊.mp3");
+    audioRef.current = audio;
+    audio.play().catch(() => { });
+    audio.addEventListener("ended", () => {
+      setIsPlaying(false);
+      setActiveLine(0);
+    });
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPlaying) {
       audioRef.current?.pause();
       return;
     }
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/Music-Mp3/FAmily-AI/沫言-Family-AI-智慧工坊.mp3");
-      audioRef.current.addEventListener("ended", () => {
-        setIsPlaying(false);
-        setActiveLine(0);
-      });
-    }
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => { });
     const timer = setInterval(() => {
       setActiveLine((prev) => {
         const next = prev + 1;

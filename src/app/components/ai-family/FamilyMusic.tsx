@@ -14,10 +14,10 @@ import {
   ExternalLink,
   Heart,
   LayoutGrid,
-  List,
   ListMusic,
   MessageCircleHeart,
   Mic,
+  MoreHorizontal,
   Music,
   Music2,
   Newspaper,
@@ -26,6 +26,7 @@ import {
   Plus,
   Repeat,
   Rss,
+  Search,
   Shuffle,
   SkipBack,
   SkipForward,
@@ -110,6 +111,10 @@ export function FamilyMusic() {
   const [showAnthemPlayer, setShowAnthemPlayer] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(false);
   const [showAddTracks, setShowAddTracks] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showAnthemModal, setShowAnthemModal] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [musicSearch, setMusicSearch] = useState("");
   const [careResponse, setCareResponse] = useState<CareResponse | null>(null);
 
   interface UploadedSong {
@@ -499,97 +504,71 @@ export function FamilyMusic() {
 
             {/* 播放列表 */}
             <div className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <List className="w-4 h-4 text-[rgba(0,212,255,0.5)]" />
-                  <h3 className="text-[#e0f0ff]" style={{ fontSize: "0.9rem" }}>播放列表</h3>
-                  <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.65rem" }}>{playlist.length} 首</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setViewMode("coverflow")}
-                    className={`p-2 rounded-lg transition-all ${viewMode === "coverflow"
-                      ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
-                      : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                      }`}
-                    title="3D 封面流"
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-lg transition-all ${viewMode === "list"
-                      ? "bg-[rgba(0,212,255,0.2)] text-cyan-300"
-                      : "bg-white/[0.04] text-white/40 hover:text-white/60"
-                      }`}
-                    title="列表视图"
-                  >
-                    <ListMusic className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={generateSmartPlaylist}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all"
-                    style={{ fontSize: "0.7rem" }}
-                    title="基于情感历史生成智能播放列表"
-                  >
-                    <Wand2 className="w-3.5 h-3.5" />
-                    智能生成
-                  </button>
-                  <button
-                    onClick={() => setShowCreationStudio(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 transition-all"
-                    style={{ fontSize: "0.7rem" }}
-                    title="AI 创作工坊"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    AI 创作
-                  </button>
-                  {musicWorks.length > 0 && (
-                    <button
-                      onClick={() => setShowMyWorks(!showMyWorks)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showMyWorks ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-300" : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"}`}
-                      style={{ fontSize: "0.7rem" }}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      我的创作 ({musicWorks.length})
+              {/* 搜索 + 视图切换 + 操作栏 */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                  <Search className="w-3.5 h-3.5 text-white/25 shrink-0" />
+                  <input
+                    value={musicSearch}
+                    onChange={(e) => setMusicSearch(e.target.value)}
+                    placeholder="搜索歌曲、歌手..."
+                    className="flex-1 bg-transparent text-[rgba(224,240,255,0.7)] outline-none"
+                    style={{ fontSize: "0.72rem" }}
+                  />
+                  {musicSearch && (
+                    <button onClick={() => setMusicSearch("")} className="text-white/20 hover:text-white/50">
+                      <X className="w-3 h-3" />
                     </button>
                   )}
+                </div>
+                <button
+                  onClick={() => setViewMode(viewMode === "list" ? "coverflow" : "list")}
+                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                  title={viewMode === "list" ? "切换到3D封面流" : "切换到列表视图"}
+                >
+                  {viewMode === "list" ? <LayoutGrid className="w-4 h-4" /> : <ListMusic className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setShowAddTracks(!showAddTracks)}
+                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                  title="添加歌曲"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <div className="relative">
                   <button
-                    onClick={() => setShowAnthemPlayer(!showAnthemPlayer)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showAnthemPlayer
-                      ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300"
-                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
-                      }`}
-                    style={{ fontSize: "0.7rem" }}
-                    title="Family AI · 智慧工坊之歌"
+                    onClick={() => setShowMoreMenu(!showMoreMenu)}
+                    className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
+                    title="更多功能"
                   >
-                    <Music2 className="w-3.5 h-3.5" />
-                    家族之歌
+                    <MoreHorizontal className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => setShowUploadZone(!showUploadZone)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showUploadZone
-                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-300"
-                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
-                      }`}
-                    style={{ fontSize: "0.7rem" }}
-                    title="上传原创歌曲到AI Family音乐库"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    上传歌曲
-                  </button>
-                  <button
-                    onClick={() => setShowAddTracks(!showAddTracks)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${showAddTracks
-                      ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-300"
-                      : "bg-white/[0.04] border border-white/10 text-white/40 hover:text-white/60"
-                      }`}
-                    style={{ fontSize: "0.7rem" }}
-                    title="从音乐库添加歌曲到播放列表"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    添加歌曲
-                  </button>
+                  {showMoreMenu && (
+                    <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-[rgba(10,15,30,0.98)] border border-white/10 shadow-2xl backdrop-blur-xl z-50 overflow-hidden">
+                      <button onClick={() => { generateSmartPlaylist(); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                        <Wand2 className="w-3.5 h-3.5 text-purple-400" /> 智能生成
+                      </button>
+                      <button onClick={() => { setShowCreationStudio(true); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                        <Sparkles className="w-3.5 h-3.5 text-pink-400" /> AI 创作
+                      </button>
+                      {musicWorks.length > 0 && (
+                        <button onClick={() => { setShowMyWorks(!showMyWorks); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                          <Music2 className="w-3.5 h-3.5 text-cyan-400" /> 我的创作 ({musicWorks.length})
+                        </button>
+                      )}
+                      <div className="border-t border-white/[0.06]" />
+                      <button onClick={() => { setShowAnthemModal(true); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                        <Music2 className="w-3.5 h-3.5 text-amber-400" /> 家族之歌
+                      </button>
+                      <button onClick={() => { setShowUploadModal(true); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                        <Upload className="w-3.5 h-3.5 text-emerald-400" /> 上传歌曲
+                      </button>
+                      <div className="border-t border-white/[0.06]" />
+                      <button onClick={() => { setPlaylist([...MUSIC_LIBRARY]); setShowMoreMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-all" style={{ fontSize: "0.72rem" }}>
+                        <Repeat className="w-3.5 h-3.5 text-white/30" /> 恢复默认列表
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -683,8 +662,12 @@ export function FamilyMusic() {
 
               {/* 列表视图 */}
               {viewMode === "list" && (
-                <div className="space-y-2">
-                  {playlist.map((t, i) => {
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                  {playlist.filter(t => {
+                    if (!musicSearch) { return true; }
+                    const q = musicSearch.toLowerCase();
+                    return t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || t.album.toLowerCase().includes(q);
+                  }).map((t, i) => {
                     const isCurrent = i === currentTrackIndex;
                     const trackColor = EMOTION_COLORS[t.emotion] || "#9370DB";
                     return (
@@ -831,9 +814,9 @@ export function FamilyMusic() {
         </FadeIn>
       )}
 
-      {showAnthemPlayer && (
-        <FadeIn>
-          <div className="max-w-5xl mx-auto px-4 md:px-8 mt-6">
+      {showAnthemModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAnthemModal(false)}>
+          <div className="w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <GlassCard className="p-6" glowColor="rgba(255, 215, 0, 0.08)">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -843,73 +826,44 @@ export function FamilyMusic() {
                   <div>
                     <h3 className="text-[#FFD300]" style={{ fontSize: "1rem" }}>Family AI · 智慧工坊之歌</h3>
                     <p className="text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.65rem" }}>
-                      原创歌曲 · AI Family 独家关爱之语 · 十八年管理智慧凝聚
+                      原创歌曲 · AI Family 独家关爱之语
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowAnthemPlayer(false)}
-                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
-                >
-                  ✕
+                <button onClick={() => setShowAnthemModal(false)} className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-
               <FamilyAnthemPlayer
                 showLyrics={true}
                 autoScroll={true}
-                onPlay={() => {
-                  console.info('[FamilyMusic] 家族之歌开始播放');
-                }}
-                onPause={() => {
-                  console.info('[FamilyMusic] 家族之歌暂停');
-                }}
+                onPlay={() => { console.info('[FamilyMusic] 家族之歌开始播放'); }}
+                onPause={() => { console.info('[FamilyMusic] 家族之歌暂停'); }}
                 onLyricHighlight={(lyric: { emotion: string; text: string }) => {
-                  careEngine.respondToEmotion(lyric.emotion as string, {
-                    context: `正在聆听《${lyric.text}》`,
-                    userName: '创始人',
-                  }).then((response: CareResponse) => {
-                    setCareResponse(response);
-                    setTimeout(() => setCareResponse(null), 8000);
-                  });
+                  careEngine.respondToEmotion(lyric.emotion as string, { context: `正在聆听《${lyric.text}》`, userName: '创始人' }).then((response: CareResponse) => { setCareResponse(response); setTimeout(() => setCareResponse(null), 8000); });
                 }}
               />
-
               {careResponse && (
                 <div className="mt-4 p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,165,0,0.08))', border: '1px solid rgba(255,215,0,0.2)' }}>
                   <div className="flex items-start gap-3">
                     <MessageCircleHeart className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-[#e0f0ff]" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
-                        {careResponse.message}
-                      </p>
+                      <p className="text-[#e0f0ff]" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>{careResponse.message}</p>
                       {careResponse.wisdomQuote && (
-                        <p className="text-[rgba(255,215,0,0.6)] mt-2 italic" style={{ fontSize: "0.72rem" }}>
-                          💡 {careResponse.wisdomQuote}
-                        </p>
+                        <p className="text-[rgba(255,215,0,0.6)] mt-2 italic" style={{ fontSize: "0.72rem" }}>💡 {careResponse.wisdomQuote}</p>
                       )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}>
-                          {careResponse.emotion === 'peaceful' ? '🕊️ 平和' :
-                            careResponse.emotion === 'encouraging' ? '💪 鼓励' :
-                              careResponse.emotion === 'warm' ? '❤️ 温暖' : '✨ 关爱'}
-                        </span>
-                        <span className="text-[rgba(224,240,255,0.3)]" style={{ fontSize: "0.6rem" }}>
-                          AI Family 关爱引擎响应
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </GlassCard>
           </div>
-        </FadeIn>
+        </div>
       )}
 
-      {showUploadZone && (
-        <FadeIn>
-          <div className="max-w-5xl mx-auto px-4 md:px-8 mt-6">
+      {showUploadModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowUploadModal(false)}>
+          <div className="w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
             <GlassCard className="p-6" glowColor="rgba(16, 185, 129, 0.08)">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -919,84 +873,42 @@ export function FamilyMusic() {
                   <div>
                     <h3 className="text-emerald-300" style={{ fontSize: "1rem" }}>上传原创歌曲</h3>
                     <p className="text-[rgba(224,240,255,0.4)]" style={{ fontSize: "0.65rem" }}>
-                      将您的原创音乐作品加入AI Family音乐库，让家族成员共同聆听
+                      拖拽或点击上传，加入AI Family音乐库
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowUploadZone(false)}
-                  className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all"
-                >
-                  ✕
+                <button onClick={() => setShowUploadModal(false)} className="p-2 rounded-lg bg-white/[0.04] text-white/40 hover:text-white/60 transition-all">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-
               <SongUploadZone
                 onUploadSuccess={(song: { title: string; url: string }) => {
                   const id = `upload-${Date.now()}`;
                   const newSong: UploadedSong = { id, title: song.title, url: song.url, artist: "本地" };
                   setUploadedSongs(prev => [...prev, newSong]);
                   const newTrack: MusicTrack = {
-                    id,
-                    title: song.title,
-                    artist: "本地",
-                    album: "用户上传",
-                    duration: 0,
-                    audioUrl: song.url,
-                    coverUrl: "/yyc3-icons/Web App/android-chrome-192.png",
-                    genre: "unknown",
-                    emotion: "happy",
+                    id, title: song.title, artist: "本地", album: "用户上传", duration: 0,
+                    audioUrl: song.url, coverUrl: "/yyc3-icons/Web App/android-chrome-192.png",
+                    genre: "unknown", emotion: "happy",
                   };
                   setPlaylist(prev => [...prev, newTrack]);
-                  careEngine.encourage({
-                    achievement: `上传了原创歌曲《${song.title}》`,
-                    context: '音乐创作',
-                  }).then((response: CareResponse) => {
-                    setCareResponse(response);
-                    setTimeout(() => setCareResponse(null), 8000);
-                  }).catch(() => { });
+                  careEngine.encourage({ achievement: `上传了原创歌曲《${song.title}》`, context: '音乐创作' }).then((response: CareResponse) => { setCareResponse(response); setTimeout(() => setCareResponse(null), 8000); }).catch(() => { });
                 }}
-                onError={(error: Error) => {
-                  console.error('[FamilyMusic] 上传失败:', error);
-                }}
+                onError={(error: Error) => { console.error('[FamilyMusic] 上传失败:', error); }}
                 maxFiles={10}
               />
-
               {uploadedSongs.length > 0 && (
                 <div className="mt-4 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Music2 className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 text-sm font-medium">已上传 {uploadedSongs.length} 首原创歌曲</span>
+                    <span className="text-emerald-300 text-sm font-medium">已上传 {uploadedSongs.length} 首</span>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
                     {uploadedSongs.map((song, index) => (
-                      <div key={song.id || index} className="flex items-center gap-2 text-xs text-[rgba(224,240,255,0.6)] group">
+                      <div key={song.id || index} className="flex items-center gap-2 text-xs text-[rgba(224,240,255,0.6)]">
                         <span className="text-emerald-400">✓</span>
-                        <button
-                          title={`播放 ${song.title}`}
-                          onClick={() => {
-                            const idx = playlist.findIndex(t => t.id === song.id);
-                            if (idx >= 0) {
-                              setCurrentTrackIndex(idx);
-                            }
-                          }}
-                          className="text-white/40 hover:text-[#00d4ff] transition-colors"
-                        >
-                          {song.title}
-                        </button>
-                        <span className="text-[rgba(224,240,255,0.3)]">· {song.artist}</span>
-                        <button
-                          title="删除歌曲"
-                          onClick={() => {
-                            setUploadedSongs(prev => prev.filter((_, i) => i !== index));
-                            if (song.id) {
-                              setPlaylist(prev => prev.filter(t => t.id !== song.id));
-                            }
-                          }}
-                          className="ml-auto p-1 text-red-400/40 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        <button title={`播放 ${song.title}`} onClick={() => { const idx = playlist.findIndex(t => t.id === song.id); if (idx >= 0) { setCurrentTrackIndex(idx); } }} className="text-white/40 hover:text-[#00d4ff] transition-colors">{song.title}</button>
+                        <button title="删除" onClick={() => { setUploadedSongs(prev => prev.filter((_, i) => i !== index)); if (song.id) { setPlaylist(prev => prev.filter(t => t.id !== song.id)); } }} className="ml-auto p-1 text-red-400/40 hover:text-red-400 transition-colors"><Trash2 className="w-3 h-3" /></button>
                       </div>
                     ))}
                   </div>
@@ -1004,7 +916,7 @@ export function FamilyMusic() {
               )}
             </GlassCard>
           </div>
-        </FadeIn>
+        </div>
       )}
 
       <MVPlayerOverlay

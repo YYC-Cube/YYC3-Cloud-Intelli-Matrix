@@ -9,9 +9,9 @@
  * @tags: [component]
  */
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Film, Disc3 } from "lucide-react";
+import { Disc3, Film, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { DMUSIC_PHOTOS } from "../../lib/dmusic-resources";
 
 interface VinylPhotoPlayerProps {
@@ -43,7 +43,7 @@ export function VinylPhotoPlayer({
   const currentPhoto = coverUrl || displayPhotos[photoIndex % displayPhotos.length];
 
   useEffect(() => {
-    if (!isPlaying) {return;}
+    if (!isPlaying) { return; }
     const interval = setInterval(() => {
       setPhotoIndex(prev => (prev + 1) % displayPhotos.length);
     }, 4000);
@@ -288,23 +288,54 @@ export function MVPlayerOverlay({
   isPlaying, currentTime, duration, onSeek, formatTime,
 }: MVPlayerOverlayProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x: 80, y: 60 });
+  const [size, setSize] = useState({ w: 640, h: 420 });
+  const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+  const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
   useEffect(() => {
-    if (!videoRef.current || !videoUrl) {return;}
-    if (isPlaying) {
-      videoRef.current.play().catch(() => {});
-    } else {
-      videoRef.current.pause();
-    }
+    if (!videoRef.current || !videoUrl) { return; }
+    if (isPlaying) { videoRef.current.play().catch(() => { }); } else { videoRef.current.pause(); }
   }, [isPlaying, videoUrl]);
 
   useEffect(() => {
-    if (!videoRef.current || !videoUrl) {return;}
+    if (!videoRef.current || !videoUrl) { return; }
     const diff = Math.abs(videoRef.current.currentTime - currentTime);
-    if (diff > 0.5) {
-      videoRef.current.currentTime = currentTime;
-    }
+    if (diff > 0.5) { videoRef.current.currentTime = currentTime; }
   }, [currentTime, videoUrl]);
+
+  useEffect(() => {
+    if (!isOpen) { return; }
+    const handleMouseUp = () => { dragRef.current = null; resizeRef.current = null; };
+    const handleMouseMove = (e: MouseEvent) => {
+      if (dragRef.current) {
+        const dx = e.clientX - dragRef.current.startX;
+        const dy = e.clientY - dragRef.current.startY;
+        setPos({ x: Math.max(0, dragRef.current.startPosX + dx), y: Math.max(0, dragRef.current.startPosY + dy) });
+      }
+      if (resizeRef.current) {
+        const dx = e.clientX - resizeRef.current.startX;
+        const dy = e.clientY - resizeRef.current.startY;
+        setSize({ w: Math.max(320, resizeRef.current.startW + dx), h: Math.max(240, resizeRef.current.startH + dy) });
+      }
+    };
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => { window.removeEventListener("mouseup", handleMouseUp); window.removeEventListener("mousemove", handleMouseMove); };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) { return; }
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === " ") { e.preventDefault(); }
+      if (e.key === "ArrowLeft") { onSeek(Math.max(0, currentTime / duration - 0.05)); }
+      if (e.key === "ArrowRight") { onSeek(Math.min(1, currentTime / duration + 0.05)); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose, onSeek, currentTime, duration]);
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -312,44 +343,45 @@ export function MVPlayerOverlay({
     <AnimatePresence>
       {isOpen && (
         <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60]" />
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60]"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 30 }}
+            ref={containerRef}
+            initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }}
             transition={{ type: "spring", damping: 26, stiffness: 280 }}
-            className="fixed inset-4 sm:inset-8 md:inset-16 lg:inset-24 bg-black/95 backdrop-blur-2xl rounded-2xl border border-white/10 z-[70] flex flex-col overflow-hidden shadow-2xl"
+            className="fixed bg-black/95 backdrop-blur-2xl rounded-2xl border border-white/10 z-[70] flex flex-col overflow-hidden shadow-2xl"
+            style={{ left: pos.x, top: pos.y, width: size.w, height: size.h }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/30 to-pink-500/20 border border-white/10 flex items-center justify-center">
-                  <Film className="w-4 h-4 text-purple-300" />
+            {/* Header — drag handle */}
+            <div
+              className="flex items-center justify-between p-3 border-b border-white/[0.06] cursor-move select-none"
+              onMouseDown={(e) => { if ((e.target as HTMLElement).closest("button")) { return; } dragRef.current = { startX: e.clientX, startY: e.clientY, startPosX: pos.x, startPosY: pos.y }; }}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500/30 to-pink-500/20 border border-white/10 flex items-center justify-center">
+                  <Film className="w-3.5 h-3.5 text-purple-300" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-sm">{trackTitle}</h3>
-                  <p className="text-white/30 text-[10px]">D-Music MV</p>
+                  <h3 className="text-white font-semibold" style={{ fontSize: "0.82rem" }}>{trackTitle}</h3>
+                  <p className="text-white/30" style={{ fontSize: "0.55rem" }}>D-Music MV · 拖拽标题栏移动 · 拖拽右下角调整大小</p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/[0.06]">
-                ✕
-              </button>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setSize({ w: 640, h: 420 })} className="p-1.5 text-white/30 hover:text-white/60 transition-colors rounded hover:bg-white/[0.06]" title="默认大小">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
+                </button>
+                <button onClick={() => { setSize({ w: window.innerWidth - 40, h: window.innerHeight - 40 }); setPos({ x: 20, y: 20 }); }} className="p-1.5 text-white/30 hover:text-white/60 transition-colors rounded hover:bg-white/[0.06]" title="最大化">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" /></svg>
+                </button>
+                <button onClick={onClose} className="p-1.5 text-white/40 hover:text-white transition-colors rounded hover:bg-white/[0.06]" title="关闭 (Esc)">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Video Area */}
-            <div className="flex-1 relative bg-black flex items-center justify-center">
+            <div className="flex-1 relative bg-black flex items-center justify-center min-h-0">
               {videoUrl ? (
-                <video
-                  ref={videoRef as React.RefObject<HTMLVideoElement>}
-                  src={videoUrl}
-                  className="w-full h-full object-contain"
-                  playsInline
-                  loop
-                />
+                <video ref={videoRef as React.RefObject<HTMLVideoElement>} src={videoUrl} className="w-full h-full object-contain" playsInline loop />
               ) : (
                 <div className="flex flex-col items-center justify-center text-white/30 gap-3">
                   <Film className="w-16 h-16 opacity-20" />
@@ -359,25 +391,28 @@ export function MVPlayerOverlay({
             </div>
 
             {/* Progress bar */}
-            <div className="px-4 pt-3 pb-2 border-t border-white/[0.04]">
+            <div className="px-3 pt-2 pb-2 border-t border-white/[0.04]">
               <div
                 className="w-full h-1.5 bg-white/10 rounded-full cursor-pointer group relative"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  onSeek(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
-                }}
+                onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); onSeek(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))); }}
               >
-                <motion.div
-                  className="h-full bg-gradient-to-r from-purple-500 via-violet-400 to-blue-500 rounded-full relative"
-                  style={{ width: `${progressPct}%` }}
-                >
+                <div className="h-full bg-gradient-to-r from-purple-500 via-violet-400 to-blue-500 rounded-full relative" style={{ width: `${progressPct}%` }}>
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform" />
-                </motion.div>
+                </div>
               </div>
-              <div className="flex justify-between mt-1.5">
-                <span className="text-white/30 text-[10px] font-mono">{formatTime(currentTime)}</span>
-                <span className="text-white/30 text-[10px] font-mono">{formatTime(duration)}</span>
+              <div className="flex justify-between mt-1">
+                <span className="text-white/30 font-mono" style={{ fontSize: "0.6rem" }}>{formatTime(currentTime)}</span>
+                <span className="text-white/20" style={{ fontSize: "0.55rem" }}>← → 快进5s · Esc 关闭</span>
+                <span className="text-white/30 font-mono" style={{ fontSize: "0.6rem" }}>{formatTime(duration)}</span>
               </div>
+            </div>
+
+            {/* Resize handle */}
+            <div
+              className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize z-10"
+              onMouseDown={(e) => { e.stopPropagation(); resizeRef.current = { startX: e.clientX, startY: e.clientY, startW: size.w, startH: size.h }; }}
+            >
+              <svg className="w-4 h-4 text-white/15 absolute bottom-1 right-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15l-9-9m9 3l-6-6" /></svg>
             </div>
           </motion.div>
         </>
@@ -385,5 +420,3 @@ export function MVPlayerOverlay({
     </AnimatePresence>
   );
 }
-
-import { useRef } from "react";

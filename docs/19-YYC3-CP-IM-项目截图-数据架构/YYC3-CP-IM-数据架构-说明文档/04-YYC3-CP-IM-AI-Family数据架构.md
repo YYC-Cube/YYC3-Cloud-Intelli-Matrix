@@ -1,8 +1,20 @@
 # YYC³ AI Family — 数据架构分布图
 
 > **模块**: AI Family (Sidebar: catAIFamily, 分组导航)
-> **页面数**: 19 子页面 + 时钟首页
+> **页面数**: 5 导航入口 + 13 Center内Tab (原19子页面)
 > **生成日期**: 2026-04-26
+> **更新日期**: 2026-05-03 (导航优化 · 18→5精简)
+
+---
+
+## 导航优化说明（2026-05-03）
+
+| 变更 | 说明 |
+|------|------|
+| 导航入口 | 18 子页面精简为 **5 个** (首页/中心/模型设置/设置) |
+| 13 子页面 | 改为 AIFamilyCenterPage 内部 Tab 导航，路由仍可访问 |
+| API Keys 数据源 | 从 `family-settings-slice.providerKeys` → `provider-slice.configuredModels` (SSOT) |
+| FamilyModelSettings | 读写统一到 `provider-slice` |
 
 ---
 

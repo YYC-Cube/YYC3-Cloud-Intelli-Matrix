@@ -2,26 +2,40 @@
 
 > **用途**: 全局数据分流、汇总、存储的完整可视化架构图（实码验证版）
 > **生成日期**: 2026-04-26 (v2 修正版)
+> **更新日期**: 2026-05-03 (v3 导航优化版)
 > **数据来源**: Sidebar.tsx NAV_CATEGORIES + routes.tsx + 逐文件 grep 验证
 
 ---
 
-## 一、全局导航结构（Sidebar.tsx 实码）
+## 〇、导航优化变更摘要（2026-05-03）
+
+| 变更类型         | 原始                  | 优化后             | 说明                                           |
+| ---------------- | --------------------- | ------------------ | ---------------------------------------------- |
+| 一级分类         | 8 个                  | **7 个**           | hotel + comm-station → business（业务空间）    |
+| AI Family 导航项 | 18 子页面             | **5 核心入口**     | 13 子页面改为 AIFamilyCenterPage 内部 Tab 导航 |
+| 运维管理         | 9 页                  | **10 页**          | +connection-monitor（连接监控）                |
+| 管理后台         | 9 页                  | **12 页**          | +storage / config-center / variables           |
+| 搜索功能         | 装饰性                | **功能可用**       | TopBar 搜索框 → CommandPalette 联动            |
+| API Keys 数据源  | family-settings-slice | **provider-slice** | 统一到 provider-slice.configuredModels         |
+
+---
+
+## 一、全局导航结构（Sidebar.tsx 实码 · 优化后）
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                  YYC³ 侧边栏 · 8 大导航分类 · 47 页面                    │
+│              YYC³ 侧边栏 · 7 大导航分类 · 49 页面（优化后）              │
 │              源文件: src/app/components/Sidebar.tsx                      │
 └─────────────────────────────────────────────────────────────────────────┘
 
-  📊 monitor (监控中心) ──────── 5 页
+  📊 monitor (监控中心) ──────── 5 页 [不变]
      ├── / (Dashboard)
      ├── /follow-up (FollowUpPanel)
      ├── /follow-up-manager (FollowUpManager)
      ├── /patrol (PatrolDashboard)
      └── /alerts (AlertRulesPanel)
 
-  🔧 ops (运维管理) ──────────── 9 页
+  🔧 ops (运维管理) ──────────── 10 页 [+1]
      ├── /operations (OperationCenter)
      ├── /files (LocalFileManager)
      ├── /host-files (HostFileManager)
@@ -30,25 +44,45 @@
      ├── /connection-test (ServiceConnectionTest)
      ├── /loop (ServiceLoopPanel)
      ├── /reports (ReportExporter)
-     └── /export-center (ConfigExportCenter)
+     ├── /export-center (ConfigExportCenter)
+     └── /connection-monitor (ConnectionMonitorPanel)  ← [NEW] 从隐藏路由纳入
 
-  🧠 ai (AI 智能中心) ────────── 4 页
+  🧠 ai (AI 智能中心) ────────── 4 页 [不变]
      ├── /ai (AISuggestionPanel)
      ├── /models (ModelProviderPanel)
      ├── /ai-diagnosis (AIDiagnostics)
      └── /sdk-chat (SDKChatPanel)
 
-  👨‍👩‍👧‍👦 ai-family (AI Family) ── 1 + 18 子页面
+  👨‍👩‍👧‍👦 ai-family (AI Family) ── 5 导航入口 + 13 内部Tab页 [精简]
      ├── /ai-family (AIFamilyPage 时钟首页)
-     └── /ai-family/:subpage (AIFamilyRouter → 18 lazy 组件)
+     ├── /ai-family/home (家族首页)
+     ├── /ai-family/center (Family中心)           ← 内含13个子Tab
+     ├── /ai-family/models (模型设置)
+     └── /ai-family/settings (Family设置)
+     ────────────────────────────────────────────────
+     以下 13 页面改为 AIFamilyCenterPage 内部 Tab 导航（路由仍可访问）:
+     ├── /ai-family/planning (家族规划)           [精简→Center内Tab]
+     ├── /ai-family/chat (交流中心)               [精简→Center内Tab]
+     ├── /ai-family/share (分享空间)              [精简→Center内Tab]
+     ├── /ai-family/learn (学习成长)              [精简→Center内Tab]
+     ├── /ai-family/music (音乐空间)              [精简→Center内Tab]
+     ├── /ai-family/growth (成长轨迹)             [精简→Center内Tab]
+     ├── /ai-family/phone (家人热线)              [精简→Center内Tab]
+     ├── /ai-family/fun (文娱中心)                [精简→Center内Tab]
+     ├── /ai-family/activities (活动中心)         [精简→Center内Tab]
+     ├── /ai-family/voice (语音系统)              [精简→Center内Tab]
+     ├── /ai-family/data (数据中心)               [精简→Center内Tab]
+     ├── /ai-family/comm (通讯中心)               [精简→Center内Tab]
+     └── /ai-family/cluster (通信基站)            [精简→Center内Tab]
 
-  🏨 hotel (智慧酒店) ───────── 1 页 (独立主导航)
-     └── /hotel (HotelDashboard)
+  🏢 business (业务空间) ────── 2 页 [NEW 合并分类]
+     ├── /hotel (HotelDashboard)                  ← 原"智慧酒店"独立分类
+     └── /comm-station (CommStationPanel)         ← 原"通讯基站"独立分类
+     ────────────────────────────────────────────────
+     ❌ hotel 独立分类 → 合并入 business
+     ❌ comm-station 独立分类 → 合并入 business
 
-  📡 comm-station (通讯基站) ── 1 页 (独立主导航)
-     └── /comm-station (CommStationPanel)
-
-  💻 dev (开发工具) ──────────── 7 页
+  💻 dev (开发工具) ──────────── 7 页 [不变]
      ├── /design-system (DesignSystemPage)
      ├── /dev-guide (DevGuidePage)
      ├── /theme (ThemeCustomizer)
@@ -57,7 +91,7 @@
      ├── /refactoring (RefactoringReport)
      └── /architecture (ArchitectureAudit)
 
-  🛡️ admin (管理后台) ────────── 9 页
+  🛡️ admin (管理后台) ────────── 12 页 [+3]
      ├── /audit (OperationAudit)
      ├── /users (UserManagement)
      ├── /settings (SystemSettings)
@@ -66,42 +100,32 @@
      ├── /pwa (PWAStatusPanel)
      ├── /data-editor (DataEditorPanel)
      ├── /performance (PerformanceMonitor)
-     └── /env-config (EnvConfigEditor)
+     ├── /env-config (EnvConfigEditor)
+     ├── /storage (StorageManager)                ← [NEW] 从隐藏路由纳入
+     ├── /config-center (ConfigCenter)            ← [NEW] 从隐藏路由纳入
+     └── /variables (VariableCenter)              ← [NEW] 从隐藏路由纳入
+```
+
+---
+
+## 二、导航变更对比图（优化前 → 优化后）
+
+```
+  优化前 (8 分类 · 47 页)                    优化后 (7 分类 · 49 页)
+  ─────────────────────────                  ─────────────────────────
+  📊 monitor(5)                              📊 monitor(5)          [不变]
+  🔧 ops(9)                                  🔧 ops(10)             [+1 connection-monitor]
+  🧠 ai(4)                                   🧠 ai(4)               [不变]
+  👨‍👩‍👧‍👦 ai-family(18子项)                ──→  👨‍👩‍👧‍👦 ai-family(5入口)    [精简 13→内Tab]
+  🏨 hotel(1)                          ──┐
+  📡 comm-station(1)                   ──┤──→  🏢 business(2)       [合并]
+  💻 dev(7)                                  💻 dev(7)              [不变]
+  🛡️ admin(9)                                🛡️ admin(12)           [+3 storage/config/vars]
 ```
 
 ---
 
 ## 二、全局数据流总图
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        YYC³ Cloud Intelli-Matrix                        │
-│                     全局数据架构 · 分流 · 汇总                           │
-└─────────────────────────────────────────────────────────────────────────┘
-
-                              ┌──────────┐
-                              │  用户 UI  │
-                              │ 47 路由   │
-                              └────┬─────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    │              │              │
-              ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-              │ Zustand    │ │ IndexedDB │ │ local-    │
-              │ 29 Slices  │ │ 24 Stores │ │ Storage   │
-              │ (persist+  │ │ (Dexie)   │ │ (轻量配置) │
-              │  immer)    │ │           │ │           │
-              └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
-                    │              │              │
-                    └──────────────┼──────────────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    │              │              │
-              ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
-              │ Electron   │ │ 后端脚本  │ │ Supabase  │
-              │ IPC Bridge │ │ (可选)    │ │ (可选)    │
-              └───────────┘ └───────────┘ └───────────┘
-```
 
 ---
 
@@ -182,11 +206,11 @@
 
 ## 四、管理后台 (admin) — 数据架构详细图
 
-管理后台是全局系统设定的核心枢纽，涵盖 9 个页面。
+管理后台是全局系统设定的核心枢纽，涵盖 **12** 个页面（优化后 +3）。
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        admin (管理后台) · 9 页面                         │
+│                       admin (管理后台) · 12 页面                         │
 │                  Sidebar id: "admin" · icon: ShieldCheck               │
 └─────────────────────────────────────────────────────────────────────────┘
 
@@ -236,20 +260,32 @@
   │ CRUD: ✅     │  │ metrics-slice│  │ WS/SSE/AI    │
   │              │  │              │  │ CRUD: ✅     │
   └──────────────┘  └──────────────┘  └──────────────┘
+
+  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+  │ /storage     │  │ /config-center│ │ /variables   │
+  │ 存储管理     │  │ 配置中心     │  │ 变量中心     │
+  ├──────────────┤  ├──────────────┤  ├──────────────┤
+  │ Storage      │  │ Config       │  │ Variable     │
+  │ Manager      │  │ Center       │  │ Center       │
+  │              │  │              │  │              │
+  │ [NEW]        │  │ [NEW]        │  │ [NEW]        │
+  │ 从隐藏路由   │  │ 从隐藏路由   │  │ 从隐藏路由   │
+  │ 纳入导航     │  │ 纳入导航     │  │ 纳入导航     │
+  └──────────────┘  └──────────────┘  └──────────────┘
 ```
 
 ---
 
-## 五、全局数据汇总图
+## 五、全局数据汇总图（优化后）
 
 ```
-  📊 monitor(5)       🔧 ops(9)         🧠 ai(4)
+  📊 monitor(5)       🔧 ops(10)        🧠 ai(4)
   ┌─────┐             ┌─────┐           ┌─────┐
   │node │             │fs   │           │model│
   │slice│             │slice│           │slice│
   │     │             │     │           │     │
   │metric│            │db   │           │provider
-  │slice│             │conn │           │slice│
+  │slice│             │conn │           │slice│ ← [优化] API Keys SSOT
   │     │             │slice│           │     │
   │follow│            │IDB: │           │ai   │
   │up   │             │loop │           │sugg │
@@ -262,7 +298,7 @@
      │                   │                 │
      └───────┬───────────┘                 │
              │                             │
-  🛡️ admin(9)          👨‍👩‍👧‍👦 ai-family(18+)  │
+  🛡️ admin(12)        👨‍👩‍👧‍👦 ai-family(5+13)  │
   ┌─────┐             ┌─────┐              │
   │log  │             │family│              │
   │slice│             │member│              │
@@ -280,19 +316,24 @@
   │     │             │8 个  │              │
   │network            │IDB   │              │
   │slice│             │Stores│              │
-  └──┬──┘             └──┬──┘              │
-     │                   │                  │
-  💻 dev(7)                               │
-  ┌─────┐                                  │
-  │ide  │                                  │
-  │slice│                                  │
-  │     │                                  │
-  │IDB: │                                  │
-  │committed                               │
-  │Changes│                                │
-  └──┬──┘                                  │
-     │                                      │
-     └──────────┬───────────────────────────┘
+  │     │             └──┬──┘              │
+  │[+3] │                                │
+  │storage                            │
+  │config│                                │
+  │vars  │                                │
+  └──┬──┘                                │
+     │                                    │
+  💻 dev(7)          🏢 business(2)      │
+  ┌─────┐            ┌─────┐             │
+  │ide  │            │hotel│             │
+  │slice│            │     │             │
+  │     │            │comm │             │
+  │IDB: │            │station│            │
+  │committed         │     │             │
+  │Changes│          └──┬──┘             │
+  └──┬──┘               │                 │
+     │                   │                 │
+     └──────────┬────────┴─────────────────┘
                 │
                 ▼
      ┌─────────────────────────────┐
@@ -315,3 +356,4 @@
 ---
 
 *本文档由 YYC³ Standardization Audit Expert 生成 · 基于 Sidebar.tsx + routes.tsx 实码验证 · 2026-04-26*
+*导航优化版更新 · 2026-05-03 · 8→7分类 · AI Family 18→5入口 · hotel+comm→business*

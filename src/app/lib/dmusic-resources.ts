@@ -389,6 +389,42 @@ export const MUSIC_LIBRARY: MusicTrack[] = [
     genre: '古风',
     year: 2025,
   },
+  {
+    id: 'family-ai-01',
+    title: 'AI-Family',
+    artist: '沫言',
+    album: 'FAmily-AI',
+    duration: 260,
+    audioUrl: '/Music-Mp3/FAmily-AI/沫言-AI-Family.mp3',
+    coverUrl: '/D-Music/D-98/Music-1995.jpg',
+    emotion: 'happy',
+    genre: '电子',
+    year: 2025,
+  },
+  {
+    id: 'family-ai-02',
+    title: 'Family-AI',
+    artist: '沫言',
+    album: 'FAmily-AI',
+    duration: 240,
+    audioUrl: '/Music-Mp3/FAmily-AI/沫言-Family-AI.mp3',
+    coverUrl: '/D-Music/D-98/Music-1996.jpg',
+    emotion: 'energetic',
+    genre: '电子',
+    year: 2025,
+  },
+  {
+    id: 'family-ai-03',
+    title: 'Family-AI-智慧工坊',
+    artist: '沫言',
+    album: 'FAmily-AI',
+    duration: 280,
+    audioUrl: '/Music-Mp3/FAmily-AI/沫言-Family-AI-智慧工坊.mp3',
+    coverUrl: '/D-Music/D-98/Music-1997.jpg',
+    emotion: 'happy',
+    genre: '电子',
+    year: 2025,
+  },
 ];
 
 export const ALBUMS: Album[] = [
@@ -419,6 +455,13 @@ export const ALBUMS: Album[] = [
     coverUrl: '/D-Music/D-98/Music-1990.jpg',
     description: '董小姐·沫言合作专辑 D',
     tracks: MUSIC_LIBRARY.filter(t => t.album === 'Music-D'),
+  },
+  {
+    id: 'album-family-ai',
+    name: 'FAmily-AI',
+    coverUrl: '/D-Music/D-98/Music-1995.jpg',
+    description: 'AI Family 主题曲',
+    tracks: MUSIC_LIBRARY.filter(t => t.album === 'FAmily-AI'),
   },
 ];
 

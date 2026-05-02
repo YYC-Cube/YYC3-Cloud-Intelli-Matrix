@@ -72,6 +72,7 @@ const zhCN = {
     catDev: "开发工具",
     catAdmin: "系统管理",
     catAIFamily: "AI Family",
+    catBusiness: "业务空间",
     catHotel: "智慧酒店",
     catCommStation: "通讯基站",
     hotelDashboard: "酒店控制台",

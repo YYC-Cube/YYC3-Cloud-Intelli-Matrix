@@ -74,6 +74,7 @@ const enUS: TranslationKeys = {
     catDev: "Dev Tools",
     catAdmin: "Admin",
     catAIFamily: "AI Family",
+    catBusiness: "Business",
     catHotel: "Smart Hotel",
     catCommStation: "Comm Station",
     hotelDashboard: "Hotel Dashboard",

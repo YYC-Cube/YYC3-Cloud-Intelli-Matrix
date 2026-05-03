@@ -10,10 +10,10 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import * as React from "react";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataEditorPanel } from "../components/DataEditorPanel";
 
 vi.mock("../lib/db-queries", () => ({
@@ -73,7 +73,12 @@ describe("DataEditorPanel", () => {
   });
 
   afterEach(() => {
+    act(() => { cleanup(); });
     vi.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    act(() => { cleanup(); });
   });
 
   it("should render data editor panel page", () => {

@@ -10,8 +10,8 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("sonner", () => ({
   toast: {
@@ -23,6 +23,50 @@ vi.mock("sonner", () => ({
 
 vi.mock("react-router", () => ({
   useNavigate: () => vi.fn(),
+}));
+
+vi.mock("../store/slices/provider-slice", () => ({
+  useProviderSlice: () => ({
+    providers: [
+      { id: "openai", label: "OpenAI", baseUrl: "https://api.openai.com/v1", models: ["gpt-4o", "gpt-4o-mini"], isLocal: false },
+      { id: "deepseek", label: "DeepSeek", baseUrl: "https://api.deepseek.com/v1", models: ["deepseek-chat"], isLocal: false },
+      { id: "ollama", label: "Ollama", baseUrl: "http://localhost:11434", models: ["llama3.1:8b"], isLocal: true },
+      { id: "zhipu", label: "智谱AI", baseUrl: "https://open.bigmodel.cn/api/paas/v4", models: ["glm-4-flash", "glm-4"], isLocal: false },
+      { id: "qwen", label: "通义千问", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1", models: ["qwen3-max"], isLocal: false },
+    ],
+    configuredModels: [
+      { id: "cm-1", providerId: "openai", providerLabel: "OpenAI", model: "gpt-4o", apiKey: "sk-test-key", baseUrl: "https://api.openai.com/v1", status: "active" },
+      { id: "cm-2", providerId: "deepseek", providerLabel: "DeepSeek", model: "deepseek-chat", apiKey: "sk-ds-test", baseUrl: "https://api.deepseek.com/v1", status: "active" },
+    ],
+    fetchOllamaModels: vi.fn(),
+    addModel: vi.fn(),
+    updateModel: vi.fn(),
+    removeModel: vi.fn(),
+    testConnection: vi.fn(async () => { }),
+    testAllConnections: vi.fn(async () => []),
+    presetModels: vi.fn(),
+  }),
+}));
+
+vi.mock("../store/slices/family-settings-slice", () => {
+  const state = {
+    modelAssignments: [],
+    voiceProfiles: [],
+    updateModelAssignment: vi.fn(),
+    updateVoiceProfile: vi.fn(),
+  };
+  const mockFn = (selector?: Function) => selector ? selector(state) : state;
+  mockFn.getState = () => state;
+  return { useFamilySettingsSlice: mockFn };
+});
+
+vi.mock("../store", () => ({
+  useFamilyMemberSlice: () => ({
+    members: [
+      { id: "navigator", name: "千行", shortName: "千行", enTitle: "Navigator", icon: "Compass", color: "#00d4ff", quote: "导航", status: "online", role: "导航员" },
+      { id: "thinker", name: "万物", shortName: "万物", enTitle: "Thinker", icon: "Brain", color: "#a855f7", quote: "思考", status: "online", role: "思考者" },
+    ],
+  }),
 }));
 
 const STORAGE_KEY = "yyc3-family-model-assignments";

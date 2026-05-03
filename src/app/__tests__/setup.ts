@@ -32,19 +32,19 @@ import "fake-indexeddb/auto";
 
 // Mock Observer classes for jsdom
 class MockResizeObserver implements ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() { }
+  unobserve() { }
+  disconnect() { }
 }
 
 class MockIntersectionObserver implements IntersectionObserver {
   readonly root: Document | Element | null = null;
   readonly rootMargin: string = "";
   readonly thresholds: ReadonlyArray<number> = [];
-  constructor() {}
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  constructor() { }
+  observe() { }
+  unobserve() { }
+  disconnect() { }
   takeRecords(): IntersectionObserverEntry[] { return []; }
 }
 
@@ -58,10 +58,10 @@ if (isJsdom) {
         matches: false,
         media: query,
         onchange: null,
-        addListener: () => {},
-        removeListener: () => {},
-        addEventListener: () => {},
-        removeEventListener: () => {},
+        addListener: () => { },
+        removeListener: () => { },
+        addEventListener: () => { },
+        removeEventListener: () => { },
         dispatchEvent: () => false,
       }),
     });
@@ -79,19 +79,19 @@ if (isJsdom) {
 
   // Mock scrollTo
   if (!window.scrollTo) {
-    window.scrollTo = () => {};
+    window.scrollTo = () => { };
   }
 
   // Mock scrollIntoView
   if (!Element.prototype.scrollIntoView) {
-    Element.prototype.scrollIntoView = () => {};
+    Element.prototype.scrollIntoView = () => { };
   }
 
   // Mock navigator.clipboard
   if (!navigator.clipboard) {
     Object.defineProperty(navigator, "clipboard", {
       value: {
-        writeText: async () => {},
+        writeText: async () => { },
         readText: async () => "",
       },
       writable: true,
@@ -157,6 +157,22 @@ if (isJsdom) {
     value: sessionStorageMock,
     writable: true,
   });
+
+  class MockBroadcastChannel {
+    name: string;
+    onmessage: ((ev: MessageEvent) => void) | null = null;
+    onmessageerror: ((ev: MessageEvent) => void) | null = null;
+    constructor(name: string) { this.name = name; }
+    postMessage() { }
+    close() { }
+    addEventListener() { }
+    removeEventListener() { }
+    dispatchEvent() { return false; }
+  }
+
+  if (!(window as unknown as Record<string, unknown>).BroadcastChannel || (window as unknown as Record<string, unknown>).BroadcastChannel?.toString().includes("native")) {
+    (window as unknown as Record<string, unknown>).BroadcastChannel = MockBroadcastChannel as unknown as typeof BroadcastChannel;
+  }
 }
 
-export {};
+export { };

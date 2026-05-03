@@ -9,13 +9,17 @@
  * @tags: [lib]
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getAPIConfig,
-  setAPIConfig,
   resetAPIConfig,
+  setAPIConfig,
   type APIEndpoints,
 } from "../../lib/api-config";
+
+vi.mock("../../lib/error-handler", () => ({
+  captureError: vi.fn(),
+}));
 
 describe("API Configuration", () => {
   beforeEach(() => {
@@ -46,9 +50,9 @@ describe("API Configuration", () => {
       };
 
       localStorage.setItem("yyc3_api_endpoints", JSON.stringify(customConfig));
-      
+
       vi.resetModules();
-      
+
       const { getAPIConfig: getConfig } = await import("../../lib/api-config");
       const config = getConfig();
 
@@ -95,6 +99,7 @@ describe("API Configuration", () => {
     });
 
     it("should validate config before saving", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
       const invalidConfig = {
         fsBase: "not-a-valid-url",
       };
@@ -102,6 +107,7 @@ describe("API Configuration", () => {
       const result = setAPIConfig(invalidConfig);
 
       expect(result).toBeDefined();
+      warnSpy.mockRestore();
     });
   });
 

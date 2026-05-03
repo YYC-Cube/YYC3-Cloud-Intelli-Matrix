@@ -175,4 +175,17 @@ if (isJsdom) {
   }
 }
 
+if (isJsdom) {
+  const { cleanup } = await import("@testing-library/react");
+  const { afterEach: vitestAfterEach, afterAll: vitestAfterAll } = await import("vitest");
+
+  vitestAfterEach(async () => {
+    cleanup();
+  });
+
+  vitestAfterAll(async () => {
+    cleanup();
+  });
+}
+
 export { };

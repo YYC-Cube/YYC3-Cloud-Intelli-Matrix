@@ -151,10 +151,10 @@
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.9",
+    "vite": "^8.0.10",
     "vite-plugin-electron": "^0.28.0",
     "vite-plugin-electron-renderer": "^0.14.0",
-    "vitest": "^4.1.4",
+    "vitest": "^4.1.5",
     "vitest-axe": "^0.1.0",
     "wait-on": "^7.2.0"
   },

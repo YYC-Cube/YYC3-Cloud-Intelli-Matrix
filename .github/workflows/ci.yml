@@ -62,7 +62,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
@@ -94,7 +94,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
@@ -126,7 +126,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
@@ -165,7 +165,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
@@ -201,7 +201,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
@@ -226,7 +226,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js

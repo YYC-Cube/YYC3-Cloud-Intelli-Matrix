@@ -20,9 +20,7 @@
 
 export type ModelProvider =
   | "zhipu"           // 智谱AI
-  | "openai"          // OpenAI
-  | "anthropic"       // Anthropic Claude
-  | "google"          // Google Gemini
+  | "deepseek"        // DeepSeek
   | "ollama"          // 本地 Ollama
   | "custom";         // 自定义模型
 

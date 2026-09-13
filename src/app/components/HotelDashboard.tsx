@@ -15,12 +15,15 @@
  * - 语音交互控制
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Activity, Building2, Mic, MicOff } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AIFamilyHotelManager } from '../lib/ai-family-hotel-manager';
-import { HotelVoiceService, getHotelVoiceService } from '../lib/hotel-voice-service';
-import { getHotelKnowledgeBase } from '../lib/hotel-knowledge-base';
+import { ConversationParticipant, HOTEL_ROLES, HotelStaffMember, MultiModelConversation } from '../lib/ai-family-hotel.types';
 import { getAILearningEngine } from '../lib/ai-learning-engine';
-import { HOTEL_ROLES, HotelStaffMember, MultiModelConversation, ConversationParticipant } from '../lib/ai-family-hotel.types';
+import { getHotelKnowledgeBase } from '../lib/hotel-knowledge-base';
+import { HotelVoiceService, getHotelVoiceService } from '../lib/hotel-voice-service';
+import { GlassCard } from './GlassCard';
+import { MEMBERS_MAP, type FamilyMember } from './ai-family/shared';
 
 // ============================================================
 // 类型定义
@@ -55,6 +58,22 @@ const HOTEL_TABS: { id: string; label: string }[] = [
   { id: 'knowledge', label: '📚 知识库' },
   { id: 'learning', label: '🧠 AI学习' },
 ];
+
+const STAFF_FAMILY_MAP: Record<string, string> = {
+  "front-desk": "navigator",
+  "concierge": "bolero",
+  "manager": "meta-oracle",
+  "security": "sentinel",
+  "it-support": "master",
+  "marketing": "creative",
+  "finance": "thinker",
+  "guest-relations": "prophet",
+};
+
+function getFamilyForMember(role: string): FamilyMember | undefined {
+  const familyId = STAFF_FAMILY_MAP[role];
+  return familyId ? MEMBERS_MAP[familyId] : undefined;
+}
 
 // ============================================================
 // 主组件
@@ -191,182 +210,70 @@ export const HotelDashboard: React.FC = () => {
   // ========== 渲染函数 ==========
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      color: '#ffffff',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    }}>
-      {/* 通知栏 */}
+    <div className="space-y-4">
       {state.notification && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: '#e94560',
-          color: 'white',
-          padding: '16px 24px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(233, 69, 96, 0.3)',
-          zIndex: 1000,
-          animation: 'slideIn 0.3s ease-out',
-        }}>
+        <div className="fixed top-5 right-5 z-50 px-5 py-3 rounded-xl shadow-lg"
+          style={{ background: "rgba(255,60,60,0.9)", color: "#fff", fontSize: "0.82rem" }}>
           {state.notification}
         </div>
       )}
 
-      {/* 头部 */}
-      <header style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '20px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '28px', 
-            fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #00d9ff, #00ff88)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>
-            🏨 YYC3 智慧酒店 - AI Family 控制台
-          </h1>
-          <p style={{ margin: '8px 0 0', opacity: 0.7, fontSize: '14px' }}>
-            多模型协作 · 实时监控 · 智能优化
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          {/* 语音控制按钮 */}
-          <button
-            onClick={handleVoiceToggle}
-            style={{
-              padding: '12px 24px',
-              background: state.isListening ? '#e94560' : '#00d9ff',
-              border: 'none',
-              borderRadius: '8px',
-              color: 'white',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'all 0.3s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            🎤 {state.isListening ? '停止监听' : '开始语音'}
-          </button>
-
-          {/* 当前时间 */}
-          <div style={{
-            padding: '8px 16px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '8px',
-            fontSize: '14px',
-          }}>
-            🕐 {new Date().toLocaleString('zh-CN')}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[rgba(0,212,255,0.1)] flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-[#00d4ff]" />
+          </div>
+          <div>
+            <h2 className="text-[#e0f0ff]" style={{ fontSize: "1.1rem" }}>
+              YYC3 智慧酒店 · AI Family 控制台
+            </h2>
+            <p className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.7rem" }}>
+              多模型协作 · 实时监控 · 智能优化
+            </p>
           </div>
         </div>
-      </header>
 
-      <div style={{ display: 'flex', height: 'calc(100vh - 100px)' }}>
-        {/* 侧边栏导航 */}
-        <nav style={{
-          width: '240px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '20px 0',
-        }}>
-          {HOTEL_TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id as DashboardState['activeTab'])}
-              style={{
-                width: '100%',
-                padding: '16px 24px',
-                background: state.activeTab === tab.id ? 'rgba(0, 217, 255, 0.2)' : 'transparent',
-                border: 'none',
-                borderLeft: state.activeTab === tab.id ? '3px solid #00d9ff' : '3px solid transparent',
-                color: state.activeTab === tab.id ? '#00d9ff' : 'rgba(255, 255, 255, 0.7)',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '15px',
-                transition: 'all 0.2s',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleVoiceToggle}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all"
+            style={{
+              background: state.isListening ? "rgba(255,60,60,0.15)" : "rgba(0,212,255,0.06)",
+              border: `1px solid ${state.isListening ? "rgba(255,60,60,0.3)" : "rgba(0,212,255,0.15)"}`,
+              color: state.isListening ? "#ff3366" : "#00d4ff",
+              fontSize: "0.78rem",
+            }}
+          >
+            {state.isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+            {state.isListening ? "停止监听" : "语音控制"}
+          </button>
 
-        {/* 主内容区 */}
-        <main style={{ flex: 1, overflow: 'auto', padding: '30px' }}>
-          {renderActiveTab()}
-        </main>
+          <GlassCard className="px-3 py-1.5 flex items-center gap-2">
+            <Activity className="w-3.5 h-3.5 text-[#00ff88]" />
+            <span className="text-[rgba(0,212,255,0.5)]" style={{ fontSize: "0.72rem" }}>
+              {state.isListening ? "监听中..." : new Date().toLocaleString("zh-CN")}
+            </span>
+          </GlassCard>
+        </div>
       </div>
 
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
+      <div className="flex gap-1 overflow-x-auto">
+        {HOTEL_TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id as DashboardState['activeTab'])}
+            className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${state.activeTab === tab.id
+              ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
+              : "text-[rgba(0,212,255,0.4)] border border-transparent hover:border-[rgba(0,180,255,0.15)]"
+              }`}
+            style={{ fontSize: "0.78rem" }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        .glass-card {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          padding: 24px;
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .glass-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(0, 217, 255, 0.2);
-        }
-
-        .stat-card {
-          background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 255, 136, 0.1));
-          border: 1px solid rgba(0, 217, 255, 0.2);
-          border-radius: 12px;
-          padding: 20px;
-          text-align: center;
-        }
-
-        .staff-avatar {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 28px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .status-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          display: inline-block;
-          margin-right: 8px;
-        }
-
-        .status-available { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
-        .status-busy { background: #ffa500; box-shadow: 0 0 8px #ffa500; }
-        .status-offline { background: #666; }
-      `}</style>
+      {renderActiveTab()}
     </div>
   );
 
@@ -393,67 +300,47 @@ export const HotelDashboard: React.FC = () => {
 
   function renderOverview() {
     return (
-      <div>
-        <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>📊 总览面板</h2>
-        
-        {/* 核心指标卡片 */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-          gap: '20px', 
-          marginBottom: '40px' 
-        }}>
-          <div className="stat-card">
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#00d9ff' }}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <GlassCard className="p-4 text-center">
+            <div className="text-[#00d4ff]" style={{ fontSize: "1.6rem", fontWeight: "bold" }}>
               {stats.totalInteractions}
             </div>
-            <div style={{ marginTop: '8px', opacity: 0.7 }}>总交互次数</div>
-          </div>
-
-          <div className="stat-card">
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#00ff88' }}>
+            <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.7rem", marginTop: "4px" }}>总交互次数</div>
+          </GlassCard>
+          <GlassCard className="p-4 text-center">
+            <div className="text-[#00ff88]" style={{ fontSize: "1.6rem", fontWeight: "bold" }}>
               {stats.avgSatisfaction}%
             </div>
-            <div style={{ marginTop: '8px', opacity: 0.7 }}>平均满意度</div>
-          </div>
-
-          <div className="stat-card">
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#ffd700' }}>
+            <div className="text-[rgba(0,255,136,0.4)]" style={{ fontSize: "0.7rem", marginTop: "4px" }}>平均满意度</div>
+          </GlassCard>
+          <GlassCard className="p-4 text-center">
+            <div className="text-[#FFD700]" style={{ fontSize: "1.6rem", fontWeight: "bold" }}>
               {stats.activeStaff}/{staffList.length}
             </div>
-            <div style={{ marginTop: '8px', opacity: 0.7 }}>在线员工</div>
-          </div>
-
-          <div className="stat-card">
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#ff6b9d' }}>
+            <div className="text-[rgba(255,215,0,0.4)]" style={{ fontSize: "0.7rem", marginTop: "4px" }}>在线员工</div>
+          </GlassCard>
+          <GlassCard className="p-4 text-center">
+            <div className="text-[#FF69B4]" style={{ fontSize: "1.6rem", fontWeight: "bold" }}>
               {conversations.length}
             </div>
-            <div style={{ marginTop: '8px', opacity: 0.7 }}>活跃对话</div>
-          </div>
+            <div className="text-[rgba(255,105,180,0.4)]" style={{ fontSize: "0.7rem", marginTop: "4px" }}>活跃对话</div>
+          </GlassCard>
         </div>
 
-        {/* 模型使用情况 */}
-        <div className="glass-card" style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '20px' }}>🤖 模型使用分布</h3>
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        <GlassCard className="p-4">
+          <h3 className="text-[#e0f0ff] mb-3" style={{ fontSize: "0.88rem" }}>🤖 模型使用分布</h3>
+          <div className="flex gap-3 flex-wrap">
             {Object.entries(stats.modelUsage).map(([model, count]) => (
-              <div key={model} style={{
-                flex: 1,
-                minWidth: '150px',
-                padding: '16px',
-                background: 'rgba(0, 217, 255, 0.1)',
-                borderRadius: '8px',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{model}</div>
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00d9ff', margin: '8px 0' }}>
-                  {count}
-                </div>
-                <div style={{ opacity: 0.6 }}>位员工使用</div>
+              <div key={model} className="flex-1 min-w-[120px] p-3 rounded-lg text-center"
+                style={{ background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.1)" }}>
+                <div className="text-[#c0dcf0]" style={{ fontSize: "0.75rem" }}>{model}</div>
+                <div className="text-[#00d4ff]" style={{ fontSize: "1.3rem", fontWeight: "bold", margin: "4px 0" }}>{count}</div>
+                <div className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.65rem" }}>位员工使用</div>
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
         {/* 快速操作 */}
         <div className="glass-card">
@@ -470,8 +357,8 @@ export const HotelDashboard: React.FC = () => {
               cursor: 'pointer',
               transition: 'transform 0.2s',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
               🔄 刷新数据
             </button>
@@ -525,63 +412,58 @@ export const HotelDashboard: React.FC = () => {
 
   function renderStaffManagement() {
     return (
-      <div>
-        <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>👥 团队成员管理</h2>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-          gap: '24px' 
-        }}>
-          {staffList.map(staff => (
-            <div
-              key={staff.id}
-              className="glass-card"
-              onClick={() => handleStaffSelect(staff.id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                <div className="staff-avatar">{staff.emoji}</div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, fontSize: '18px' }}>{staff.name}</h3>
-                  <p style={{ margin: '4px 0 0', opacity: 0.7, fontSize: '14px' }}>{staff.role}</p>
-                </div>
-              </div>
-
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                marginBottom: '12px'
-              }}>
-                <span>
-                  <span className={`status-dot status-${staff.status}`} />
-                  {staff.status === 'available' ? '空闲' : staff.status === 'busy' ? '忙碌' : '离线'}
-                </span>
-                <span style={{ opacity: 0.6, fontSize: '13px' }}>🤖 {staff.model}</span>
-              </div>
-
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '1fr 1fr', 
-                gap: '12px',
-                fontSize: '14px'
-              }}>
-                <div>
-                  <span style={{ opacity: 0.6 }}>满意度</span>
-                  <div style={{ fontWeight: 'bold', color: '#00ff88', fontSize: '18px' }}>
-                    {staff.satisfaction}%
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {staffList.map(staff => {
+            const family = getFamilyForMember(staffList.find(s => s.id === staff.id)?.role || "");
+            const FamilyIcon = family?.icon;
+            return (
+              <GlassCard
+                key={staff.id}
+                className="p-4 cursor-pointer hover:border-[rgba(0,212,255,0.2)] transition-all"
+                onClick={() => handleStaffSelect(staff.id)}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${family?.color || "#00d4ff"}15`, border: `1px solid ${family?.color || "#00d4ff"}30` }}>
+                    {FamilyIcon ? <FamilyIcon className="w-5 h-5" style={{ color: family?.color || "#00d4ff" }} /> : <span style={{ fontSize: "1.2rem" }}>{staff.emoji}</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[#e0f0ff] truncate" style={{ fontSize: "0.85rem" }}>{staff.name}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[rgba(0,212,255,0.35)]" style={{ fontSize: "0.7rem" }}>{staff.role}</span>
+                      {family && (
+                        <span className="px-1.5 py-0.5 rounded" style={{ fontSize: "0.55rem", background: `${family.color}15`, color: family.color, border: `1px solid ${family.color}25` }}>
+                          {family.shortName}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <span style={{ opacity: 0.6 }}>交互数</span>
-                  <div style={{ fontWeight: 'bold', color: '#00d9ff', fontSize: '18px' }}>
-                    {staff.interactions}
+
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: staff.status === "available" ? "#00ff88" : staff.status === "busy" ? "#ffa500" : "#666" }} />
+                    <span className="text-[rgba(224,240,255,0.5)]" style={{ fontSize: "0.7rem" }}>
+                      {staff.status === "available" ? "空闲" : staff.status === "busy" ? "忙碌" : "离线"}
+                    </span>
+                  </div>
+                  <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.65rem" }}>🤖 {staff.model}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg" style={{ background: "rgba(0,255,136,0.04)", border: "1px solid rgba(0,255,136,0.08)" }}>
+                    <div className="text-[rgba(0,255,136,0.4)]" style={{ fontSize: "0.6rem" }}>满意度</div>
+                    <div className="text-[#00ff88]" style={{ fontSize: "1rem", fontWeight: "bold" }}>{staff.satisfaction}%</div>
+                  </div>
+                  <div className="p-2 rounded-lg" style={{ background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.08)" }}>
+                    <div className="text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.6rem" }}>交互数</div>
+                    <div className="text-[#00d4ff]" style={{ fontSize: "1rem", fontWeight: "bold" }}>{staff.interactions}</div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </GlassCard>
+            );
+          })}
         </div>
       </div>
     );
@@ -591,7 +473,7 @@ export const HotelDashboard: React.FC = () => {
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>💬 对话中心</h2>
-        
+
         {conversations.length === 0 ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '60px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
@@ -601,9 +483,9 @@ export const HotelDashboard: React.FC = () => {
         ) : (
           conversations.map(conv => (
             <div key={conv.conversationId} className="glass-card" style={{ marginBottom: '16px' }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '16px'
               }}>
@@ -617,13 +499,13 @@ export const HotelDashboard: React.FC = () => {
                   {conv.status}
                 </span>
               </div>
-              
+
               <div style={{ opacity: 0.7, fontSize: '14px' }}>
                 参与者: {conv.participants.map((p: ConversationParticipant) => p.memberName).join(', ')}
               </div>
-              
+
               <div style={{ marginTop: '12px', fontSize: '14px' }}>
-                消息数: {conv.messages?.length || 0} | 
+                消息数: {conv.messages?.length || 0} |
                 任务数: {conv.activeTasks?.length || 0} |
                 决策记录: {conv.decisionLog?.length || 0}
               </div>
@@ -638,12 +520,12 @@ export const HotelDashboard: React.FC = () => {
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>📈 数据分析</h2>
-        
+
         <div className="glass-card">
           <h3 style={{ marginBottom: '20px' }}>性能趋势图</h3>
-          <div style={{ 
-            height: '300px', 
-            background: 'rgba(0, 0, 0, 0.2)', 
+          <div style={{
+            height: '300px',
+            background: 'rgba(0, 0, 0, 0.2)',
             borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
@@ -654,18 +536,18 @@ export const HotelDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '20px', 
-          marginTop: '24px' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '20px',
+          marginTop: '24px'
         }}>
           {['模型响应时间', '客户满意度', '问题解决率', '升级处理'].map(title => (
             <div key={title} className="glass-card">
               <h4 style={{ marginBottom: '12px' }}>{title}</h4>
-              <div style={{ 
-                height: '120px', 
-                background: 'rgba(0, 0, 0, 0.2)', 
+              <div style={{
+                height: '120px',
+                background: 'rgba(0, 0, 0, 0.2)',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
@@ -685,13 +567,13 @@ export const HotelDashboard: React.FC = () => {
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>🎤 语音交互控制</h2>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* 语音识别 */}
           <div className="glass-card">
             <h3 style={{ marginBottom: '20px' }}>🎤 语音识别</h3>
-            
-            <div style={{ 
+
+            <div style={{
               padding: '24px',
               background: state.isListening ? 'rgba(233, 69, 96, 0.1)' : 'rgba(0, 0, 0, 0.2)',
               borderRadius: '12px',
@@ -713,7 +595,7 @@ export const HotelDashboard: React.FC = () => {
                   animation: 'pulse 1.5s infinite',
                 }} />
               )}
-              
+
               <div style={{ position: 'relative', zIndex: 1 }}>
                 {state.currentTranscript || (state.isListening ? '正在聆听...' : '点击下方按钮开始说话')}
               </div>
@@ -741,7 +623,7 @@ export const HotelDashboard: React.FC = () => {
           {/* 语音合成 */}
           <div className="glass-card">
             <h3 style={{ marginBottom: '20px' }}>🔊 语音合成</h3>
-            
+
             <textarea
               placeholder="输入要合成的文本..."
               style={{
@@ -762,7 +644,7 @@ export const HotelDashboard: React.FC = () => {
               disabled={state.isSpeaking}
               onClick={() => {
                 const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-                if (textarea?.value) {handleSpeak(textarea.value);}
+                if (textarea?.value) { handleSpeak(textarea.value); }
               }}
               style={{
                 width: '100%',
@@ -789,13 +671,13 @@ export const HotelDashboard: React.FC = () => {
             return (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <strong>语音识别:</strong> 
+                  <strong>语音识别:</strong>
                   <span style={{ color: support.recognition ? '#00ff88' : '#e94560' }}>
                     {support.recognition ? '✅ 支持' : '❌ 不支持'}
                   </span>
                 </div>
                 <div>
-                  <strong>语音合成:</strong> 
+                  <strong>语音合成:</strong>
                   <span style={{ color: support.synthesis ? '#00ff88' : '#e94560' }}>
                     {support.synthesis ? '✅ 支持' : '❌ 不支持'}
                   </span>
@@ -812,11 +694,11 @@ export const HotelDashboard: React.FC = () => {
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>📚 酒店知识库</h2>
-        
+
         {/* 统计信息 */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '16px',
           marginBottom: '30px'
         }}>
@@ -849,8 +731,8 @@ export const HotelDashboard: React.FC = () => {
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 217, 255, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 217, 255, 0.05)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 217, 255, 0.15)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 217, 255, 0.05)'}
               >
                 <div style={{ fontWeight: '600', marginBottom: '4px' }}>{cat.name}</div>
                 <div style={{ opacity: 0.6, fontSize: '13px' }}>{cat.count} 篇文章</div>
@@ -884,11 +766,11 @@ export const HotelDashboard: React.FC = () => {
     return (
       <div>
         <h2 style={{ marginBottom: '30px', fontSize: '24px' }}>🧠 AI 学习与优化</h2>
-        
+
         {/* 学习统计 */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '16px',
           marginBottom: '30px'
         }}>
@@ -913,7 +795,7 @@ export const HotelDashboard: React.FC = () => {
             {learningSummary.topPerformers.map(staffId => {
               const staff = staffMap.get(staffId);
               return (
-                <div key={staffId} style={{ 
+                <div key={staffId} style={{
                   padding: '12px',
                   background: 'rgba(0, 255, 136, 0.05)',
                   borderRadius: '8px',
@@ -930,7 +812,7 @@ export const HotelDashboard: React.FC = () => {
             {learningSummary.needsAttention.map(staffId => {
               const staff = staffMap.get(staffId);
               return (
-                <div key={staffId} style={{ 
+                <div key={staffId} style={{
                   padding: '12px',
                   background: 'rgba(255, 165, 0, 0.05)',
                   borderRadius: '8px',
@@ -946,7 +828,7 @@ export const HotelDashboard: React.FC = () => {
         {/* 最新洞察 */}
         <div className="glass-card">
           <h3 style={{ marginBottom: '20px' }}>💡 最新学习洞察</h3>
-          
+
           {learningInsights.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', opacity: 0.5 }}>
               暂无洞察，系统正在收集数据...
@@ -956,19 +838,18 @@ export const HotelDashboard: React.FC = () => {
               <div key={insight.id} style={{
                 padding: '20px',
                 background: insight.type === 'strength' ? 'rgba(0, 255, 136, 0.05)' :
-                           insight.type === 'weakness' ? 'rgba(233, 69, 96, 0.05)' :
-                           'rgba(0, 217, 255, 0.05)',
-                borderLeft: `4px solid ${
-                  insight.type === 'strength' ? '#00ff88' :
+                  insight.type === 'weakness' ? 'rgba(233, 69, 96, 0.05)' :
+                    'rgba(0, 217, 255, 0.05)',
+                borderLeft: `4px solid ${insight.type === 'strength' ? '#00ff88' :
                   insight.type === 'weakness' ? '#e94560' :
-                  '#00d9ff'
-                }`,
+                    '#00d9ff'
+                  }`,
                 borderRadius: '8px',
                 marginBottom: '16px',
               }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'start',
                   marginBottom: '8px'
                 }}>
@@ -976,19 +857,19 @@ export const HotelDashboard: React.FC = () => {
                   <span style={{
                     padding: '4px 8px',
                     background: insight.impact === 'high' ? 'rgba(233, 69, 96, 0.2)' :
-                               insight.impact === 'medium' ? 'rgba(255, 165, 0, 0.2)' :
-                               'rgba(0, 255, 136, 0.2)',
+                      insight.impact === 'medium' ? 'rgba(255, 165, 0, 0.2)' :
+                        'rgba(0, 255, 136, 0.2)',
                     borderRadius: '4px',
                     fontSize: '12px',
                   }}>
                     {insight.impact.toUpperCase()} IMPACT
                   </span>
                 </div>
-                
+
                 <p style={{ margin: '0 0 12px', opacity: 0.8, fontSize: '14px' }}>
                   {insight.description}
                 </p>
-                
+
                 <div style={{ fontSize: '13px', opacity: 0.6 }}>
                   置信度: {insight.confidence}% | 建议: {insight.actionableRecommendations.length} 条
                 </div>

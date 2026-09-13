@@ -9,18 +9,25 @@
  * @tags: [component]
  */
 
-import React, { useContext, useEffect, useRef, useState, useCallback } from "react";
 import {
-  AlertTriangle, AlertCircle, XCircle, Info, Filter, Bell,
-  Activity, CheckCircle,
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  Bell,
+  CheckCircle,
+  Filter,
+  Info,
+  XCircle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useI18n } from "../hooks/useI18n";
+import { useWebSocketData } from "../hooks/useWebSocketData";
+import { ViewContext } from "../lib/view-context";
+import { useAlerts } from "../stores/global-store";
+import type { FollowUpItem, FollowUpStatus } from "../types";
 import { FollowUpCard } from "./FollowUpCard";
 import { FollowUpDrawer } from "./FollowUpDrawer";
-import { useAlerts } from "../stores/global-store";
-import { useI18n } from "../hooks/useI18n";
-import { ViewContext } from "../lib/view-context";
-import type { FollowUpItem, FollowUpStatus } from "../types";
+import { GlassCard } from "./GlassCard";
 
 const DEFAULT_FOLLOW_UPS: FollowUpItem[] = [
   {
@@ -82,6 +89,7 @@ export function FollowUpPanel() {
   const isMobile = view?.isMobile ?? false;
   const { t } = useI18n();
   const { followUps, addFollowUp, updateFollowUp } = useAlerts();
+  const wsData = useWebSocketData();
   const initialized = useRef(false);
 
   const [drawerItem, setDrawerItem] = useState<FollowUpItem | null>(null);
@@ -116,8 +124,8 @@ export function FollowUpPanel() {
   }, [updateFollowUp, closeDrawer]);
 
   const filteredItems = followUps.filter((item) => {
-    if (filterSeverity !== "all" && item.severity !== filterSeverity) {return false;}
-    if (filterStatus !== "all" && item.status !== filterStatus) {return false;}
+    if (filterSeverity !== "all" && item.severity !== filterSeverity) { return false; }
+    if (filterStatus !== "all" && item.status !== filterStatus) { return false; }
     return true;
   });
 
@@ -132,19 +140,19 @@ export function FollowUpPanel() {
   };
 
   const severityFilters = [
-    { key: "all" as const,      label: t("common.all"),          icon: Filter,        color: "#00d4ff" },
-    { key: "critical" as const, label: t("ai.severity.critical"), icon: XCircle,       color: "#ff3366" },
-    { key: "error" as const,    label: t("common.error"),         icon: AlertTriangle, color: "#ff6600" },
-    { key: "warning" as const,  label: t("common.warning"),       icon: AlertCircle,   color: "#ffaa00" },
-    { key: "info" as const,     label: t("common.info"),          icon: Info,          color: "#00d4ff" },
+    { key: "all" as const, label: t("common.all"), icon: Filter, color: "#00d4ff" },
+    { key: "critical" as const, label: t("ai.severity.critical"), icon: XCircle, color: "#ff3366" },
+    { key: "error" as const, label: t("common.error"), icon: AlertTriangle, color: "#ff6600" },
+    { key: "warning" as const, label: t("common.warning"), icon: AlertCircle, color: "#ffaa00" },
+    { key: "info" as const, label: t("common.info"), icon: Info, color: "#00d4ff" },
   ];
 
   const statusFilters = [
-    { key: "all" as const,           label: t("common.all") },
-    { key: "active" as const,        label: t("pwa.online") },
+    { key: "all" as const, label: t("common.all") },
+    { key: "active" as const, label: t("pwa.online") },
     { key: "investigating" as const, label: t("ai.analyzing") },
-    { key: "resolved" as const,      label: t("followUp.markResolved") },
-    { key: "ignored" as const,       label: t("ai.dismiss") },
+    { key: "resolved" as const, label: t("followUp.markResolved") },
+    { key: "ignored" as const, label: t("ai.dismiss") },
   ];
 
   return (
@@ -164,6 +172,14 @@ export function FollowUpPanel() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {wsData.isSimulated && (
+            <span
+              className="px-2 py-0.5 rounded-full text-amber-300 border border-amber-500/30 bg-amber-500/10"
+              style={{ fontSize: "0.6rem" }}
+            >
+              模拟数据
+            </span>
+          )}
           <span className="text-[rgba(0,212,255,0.3)]" style={{ fontSize: "0.68rem" }}>
             {stats.total} {t("common.all")}
           </span>
@@ -190,11 +206,10 @@ export function FollowUpPanel() {
                 <button
                   key={f.key}
                   onClick={() => setFilterSeverity(f.key)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
-                    isActive
-                      ? "border border-[rgba(0,212,255,0.25)]"
-                      : "border border-transparent hover:border-[rgba(0,180,255,0.1)]"
-                  }`}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${isActive
+                    ? "border border-[rgba(0,212,255,0.25)]"
+                    : "border border-transparent hover:border-[rgba(0,180,255,0.1)]"
+                    }`}
                   style={{
                     fontSize: "0.68rem",
                     backgroundColor: isActive ? `${f.color}12` : "transparent",
@@ -217,11 +232,10 @@ export function FollowUpPanel() {
                 <button
                   key={f.key}
                   onClick={() => setFilterStatus(f.key)}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
-                      : "text-[rgba(0,212,255,0.4)] border border-transparent hover:border-[rgba(0,180,255,0.1)]"
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${isActive
+                    ? "bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border border-[rgba(0,212,255,0.25)]"
+                    : "text-[rgba(0,212,255,0.4)] border border-transparent hover:border-[rgba(0,180,255,0.1)]"
+                    }`}
                   style={{ fontSize: "0.68rem" }}
                 >
                   {f.label}

@@ -130,6 +130,8 @@ export function useModelProvider() {
     ollamaError: slice.ollamaError,
     stats,
     availableModels,
+    activeModelId: slice.activeModelId,
+    testingIds: slice.testingIds,
 
     // 模态框
     modalOpen,
@@ -149,9 +151,16 @@ export function useModelProvider() {
     updateModel: slice.updateModel,
     removeModel: slice.removeModel,
     testConnection: slice.testConnection,
+    testAllConnections: slice.testAllConnections,
+    setActiveModel: slice.setActiveModel,
+    getActiveModel: slice.getActiveModel,
+    getModelsByStatus: slice.getModelsByStatus,
 
     // Ollama
     fetchOllamaModels: slice.fetchOllamaModels,
+
+    // Preset
+    presetModels: slice.presetModels,
 
     // 导入/导出
     exportConfig: slice.exportConfig,

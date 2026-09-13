@@ -13,7 +13,7 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import type {
   ChatSession,
@@ -21,7 +21,6 @@ import type {
   FollowUpRecord,
   FollowUpSeverity,
   FollowUpStatus,
-  DBConnection,
 } from '../types';
 
 // ============================================================
@@ -158,8 +157,8 @@ export const useChat = () => useGlobalStore(useShallow((state) => ({
 // 聚合选择器 — 从 Slice 读取
 // ============================================================
 
-import { useFollowUpSlice } from '../store/slices/follow-up-slice';
 import { useDbConnSlice } from '../store/slices/db-conn-slice';
+import { useFollowUpSlice } from '../store/slices/follow-up-slice';
 
 /** 从 follow-up-slice 聚合读取告警数据 + 暴露操作方法 */
 export const useAlerts = () => {
@@ -227,15 +226,8 @@ export const useAlerts = () => {
 
 /** 从 db-conn-slice 聚合读取数据库连接数据 */
 export const useDatabase = () => {
-  return useDbConnSlice(useShallow((state) => ({
-    connections: state.connections,
-    activeConnectionId: null as string | null,
-    setConnections: (_connections: DBConnection[]) => {},
-    addConnection: (_conn: DBConnection) => {},
-    updateConnection: (_id: string, _updates: Partial<DBConnection>) => {},
-    removeConnection: (_id: string) => {},
-    setActiveConnection: (_id: string | null) => {},
-  })));
+  const connections = useDbConnSlice((state) => state.connections);
+  return { connections };
 };
 
 // ============================================================

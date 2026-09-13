@@ -39,6 +39,12 @@ export interface ConfiguredModel {
   createdAt: number;
   lastUsed: number | null;
   status: "active" | "error" | "unchecked";
+  lastTestResult?: {
+    steps: Array<{ label: string; status: string; detail: string; latencyMs?: number }>;
+    suggestion?: string;
+    totalLatencyMs: number;
+    testedAt: number;
+  };
 }
 
 /** Ollama 本地模型标签 (来自 /api/tags) */

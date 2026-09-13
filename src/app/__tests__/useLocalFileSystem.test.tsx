@@ -13,6 +13,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useLocalFileSystem } from "../hooks/useLocalFileSystem";
+import { useFSSlice } from "../store/slices/fs-slice";
 
 vi.mock("sonner", () => ({
   toast: {
@@ -27,6 +28,11 @@ describe("useLocalFileSystem", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    useFSSlice.setState({
+      fileTree: null,
+      fileContents: {},
+      recentFiles: [],
+    });
   });
 
   afterEach(() => {

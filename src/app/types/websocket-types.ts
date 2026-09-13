@@ -61,6 +61,7 @@ export type WSMessage =
 /** useWebSocketData Hook 返回的完整数据状态 */
 export interface WebSocketDataState {
   connectionState: ConnectionState;
+  isSimulated: boolean;
   reconnectCount: number;
   lastSyncTime: string;
   liveQPS: number;

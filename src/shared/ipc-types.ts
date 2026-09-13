@@ -53,6 +53,11 @@ export enum IPCChannel {
   // Shell 操作
   SHELL_OPEN = "shell:open",
   SHELL_EXECUTE = "shell:execute",
+
+  // 原生通知
+  NOTIFICATION_SHOW = "notification:show",
+  NOTIFICATION_PERMISSION = "notification:permission",
+  NOTIFICATION_REQUEST = "notification:request",
 }
 
 /**
@@ -287,9 +292,21 @@ export interface ShellAPI {
   execute(command: string, args?: string[]): Promise<string>;
 }
 
-/**
- * 完整的 YYC3 桥接 API
- */
+export interface NotificationOptions {
+  title: string;
+  body?: string;
+  icon?: string;
+  tag?: string;
+  silent?: boolean;
+  requireInteraction?: boolean;
+}
+
+export interface NotificationAPI {
+  show(options: NotificationOptions): Promise<string>;
+  getPermission(): Promise<string>;
+  requestPermission(): Promise<string>;
+}
+
 export interface YYC3BridgeAPI {
   fileSystem: FileSystemAPI;
   database: DatabaseAPI;
@@ -297,4 +314,5 @@ export interface YYC3BridgeAPI {
   appControl: AppControlAPI;
   dialog: DialogAPI;
   shell: ShellAPI;
+  notification: NotificationAPI;
 }

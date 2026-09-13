@@ -2,9 +2,9 @@
  * @file: useWebSocketData.ts
  * @description: WebSocket 实时数据推送 Hook · 管理连接、消息路由、断线降级
  * @author: YanYuCloudCube Team
- * @version: v2.0.0
+ * @version: v3.0.0
  * @created: 2026-02-26
- * @updated: 2026-04-15
+ * @updated: 2026-04-30
  * @status: active
  * @tags: [hook],[websocket],[realtime]
  *
@@ -15,26 +15,28 @@
  * - 消息类型路由（qps_update / latency_update / node_status / alert）
  * - ★ 节点数据通过 DataBus.mergeNodeData() 合并后写入 useNodeSlice
  * - ★ 用户编辑的字段在 WS 推送时不会被覆盖（smartMerge 策略）
+ * - ★ v3.0: 状态机修复 — WS优先，失败后明确降级到模拟模式
+ * - ★ v3.0: isSimulated 标志位 — UI 可据此显示"模拟数据"标识
  * - 断线降级：自动切换本地模拟数据
  *
  * @dependencies: React, WebSocket API, DataBus, useNodeSlice
  * @exports: useWebSocketData, WebSocketContext
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
+  AlertData,
   ConnectionState,
   NodeData,
-  AlertData,
   ThroughputPoint,
   WSMessage,
   WebSocketDataState,
 } from "../types";
 
 import { getAPIConfig } from "../lib/api-config";
-import { useNodeSlice } from "../store/slices/node-slice";
 import { dataBus } from "../lib/data-bus";
+import { useNodeSlice } from "../store/slices/node-slice";
 
 // ============================================================
 // Simulated Data Generator — 从 useNodeSlice 读取初始数据
@@ -135,108 +137,122 @@ export function useWebSocketData(): WebSocketDataState {
     setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
   }, [mergeFromWS]);
 
-  // ----- WebSocket connection -----
-  const connectWS = useCallback(() => {
-    const wsUrl = getAPIConfig().wsEndpoint;
-    setConnectionState("connecting");
-
-    try {
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setConnectionState("connected");
-        setReconnectCount(0);
-        dataBus.registerWSSender((msg) => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(msg));
-            return true;
-          }
-          return false;
-        });
-        if (simulateTimerRef.current) {
-          clearInterval(simulateTimerRef.current);
-          simulateTimerRef.current = null;
-        }
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const msg: WSMessage = JSON.parse(event.data);
-          dataBus.ingestWSMessage(msg);
-          switch (msg.type) {
-            case "qps_update":
-              setLiveQPS(msg.payload.qps);
-              setQpsTrend(msg.payload.trend);
-              break;
-            case "latency_update":
-              setLiveLatency(msg.payload.latency);
-              setLatencyTrend(msg.payload.trend);
-              break;
-
-            // ★★★ 核心修复：节点数据走 DataBus 合并而非直接覆盖 ★★★
-            case "node_status":
-              mergeFromWS(msg.payload as NodeData[]);
-              break;
-
-            case "alert":
-              setAlerts((prev) => [msg.payload, ...prev].slice(0, 100));
-              break;
-            case "throughput_history":
-              setThroughputHistory(msg.payload.slice(-MAX_THROUGHPUT_HISTORY));
-              break;
-            case "system_stats":
-              setActiveNodes(msg.payload.activeNodes);
-              setGpuUtil(msg.payload.gpuUtil);
-              setTokenThroughput(msg.payload.tokenThroughput);
-              break;
-            case "heartbeat_ack":
-              break;
-          }
-          setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
-        } catch {
-          // silently ignore parse errors for non-critical messages
-        }
-      };
-
-      ws.onclose = () => {
-        wsRef.current = null;
-        dataBus.unregisterWSSender();
-        setConnectionState("simulated");
-        if (!simulateTimerRef.current) {
-          simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
-        }
-        reconnectTimerRef.current = setTimeout(() => {
-          setReconnectCount((c) => c + 1);
-          connectWSRef.current?.();
-        }, RECONNECT_DELAY_MS);
-      };
-
-      ws.onerror = () => {
-        ws.close();
-      };
-    } catch {
-      setConnectionState("simulated");
-      if (!simulateTimerRef.current) {
-        simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
-      }
-    }
-  }, [runSimulation, mergeFromWS]);
-
-  useEffect(() => {
-    connectWSRef.current = connectWS;
-  }, [connectWS]);
-
   // ----- lifecycle -----
+  // ★ v3.0 修复：先尝试WS连接，仅在失败后启动模拟器
+  // 不再"启动即双跑"，消除模拟数据污染真实数据的竞争窗口
   useEffect(() => {
-    const timer = setTimeout(() => {
-      connectWS();
-    }, 0);
+    let wsConnected = false;
+    let cancelled = false;
 
-    simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
+    const startSimulation = () => {
+      if (cancelled) { return; }
+      if (simulateTimerRef.current) { return; }
+      setConnectionState("simulated");
+      simulateTimerRef.current = setInterval(runSimulation, SIMULATE_INTERVAL_MS);
+      runSimulation();
+    };
+
+    const tryConnectWS = () => {
+      if (cancelled) { return; }
+      const wsUrl = getAPIConfig().wsEndpoint;
+      setConnectionState("connecting");
+
+      try {
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        const connectTimeout = setTimeout(() => {
+          if (!wsConnected && ws.readyState !== WebSocket.OPEN) {
+            ws.close();
+          }
+        }, 8000);
+
+        ws.onopen = () => {
+          clearTimeout(connectTimeout);
+          if (cancelled) { ws.close(); return; }
+          wsConnected = true;
+          setConnectionState("connected");
+          setReconnectCount(0);
+          if (simulateTimerRef.current) {
+            clearInterval(simulateTimerRef.current);
+            simulateTimerRef.current = null;
+          }
+          dataBus.registerWSSender((msg) => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify(msg));
+              return true;
+            }
+            return false;
+          });
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const msg: WSMessage = JSON.parse(event.data);
+            dataBus.ingestWSMessage(msg);
+            switch (msg.type) {
+              case "qps_update":
+                setLiveQPS(msg.payload.qps);
+                setQpsTrend(msg.payload.trend);
+                break;
+              case "latency_update":
+                setLiveLatency(msg.payload.latency);
+                setLatencyTrend(msg.payload.trend);
+                break;
+              case "node_status":
+                mergeFromWS(msg.payload as NodeData[]);
+                break;
+              case "alert":
+                setAlerts((prev) => [msg.payload, ...prev].slice(0, 100));
+                break;
+              case "throughput_history":
+                setThroughputHistory(msg.payload.slice(-MAX_THROUGHPUT_HISTORY));
+                break;
+              case "system_stats":
+                setActiveNodes(msg.payload.activeNodes);
+                setGpuUtil(msg.payload.gpuUtil);
+                setTokenThroughput(msg.payload.tokenThroughput);
+                break;
+              case "heartbeat_ack":
+                break;
+            }
+            setLastSyncTime(new Date().toLocaleString("zh-CN", { hour12: false }));
+          } catch {
+            // silently ignore parse errors for non-critical messages
+          }
+        };
+
+        ws.onclose = () => {
+          clearTimeout(connectTimeout);
+          wsRef.current = null;
+          dataBus.unregisterWSSender();
+          if (cancelled) { return; }
+
+          if (!wsConnected) {
+            startSimulation();
+          }
+
+          reconnectTimerRef.current = setTimeout(() => {
+            if (cancelled) { return; }
+            setReconnectCount((c) => c + 1);
+            wsConnected = false;
+            tryConnectWS();
+          }, RECONNECT_DELAY_MS);
+        };
+
+        ws.onerror = () => {
+          ws.close();
+        };
+      } catch {
+        startSimulation();
+      }
+    };
+
+    connectWSRef.current = tryConnectWS;
+    tryConnectWS();
 
     return () => {
-      clearTimeout(timer);
+      cancelled = true;
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -250,7 +266,7 @@ export function useWebSocketData(): WebSocketDataState {
         reconnectTimerRef.current = null;
       }
     };
-  }, [connectWS, runSimulation]);
+  }, [mergeFromWS, runSimulation]);
 
   // ----- public API -----
   const manualReconnect = useCallback(() => {
@@ -262,8 +278,8 @@ export function useWebSocketData(): WebSocketDataState {
       reconnectTimerRef.current = null;
     }
     setConnectionState("reconnecting");
-    connectWS();
-  }, [connectWS]);
+    connectWSRef.current?.();
+  }, []);
 
   const clearAlerts = useCallback(() => {
     setAlerts([]);
@@ -271,6 +287,7 @@ export function useWebSocketData(): WebSocketDataState {
 
   return {
     connectionState,
+    isSimulated: connectionState === "simulated",
     reconnectCount,
     lastSyncTime,
     liveQPS,

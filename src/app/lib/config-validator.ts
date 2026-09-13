@@ -2,7 +2,7 @@
  * @file: config-validator.ts
  * @description: config-validator.ts
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v1.1.0
  * @created: 2026-04-08
  * @updated: 2026-04-08
  * @status: active
@@ -23,20 +23,23 @@ const urlSchema = z.string().url({ message: "URL 格式无效" }).refine(
   { message: "URL 协议必须是 http、https、ws 或 wss" }
 );
 
-const relativePathSchema = z.string().refine(
-  (path) => path.startsWith("/") || path === "",
-  { message: "相对路径必须以 / 开头" }
-);
+const urlOrPathSchema = (fieldName: string) =>
+  z.string().refine(
+    (val) => {
+      if (val.startsWith("/") || val === "") { return true; }
+      try {
+        const parsed = new URL(val);
+        return ["http:", "https:", "ws:", "wss:"].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    },
+    { message: `${fieldName} 必须是有效的 URL 或以 / 开头的相对路径` }
+  );
 
 const apiEndpointsSchema = z.object({
-  fsBase: z.union([urlSchema, relativePathSchema]).refine(
-    (val) => val !== undefined,
-    { message: "fsBase 必须是有效的 URL 或以 / 开头的相对路径" }
-  ),
-  dbBase: z.union([urlSchema, relativePathSchema]).refine(
-    (val) => val !== undefined,
-    { message: "dbBase 必须是有效的 URL 或以 / 开头的相对路径" }
-  ),
+  fsBase: urlOrPathSchema("fsBase"),
+  dbBase: urlOrPathSchema("dbBase"),
   wsEndpoint: z.string().refine(
     (url) => {
       try {
@@ -59,10 +62,7 @@ const apiEndpointsSchema = z.object({
     },
     { message: "aiBase 必须是有效的 HTTP/HTTPS URL" }
   ),
-  clusterBase: z.union([urlSchema, relativePathSchema]).refine(
-    (val) => val !== undefined,
-    { message: "clusterBase 必须是有效的 URL 或以 / 开头的相对路径" }
-  ),
+  clusterBase: urlOrPathSchema("clusterBase"),
   enableBackend: z.boolean({ message: "enableBackend 必须是布尔值" }),
   timeout: z.number()
     .int("超时时间必须是整数")
@@ -95,7 +95,17 @@ const ERROR_CODE_MAP: Record<string, string> = {
   too_small: "VALUE_TOO_SMALL",
   too_big: "VALUE_TOO_BIG",
   invalid_string: "FORMAT_ERROR",
+  invalid_format: "FORMAT_ERROR",
+  invalid_union: "UNION_TYPE_ERROR",
   custom: "CUSTOM_ERROR",
+};
+
+const FRIENDLY_MESSAGE_MAP: Record<string, string> = {
+  fsBase: "fsBase 必须是有效的 URL 或以 / 开头的相对路径",
+  dbBase: "dbBase 必须是有效的 URL 或以 / 开头的相对路径",
+  clusterBase: "clusterBase 必须是有效的 URL 或以 / 开头的相对路径",
+  wsEndpoint: "wsEndpoint 必须是有效的 WebSocket URL (ws:// 或 wss://)",
+  aiBase: "aiBase 必须是有效的 HTTP/HTTPS URL",
 };
 
 const SUGGESTION_MAP: Record<string, string> = {
@@ -122,9 +132,13 @@ export function validateAPIConfig(input: unknown): ConfigValidationResult {
 
   const errors: ConfigValidationError[] = result.error.issues.map((issue) => {
     const field = issue.path.join(".") || "unknown";
+    let message = issue.message;
+    if ((issue.code === "invalid_union" || issue.code === "invalid_type") && FRIENDLY_MESSAGE_MAP[field]) {
+      message = FRIENDLY_MESSAGE_MAP[field];
+    }
     return {
       field,
-      message: issue.message,
+      message,
       code: ERROR_CODE_MAP[issue.code] || "UNKNOWN_ERROR",
       suggestion: SUGGESTION_MAP[field],
     };
@@ -152,9 +166,13 @@ export function validatePartialAPIConfig(
 
   const errors: ConfigValidationError[] = result.error.issues.map((issue) => {
     const field = issue.path.join(".") || "unknown";
+    let message = issue.message;
+    if ((issue.code === "invalid_union" || issue.code === "invalid_type") && FRIENDLY_MESSAGE_MAP[field]) {
+      message = FRIENDLY_MESSAGE_MAP[field];
+    }
     return {
       field,
-      message: issue.message,
+      message,
       code: ERROR_CODE_MAP[issue.code] || "UNKNOWN_ERROR",
       suggestion: SUGGESTION_MAP[field],
     };
@@ -167,7 +185,7 @@ export function validatePartialAPIConfig(
 }
 
 export function formatValidationErrors(errors: ConfigValidationError[]): string {
-  if (errors.length === 0) {return "配置验证通过";}
+  if (errors.length === 0) { return "配置验证通过"; }
 
   const lines = errors.map((err) => {
     let line = `❌ [${err.field}] ${err.message}`;

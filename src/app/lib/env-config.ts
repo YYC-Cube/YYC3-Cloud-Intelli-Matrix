@@ -41,6 +41,10 @@ export interface EnvConfig {
   DEFAULT_AI_MAX_TOKENS: number;
   DEFAULT_AI_TIMEOUT: number;
 
+  // ── AI Provider API Keys (from .env) ──
+  ZHIPU_API_KEY: string;
+  DEEPSEEK_API_KEY: string;
+
   // ── 安全 ──
   SESSION_TIMEOUT_MIN: number;
   MAX_LOGIN_ATTEMPTS: number;
@@ -96,6 +100,9 @@ const DEFAULTS: EnvConfig = {
   DEFAULT_AI_MAX_TOKENS: 2048,
   DEFAULT_AI_TIMEOUT: 30000,
 
+  ZHIPU_API_KEY: "",
+  DEEPSEEK_API_KEY: "",
+
   SESSION_TIMEOUT_MIN: 30,
   MAX_LOGIN_ATTEMPTS: 5,
   CORS_ORIGINS: "192.168.1.0/24,10.0.0.0/16,172.16.0.0/12",
@@ -136,17 +143,20 @@ function loadEnvOverrides(): Partial<EnvConfig> {
     // 1. 从 Vite 环境变量读取 (VITE_YYC3_ 前缀)
     // @ts-ignore - Vite env
     const metaEnv = import.meta.env;
-    if (metaEnv.VITE_YYC3_SYSTEM_NAME)     {overrides.SYSTEM_NAME = metaEnv.VITE_YYC3_SYSTEM_NAME;}
-    if (metaEnv.VITE_YYC3_SYSTEM_VERSION)   {overrides.SYSTEM_VERSION = metaEnv.VITE_YYC3_SYSTEM_VERSION;}
-    if (metaEnv.VITE_YYC3_API_BASE_URL)     {overrides.API_BASE_URL = metaEnv.VITE_YYC3_API_BASE_URL;}
-    if (metaEnv.VITE_YYC3_WS_ENDPOINT)      {overrides.WS_ENDPOINT = metaEnv.VITE_YYC3_WS_ENDPOINT;}
-    if (metaEnv.VITE_YYC3_OLLAMA_BASE_URL)  {overrides.OLLAMA_BASE_URL = metaEnv.VITE_YYC3_OLLAMA_BASE_URL;}
-    if (metaEnv.VITE_YYC3_OLLAMA_PROXY_PATH) {overrides.OLLAMA_PROXY_PATH = metaEnv.VITE_YYC3_OLLAMA_PROXY_PATH;}
-    if (metaEnv.VITE_YYC3_CLUSTER_ID)       {overrides.CLUSTER_ID = metaEnv.VITE_YYC3_CLUSTER_ID;}
-    if (metaEnv.VITE_YYC3_STORAGE_PREFIX)    {overrides.STORAGE_PREFIX = metaEnv.VITE_YYC3_STORAGE_PREFIX;}
-    if (metaEnv.VITE_YYC3_ENABLE_MOCK)       {overrides.ENABLE_MOCK_MODE = metaEnv.VITE_YYC3_ENABLE_MOCK === "true";}
-    if (metaEnv.VITE_YYC3_ENABLE_DEBUG)      {overrides.ENABLE_DEBUG = metaEnv.VITE_YYC3_ENABLE_DEBUG === "true";}
-    if (metaEnv.MODE)                        {overrides.NODE_ENV = metaEnv.MODE;}
+    if (metaEnv.VITE_YYC3_SYSTEM_NAME) { overrides.SYSTEM_NAME = metaEnv.VITE_YYC3_SYSTEM_NAME; }
+    if (metaEnv.VITE_YYC3_SYSTEM_VERSION) { overrides.SYSTEM_VERSION = metaEnv.VITE_YYC3_SYSTEM_VERSION; }
+    if (metaEnv.VITE_YYC3_API_BASE_URL) { overrides.API_BASE_URL = metaEnv.VITE_YYC3_API_BASE_URL; }
+    if (metaEnv.VITE_YYC3_WS_ENDPOINT) { overrides.WS_ENDPOINT = metaEnv.VITE_YYC3_WS_ENDPOINT; }
+    if (metaEnv.VITE_YYC3_OLLAMA_BASE_URL) { overrides.OLLAMA_BASE_URL = metaEnv.VITE_YYC3_OLLAMA_BASE_URL; }
+    if (metaEnv.VITE_YYC3_OLLAMA_PROXY_PATH) { overrides.OLLAMA_PROXY_PATH = metaEnv.VITE_YYC3_OLLAMA_PROXY_PATH; }
+    if (metaEnv.VITE_YYC3_CLUSTER_ID) { overrides.CLUSTER_ID = metaEnv.VITE_YYC3_CLUSTER_ID; }
+    if (metaEnv.VITE_YYC3_STORAGE_PREFIX) { overrides.STORAGE_PREFIX = metaEnv.VITE_YYC3_STORAGE_PREFIX; }
+    if (metaEnv.VITE_YYC3_ENABLE_MOCK) { overrides.ENABLE_MOCK_MODE = metaEnv.VITE_YYC3_ENABLE_MOCK === "true"; }
+    if (metaEnv.VITE_YYC3_ENABLE_DEBUG) { overrides.ENABLE_DEBUG = metaEnv.VITE_YYC3_ENABLE_DEBUG === "true"; }
+    if (metaEnv.VITE_YYC3_ZHIPU_API_KEY) { overrides.ZHIPU_API_KEY = metaEnv.VITE_YYC3_ZHIPU_API_KEY; }
+    if (metaEnv.VITE_YYC3_DEEPSEEK_API_KEY) { overrides.DEEPSEEK_API_KEY = metaEnv.VITE_YYC3_DEEPSEEK_API_KEY; }
+    if (metaEnv.VITE_YYC3_OLLAMA_BASE_URL) { overrides.OLLAMA_BASE_URL = metaEnv.VITE_YYC3_OLLAMA_BASE_URL; }
+    if (metaEnv.MODE) { overrides.NODE_ENV = metaEnv.MODE; }
   } catch { /* Vite env not available */ }
 
   return overrides;
@@ -155,7 +165,7 @@ function loadEnvOverrides(): Partial<EnvConfig> {
 function loadStoredConfig(): Partial<EnvConfig> {
   try {
     const raw = localStorage.getItem(ENV_STORAGE_KEY);
-    if (raw) {return JSON.parse(raw);}
+    if (raw) { return JSON.parse(raw); }
   } catch { /* ignore */ }
   return {};
 }
@@ -179,19 +189,19 @@ function buildConfig(): EnvConfig {
 
 /** 获取环境变量 (类型安全) */
 export function env<K extends keyof EnvConfig>(key: K): EnvConfig[K] {
-  if (!_envConfig) {_envConfig = buildConfig();}
+  if (!_envConfig) { _envConfig = buildConfig(); }
   return _envConfig[key];
 }
 
 /** 获取全部环境配置 */
 export function getEnvConfig(): Readonly<EnvConfig> {
-  if (!_envConfig) {_envConfig = buildConfig();}
+  if (!_envConfig) { _envConfig = buildConfig(); }
   return { ..._envConfig };
 }
 
 /** 更新环境配置 (持久化到 localStorage) */
 export function setEnvConfig(updates: Partial<EnvConfig>): EnvConfig {
-  if (!_envConfig) {_envConfig = buildConfig();}
+  if (!_envConfig) { _envConfig = buildConfig(); }
   _envConfig = { ..._envConfig, ...updates };
   try {
     localStorage.setItem(ENV_STORAGE_KEY, JSON.stringify(_envConfig));

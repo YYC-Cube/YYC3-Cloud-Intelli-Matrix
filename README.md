@@ -12,7 +12,7 @@
 
 # YYC³ Cloud Intelli-Matrix
 
-<img src="./public/YYC3-Cloud-Intelli-Matrix-005.png" alt="YYC³ Cloud Intelli-Matrix" width="200" height="200" />
+<img src="./public/YYC3-Cloud-Intelli-Matrix-005.png" alt="YYC³ Cloud Intelli-Matrix" />
 
 ### *智能监控与运维平台 | Intelligent Monitoring & Operations Platform*
 
@@ -71,83 +71,48 @@
 <tr>
 <td width="50%">
 
-### 🎨 赛博朋克设计系统
-
-- **视觉体系**: 深蓝 `#060e1f` + 青色 `#00d4ff`
-- **玻璃拟态**: GlassCard 组件，毛玻璃效果
-- **响应式**: 完美适配桌面/平板/移动端
-- **暗色主题**: 护眼设计，降低视觉疲劳
-
-</td>
-<td width="50%">
-
-### 🚀 实时监控能力
-
-- **WebSocket**: 实时数据推送，毫秒级延迟
-- **节点监控**: GPU/内存/温度实时追踪
-- **QPS 趋势**: 流量峰值可视化分析
-- **告警系统**: 智能告警推送与处理
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🤖 AI 智能辅助
-
-- **AI SDK**: 集成主流 AI 模型接口
-- **智能决策**: 基于数据的决策建议
-- **模式识别**: 异常模式自动检测
-- **自然语言**: 自然语言操作指令
-
-</td>
-<td width="50%">
-
-### 📱 跨平台支持
-
-- **Web 应用**: 现代浏览器全支持
-- **桌面应用**: Electron 跨平台桌面版
-- **PWA**: 离线优先，可安装应用
-- **移动适配**: 响应式移动端体验
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🌐 国际化 & 离线
-
-- **多语言**: 中文简体 / English (US)
-- **离线模式**: Service Worker 缓存策略
-- **数据同步**: 本地与云端双向同步
-- **增量更新**: 差量同步，节省带宽
-
-</td>
-<td width="50%">
-
-### 🔧 开发者友好
-
-- **TypeScript**: 严格模式，100% 类型安全
-- **热更新**: Vite HMR，毫秒级反馈
-- **测试覆盖**: 3700+ 测试用例，49%+ 覆盖率
-- **代码规范**: ESLint + Prettier 自动化
-
-</td>
-</tr>
-</table>
-
 ### 📊 功能矩阵 | Feature Matrix
 
-| 功能模块 | 描述 | Web | Desktop | PWA | Mobile |
-|---------|------|:---:|:-------:|:---:|:------:|
-| 📊 数据监控 | 实时节点状态、QPS、延迟监控 | ✅ | ✅ | ✅ | ✅ |
-| 🔍 巡查管理 | 自动化巡查计划与报告生成 | ✅ | ✅ | ✅ | ✅ |
-| ⚙️ 操作中心 | 快速操作、模板管理、日志流 | ✅ | ✅ | ✅ | ✅ |
-| 🤖 AI 辅助 | 智能决策、模式识别、NLP | ✅ | ✅ | ✅ | ✅ |
-| 🗄️ 数据库 | PostgreSQL/MySQL/MongoDB | ✅ | ✅ | ✅ | ✅ |
-| 🔄 离线同步 | Service Worker + IndexedDB | ✅ | ✅ | ✅ | ✅ |
-| 🖥️ 系统桥接 | Electron IPC 通信 | ❌ | ✅ | ❌ | ❌ |
-| 🔔 原生通知 | 系统级通知推送 | ⚠️ | ✅ | ✅ | ✅ |
+| 功能模块   | 描述                        |  Web  | Desktop |  PWA  | Mobile |
+| ---------- | --------------------------- | :---: | :-----: | :---: | :----: |
+| 📊 数据监控 | 实时节点状态、QPS、延迟监控 |   ✅   |    ✅    |   ✅   |   ✅    |
+| 🔍 巡查管理 | 自动化巡查计划与报告生成    |   ✅   |    ✅    |   ✅   |   ✅    |
+| ⚙️ 操作中心 | 快速操作、模板管理、日志流  |   ✅   |    ✅    |   ✅   |   ✅    |
+| 🤖 AI 辅助  | 智能决策、模式识别、NLP     |   ✅   |    ✅    |   ✅   |   ✅    |
+| 🗄️ 数据库   | PostgreSQL/MySQL/MongoDB    |   ✅   |    ✅    |   ✅   |   ✅    |
+| 🔄 离线同步 | Service Worker + IndexedDB  |   ✅   |    ✅    |   ✅   |   ✅    |
+| 🖥️ 系统桥接 | Electron IPC 通信           |   ❌   |    ✅    |   ❌   |   ❌    |
+| 🔔 原生通知 | 系统级通知推送              |   ⚠️   |    ✅    |   ✅   |   ✅    |
+
+### 🤖 AI Family 角色体系 | AI Family Roles
+
+YYC³ Cloud Intelli-Matrix 内置 8 种拟人化 AI 角色构成完整的智能协作体系：
+
+|     角色      |   名称    |   色彩    |                职责                |             核心能力              |
+| :-----------: | :-------: | :-------: | :--------------------------------: | :-------------------------------: |
+|  🎧 navigator  | 言启·千行 | `#FFD700` |     系统的「耳朵」与「翻译官」     |    语音识别 · NLP · 多语言翻译    |
+|   🧠 thinker   | 语枢·万物 | `#FF69B4` |    系统的「哲学家」与「分析师」    |  深度推理 · 逻辑分析 · 知识图谱   |
+|   👁️ prophet   | 预见·先知 | `#00BFFF` |          系统的「预言家」          |  时序预测 · 趋势分析 · 异常预警   |
+|   ⭐ bolero    | 千里·伯乐 | `#E8E8E8` |   系统的「人才官」与「推荐引擎」   |  智能推荐 · 资源匹配 · 评分系统   |
+| 🌐 meta-oracle | 元启·天枢 | `#00FF88` |    YYC3 的「大脑」与「总指挥」     | 强化学习 · 运筹优化 · 分布式调度  |
+|  🛡️ sentinel   | 智云·守护 | `#BF00FF` | 系统的「免疫系统」与「首席安全官」 |  UEBA · 异常检测 · SOAR 安全编排  |
+|   ⚖️ master    | 格物·宗师 | `#C0C0C0` |   系统的「质量官」与「进化导师」   |  SAST · 性能分析 · LLM 代码理解   |
+|  💡 creative   | 创想·灵韵 | `#FF7043` |  系统的「创意引擎」与「设计助手」  | 生成式 AI · 多模态创作 · 设计思维 |
+
+### 🏨 智慧酒店控制台 | Smart Hotel Console
+
+AI Family 角色自动映射到酒店业务场景：
+
+| 酒店角色 |    AI Family 角色    | 业务职责             |
+| :------: | :------------------: | :------------------- |
+| 前台接待 |  🎧 千行 (navigator)  | 客户接待、语音交互   |
+| 礼宾服务 |   ⭐ 伯乐 (bolero)    | 智能推荐、资源匹配   |
+| 酒店经理 | 🌐 天枢 (meta-oracle) | 全局调度、智能编排   |
+| 安全保卫 |  🛡️ 守护 (sentinel)   | 安全监控、威胁检测   |
+|  IT支持  |   ⚖️ 宗师 (master)    | 代码审查、性能分析   |
+| 市场营销 |  💡 灵韵 (creative)   | 创意生成、多模态设计 |
+| 财务管理 |   🧠 万物 (thinker)   | 数据分析、逻辑推理   |
+| 客户关系 |   👁️ 先知 (prophet)   | 预测分析、趋势洞察   |
 
 ---
 
@@ -228,42 +193,42 @@
 
 ### 核心框架 | Core Frameworks
 
-| 技术 | 版本 | 描述 | 官网 |
-|------|------|------|------|
-| [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/) | 19.2.4 | UI 框架，支持并发特性与 Server Components | [react.dev](https://react.dev/) |
-| [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) | 5.9.3 | 类型安全，严格模式，零运行时错误 | [typescriptlang.org](https://www.typescriptlang.org/) |
-| [![React Router](https://img.shields.io/badge/React_Router-7-CA4245?style=flat&logo=reactrouter&logoColor=white)](https://reactrouter.com/) | 7.13.1 | 路由管理，Data Mode，懒加载 | [reactrouter.com](https://reactrouter.com/) |
+| 技术                                                                                                                                            | 版本   | 描述                                      | 官网                                                  |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------- | ----------------------------------------------------- |
+| [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)                            | 19.2.4 | UI 框架，支持并发特性与 Server Components | [react.dev](https://react.dev/)                       |
+| [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) | 5.9.3  | 类型安全，严格模式，零运行时错误          | [typescriptlang.org](https://www.typescriptlang.org/) |
+| [![React Router](https://img.shields.io/badge/React_Router-7-CA4245?style=flat&logo=reactrouter&logoColor=white)](https://reactrouter.com/)     | 7.13.1 | 路由管理，Data Mode，懒加载               | [reactrouter.com](https://reactrouter.com/)           |
 
 ### 样式与 UI | Styling & UI
 
-| 技术 | 版本 | 描述 | 官网 |
-|------|------|------|------|
-| [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.2-38B2AC?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/) | 4.2.1 | 原子化 CSS，JIT 编译，零运行时 | [tailwindcss.com](https://tailwindcss.com/) |
-| [![Motion](https://img.shields.io/badge/Motion-12-FF6B6B?style=flat)](https://motion.dev/) | 12.34.5 | 高性能动画库，GPU 加速 | [motion.dev](https://motion.dev/) |
-| [![Radix UI](https://img.shields.io/badge/Radix_UI-1-18181B?style=flat)](https://www.radix-ui.com/) | 1.x | 无头组件库，可访问性优先 | [radix-ui.com](https://www.radix-ui.com/) |
-| [![Lucide](https://img.shields.io/badge/Lucide-0.576-FFA500?style=flat)](https://lucide.dev/) | 0.576.0 | 现代化图标库，Tree-shakable | [lucide.dev](https://lucide.dev/) |
+| 技术                                                                                                                                      | 版本    | 描述                           | 官网                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------ | ------------------------------------------- |
+| [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.2-38B2AC?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/) | 4.2.1   | 原子化 CSS，JIT 编译，零运行时 | [tailwindcss.com](https://tailwindcss.com/) |
+| [![Motion](https://img.shields.io/badge/Motion-12-FF6B6B?style=flat)](https://motion.dev/)                                                | 12.34.5 | 高性能动画库，GPU 加速         | [motion.dev](https://motion.dev/)           |
+| [![Radix UI](https://img.shields.io/badge/Radix_UI-1-18181B?style=flat)](https://www.radix-ui.com/)                                       | 1.x     | 无头组件库，可访问性优先       | [radix-ui.com](https://www.radix-ui.com/)   |
+| [![Lucide](https://img.shields.io/badge/Lucide-0.576-FFA500?style=flat)](https://lucide.dev/)                                             | 0.576.0 | 现代化图标库，Tree-shakable    | [lucide.dev](https://lucide.dev/)           |
 
 ### 构建与测试 | Build & Test
 
-| 技术 | 版本 | 描述 | 官网 |
-|------|------|------|------|
-| [![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/) | 7.3.1 | 极速构建工具，ESM 优先 | [vitejs.dev](https://vitejs.dev/) |
-| [![Vitest](https://img.shields.io/badge/Vitest-4-FECD3E?style=flat&logo=vitest&logoColor=black)](https://vitest.dev/) | 4.0.18 | 单元测试框架，Vite 原生支持 | [vitest.dev](https://vitest.dev/) |
-| [![Testing Library](https://img.shields.io/badge/Testing_Library-16-E535AB?style=flat)](https://testing-library.com/) | 16.x | React 测试工具，用户行为模拟 | [testing-library.com](https://testing-library.com/) |
+| 技术                                                                                                                  | 版本   | 描述                         | 官网                                                |
+| --------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------- | --------------------------------------------------- |
+| [![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)       | 7.3.1  | 极速构建工具，ESM 优先       | [vitejs.dev](https://vitejs.dev/)                   |
+| [![Vitest](https://img.shields.io/badge/Vitest-4-FECD3E?style=flat&logo=vitest&logoColor=black)](https://vitest.dev/) | 4.0.18 | 单元测试框架，Vite 原生支持  | [vitest.dev](https://vitest.dev/)                   |
+| [![Testing Library](https://img.shields.io/badge/Testing_Library-16-E535AB?style=flat)](https://testing-library.com/) | 16.x   | React 测试工具，用户行为模拟 | [testing-library.com](https://testing-library.com/) |
 
 ### 数据与可视化 | Data & Visualization
 
-| 技术 | 版本 | 描述 | 官网 |
-|------|------|------|------|
-| [![Recharts](https://img.shields.io/badge/Recharts-3-FF5722?style=flat)](https://recharts.org/) | 3.7.0 | 响应式图表库，React 原生 | [recharts.org](https://recharts.org/) |
+| 技术                                                                                                                          | 版本   | 描述                     | 官网                                  |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------ | ------------------------------------- |
+| [![Recharts](https://img.shields.io/badge/Recharts-3-FF5722?style=flat)](https://recharts.org/)                               | 3.7.0  | 响应式图表库，React 原生 | [recharts.org](https://recharts.org/) |
 | [![Supabase](https://img.shields.io/badge/Supabase-2-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/) | 2.98.0 | 后端即服务，认证与数据库 | [supabase.com](https://supabase.com/) |
 
 ### 桌面与部署 | Desktop & Deployment
 
-| 技术 | 版本 | 描述 | 官网 |
-|------|------|------|------|
-| [![Electron](https://img.shields.io/badge/Electron-28-47848F?style=flat&logo=electron&logoColor=white)](https://www.electronjs.org/) | 28.0.0 | 跨平台桌面应用框架 | [electronjs.org](https://www.electronjs.org/) |
-| [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) | - | 容器化部署，多阶段构建 | [docker.com](https://www.docker.com/) |
+| 技术                                                                                                                                 | 版本   | 描述                   | 官网                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ---------------------- | --------------------------------------------- |
+| [![Electron](https://img.shields.io/badge/Electron-28-47848F?style=flat&logo=electron&logoColor=white)](https://www.electronjs.org/) | 28.0.0 | 跨平台桌面应用框架     | [electronjs.org](https://www.electronjs.org/) |
+| [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)        | -      | 容器化部署，多阶段构建 | [docker.com](https://www.docker.com/)         |
 
 ---
 
@@ -271,11 +236,11 @@
 
 ### 📋 环境要求 | Prerequisites
 
-| 依赖 | 版本要求 | 检查命令 | 安装指南 |
-|------|---------|---------|---------|
-| **Node.js** | ≥ 18.x (推荐 20.x LTS) | `node -v` | [nodejs.org](https://nodejs.org/) |
-| **pnpm** | ≥ 8.x | `pnpm -v` | `corepack enable pnpm` |
-| **Git** | 最新版 | `git --version` | [git-scm.com](https://git-scm.com/) |
+| 依赖        | 版本要求               | 检查命令        | 安装指南                            |
+| ----------- | ---------------------- | --------------- | ----------------------------------- |
+| **Node.js** | ≥ 18.x (推荐 20.x LTS) | `node -v`       | [nodejs.org](https://nodejs.org/)   |
+| **pnpm**    | ≥ 8.x                  | `pnpm -v`       | `corepack enable pnpm`              |
+| **Git**     | 最新版                 | `git --version` | [git-scm.com](https://git-scm.com/) |
 
 ### ⚡ 5 分钟快速上手
 
@@ -345,11 +310,14 @@ cp .env.example .env
 
 **环境变量说明:**
 
-| 变量名 | 必需 | 默认值 | 说明 |
-|--------|:----:|--------|------|
-| `VITE_SUPABASE_URL` | ❌ | - | Supabase 项目 URL |
-| `VITE_SUPABASE_ANON_KEY` | ❌ | - | Supabase 匿名密钥 |
-| `VITE_OLLAMA_URL` | ❌ | `http://localhost:11434` | Ollama API 地址 |
+| 变量名                       | 必需  | 默认值                   | 说明              |
+| ---------------------------- | :---: | ------------------------ | ----------------- |
+| `VITE_SUPABASE_URL`          |   ❌   | -                        | Supabase 项目 URL |
+| `VITE_SUPABASE_ANON_KEY`     |   ❌   | -                        | Supabase 匿名密钥 |
+| `VITE_OLLAMA_URL`            |   ❌   | `http://localhost:11434` | Ollama API 地址   |
+| `VITE_YYC3_ZHIPU_API_KEY`    |   ❌   | -                        | 智谱 AI API Key   |
+| `VITE_YYC3_DEEPSEEK_API_KEY` |   ❌   | -                        | DeepSeek API Key  |
+| `VITE_YYC3_OLLAMA_BASE_URL`  |   ❌   | `http://localhost:11434` | Ollama 服务地址   |
 
 > 💡 **提示**: 不配置环境变量时，系统将自动进入 **Ghost Mode** (开发模式)
 
@@ -448,21 +416,21 @@ dist/assets/index.js            275.69 kB │ gzip: 80.45 kB
 
 点击登录页 **GHOST MODE** 按钮跳过认证:
 
-| 配置项 | 值 |
-|--------|-----|
-| 用户 | `ghost@yyc3.local` |
-| 角色 | `developer` |
-| 数据 | 仅 localStorage |
+| 配置项 | 值                 |
+| ------ | ------------------ |
+| 用户   | `ghost@yyc3.local` |
+| 角色   | `developer`        |
+| 数据   | 仅 localStorage    |
 
 ### ⌨️ 快捷键
 
-| 快捷键 | 功能 | 全局 |
-|--------|------|:----:|
-| `Ctrl/⌘ + K` | 命令面板 (全局搜索) | ✅ |
-| `Ctrl + \`` | 打开集成终端 | ✅ |
-| `Escape` | 关闭所有弹窗 | ✅ |
-| `Ctrl/⌘ + B` | 切换侧边栏 | ✅ |
-| `Ctrl/⌘ + Shift + F` | 全屏模式 | ✅ |
+| 快捷键               | 功能                | 全局  |
+| -------------------- | ------------------- | :---: |
+| `Ctrl/⌘ + K`         | 命令面板 (全局搜索) |   ✅   |
+| `Ctrl +\``           | 打开集成终端        |   ✅   |
+| `Escape`             | 关闭所有弹窗        |   ✅   |
+| `Ctrl/⌘ + B`         | 切换侧边栏          |   ✅   |
+| `Ctrl/⌘ + Shift + F` | 全屏模式            |   ✅   |
 
 ### 🖥️ 界面导航
 
@@ -498,13 +466,13 @@ dist/assets/index.js            275.69 kB │ gzip: 80.45 kB
 
 #### 移动端 (BottomNav)
 
-| Tab | 功能 |
-|-----|------|
+| Tab      | 功能         |
+| -------- | ------------ |
 | 📊 仪表盘 | 核心数据概览 |
-| 🔍 巡查 | 巡查任务管理 |
-| ⚙️ 操作 | 快速操作入口 |
-| 🤖 AI | AI 助手对话 |
-| 📱 更多 | 设置与帮助 |
+| 🔍 巡查   | 巡查任务管理 |
+| ⚙️ 操作   | 快速操作入口 |
+| 🤖 AI     | AI 助手对话  |
+| 📱 更多   | 设置与帮助   |
 
 ---
 
@@ -512,42 +480,42 @@ dist/assets/index.js            275.69 kB │ gzip: 80.45 kB
 
 ### 构建性能
 
-| 指标 | 值 | 说明 |
-|------|-----|------|
-| 🚀 **构建时间** | 6.42s | Vite 极速编译 |
-| 📦 **主包大小** | 275 KB | Gzip 压缩后 |
-| 📦 **总包大小** | 1.09 MB | 包含所有 chunks |
-| 🎯 **代码分割** | 5 chunks | React/Vendor/Charts/UI/App |
-| 🔄 **HMR 速度** | <50ms | 热更新响应时间 |
+| 指标          | 值       | 说明                       |
+| ------------- | -------- | -------------------------- |
+| 🚀**构建时间** | 6.42s    | Vite 极速编译              |
+| 📦**主包大小** | 275 KB   | Gzip 压缩后                |
+| 📦**总包大小** | 1.09 MB  | 包含所有 chunks            |
+| 🎯**代码分割** | 5 chunks | React/Vendor/Charts/UI/App |
+| 🔄**HMR 速度** | <50ms    | 热更新响应时间             |
 
 ### 运行时性能
 
-| 指标 | 值 | 说明 |
-|------|-----|------|
-| ⚡ **首屏加载** | <1s | 4G 网络环境 |
-| ⚡ **TTI** | <1.5s | 可交互时间 |
-| ⚡ **FCP** | <0.8s | 首次内容绘制 |
-| 💾 **内存占用** | ~50MB | Chrome Tab |
-| 📱 **PWA 缓存** | 95%+ | 离线可用率 |
+| 指标          | 值    | 说明         |
+| ------------- | ----- | ------------ |
+| ⚡**首屏加载** | <1s   | 4G 网络环境  |
+| ⚡**TTI**      | <1.5s | 可交互时间   |
+| ⚡**FCP**      | <0.8s | 首次内容绘制 |
+| 💾**内存占用** | ~50MB | Chrome Tab   |
+| 📱**PWA 缓存** | 95%+  | 离线可用率   |
 
 ### 测试覆盖
 
-| 指标 | 值 | 说明 |
-|------|-----|------|
-| 🧪 **测试用例** | 3,797 | 单元 + 集成测试 |
-| 📁 **测试文件** | 221 | 覆盖核心模块 |
-| 📊 **代码覆盖率** | 49%+ | 持续提升中 |
-| ✅ **通过率** | 100% | CI 强制通过 |
+| 指标          | 值    | 说明            |
+| ------------- | ----- | --------------- |
+| 🧪**测试用例** | 4,622 | 单元 + 集成测试 |
+| 📁**测试文件** | 264   | 覆盖核心模块    |
+| 📊**通过率**   | 99.8% | 4612/4622 通过  |
+| ✅**CI 强制**  | 100%  | 主流程全部通过  |
 
 ### Lighthouse 评分
 
-| 类别 | 评分 | 说明 |
-|------|:----:|------|
-| 🎨 **Performance** | 95+ | 性能优化 |
-| ♿ **Accessibility** | 100 | 可访问性 |
-| ✅ **Best Practices** | 100 | 最佳实践 |
-| 🔍 **SEO** | 100 | 搜索优化 |
-| 📱 **PWA** | ✅ | PWA 就绪 |
+| 类别                | 评分  | 说明     |
+| ------------------- | :---: | -------- |
+| 🎨**Performance**    |  95+  | 性能优化 |
+| ♿**Accessibility**  |  100  | 可访问性 |
+| ✅**Best Practices** |  100  | 最佳实践 |
+| 🔍**SEO**            |  100  | 搜索优化 |
+| 📱**PWA**            |   ✅   | PWA 就绪 |
 
 ---
 
@@ -583,16 +551,16 @@ dist/assets/index.js            275.69 kB │ gzip: 80.45 kB
 
 **类型 (type):**
 
-| 类型 | 说明 |
-|------|------|
-| `feat` | 新功能 |
-| `fix` | Bug 修复 |
-| `docs` | 文档更新 |
-| `style` | 代码格式 (不影响功能) |
-| `refactor` | 重构 |
-| `perf` | 性能优化 |
-| `test` | 测试相关 |
-| `chore` | 构建/工具相关 |
+| 类型       | 说明                  |
+| ---------- | --------------------- |
+| `feat`     | 新功能                |
+| `fix`      | Bug 修复              |
+| `docs`     | 文档更新              |
+| `style`    | 代码格式 (不影响功能) |
+| `refactor` | 重构                  |
+| `perf`     | 性能优化              |
+| `test`     | 测试相关              |
+| `chore`    | 构建/工具相关         |
 
 ### 🔍 代码审查
 
@@ -638,13 +606,17 @@ git push origin feature/your-feature
 
 ### v1.0.0 (当前)
 
-- [x] 核心监控功能
-- [x] 巡查管理系统
-- [x] 操作中心
-- [x] AI 辅助功能
-- [x] PWA 支持
-- [x] Electron 桌面版
-- [x] 国际化 (中/英)
+- [X] 核心监控功能
+- [X] 巡查管理系统
+- [X] 操作中心
+- [X] AI 辅助功能
+- [X] PWA 支持
+- [X] Electron 桌面版
+- [X] 国际化 (中/英)
+- [X] AI Family 8种拟人化角色系统
+- [X] 智慧酒店多模型协作控制台
+- [X] 多模型提供商 (智谱/DeepSeek/Ollama)
+- [X] GitHub Pages 自动部署 (matrix.yyc3.top)
 
 ### v1.1.0 (计划中)
 
@@ -769,7 +741,7 @@ SOFTWARE.
 
 **Made with ❤️ by [YYC³ Cube](https://github.com/YYC-Cube)**
 
-**[GitHub](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)** · **[Documentation](./docs/)** · **[Changelog](./CHANGELOG.md)** · **[Contributing](./CONTRIBUTING.md)**
+**[GitHub](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)** · **[在线演示](https://matrix.yyc3.top/)** · **[Documentation](./docs/)** · **[Changelog](./CHANGELOG.md)** · **[Contributing](./CONTRIBUTING.md)**
 
 ---
 

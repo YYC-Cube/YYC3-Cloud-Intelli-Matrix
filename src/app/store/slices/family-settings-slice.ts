@@ -19,7 +19,7 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 // ============================================================
 // 类型定义
@@ -103,6 +103,17 @@ const DEFAULT_UI_CONFIG: FamilyUIConfig = {
   locale: 'zh-CN',
 };
 
+const DEFAULT_MODEL_ASSIGNMENTS: MemberModelAssignment[] = [
+  { memberId: "navigator", providerId: "zhipu", modelId: "glm-4-plus", purpose: "语义理解与意图识别" },
+  { memberId: "thinker", providerId: "deepseek", modelId: "deepseek-chat", purpose: "深度数据分析与洞察" },
+  { memberId: "prophet", providerId: "deepseek", modelId: "deepseek-reasoner", purpose: "趋势预测与异常检测" },
+  { memberId: "bolero", providerId: "zhipu", modelId: "glm-4-air", purpose: "用户画像与推荐" },
+  { memberId: "meta-oracle", providerId: "deepseek", modelId: "deepseek-chat", purpose: "全局调度与决策优化" },
+  { memberId: "sentinel", providerId: "deepseek", modelId: "deepseek-reasoner", purpose: "安全分析与威胁检测" },
+  { memberId: "master", providerId: "ollama", modelId: "codegeex4:latest", purpose: "代码审查与架构分析" },
+  { memberId: "creative", providerId: "zhipu", modelId: "glm-4v-plus", purpose: "多模态创意生成" },
+];
+
 // ============================================================
 // Slice Interface
 // ============================================================
@@ -170,7 +181,7 @@ export const useFamilySettingsSlice = create<FamilySettingsSlice>()(
       voiceConversations: [],
       commMessages: [],
       uiConfig: DEFAULT_UI_CONFIG,
-      modelAssignments: [],
+      modelAssignments: DEFAULT_MODEL_ASSIGNMENTS.map(a => ({ ...a })),
       providerKeys: {},
       musicWorks: [],
 

@@ -9,18 +9,39 @@
  * @tags: [tag1],[tag2],[tag3]
  */
 
-import { GlassCard } from "./GlassCard";
-import { useI18n } from "../hooks/useI18n";
-import React, { useState, useMemo, useCallback } from "react";
 import {
-  Search, Download, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, AlertTriangle, Clock, RefreshCw, Eye,
-  User, Shield, Database, Activity, FileJson
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft, ChevronRight,
+  Clock,
+  Database,
+  Download,
+  Eye,
+  FileJson,
+  RefreshCw,
+  Search,
+  Shield,
+  User,
+  XCircle
 } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-  AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis, YAxis
 } from "recharts";
 import { toast } from "sonner";
+import { useI18n } from "../hooks/useI18n";
+import { useLogSlice } from "../store/slices/log-slice";
+import type { StoredLogEntry } from "../types";
+import { GlassCard } from "./GlassCard";
 
 interface AuditLog {
   id: string;
@@ -34,20 +55,23 @@ interface AuditLog {
   risk: "low" | "medium" | "high";
 }
 
-const ALL_AUDIT_LOGS: AuditLog[] = [
-  { id: "AUD-20260222-0001", time: "14:32:08", user: "admin", role: "超级管理员", action: "模型部署", target: "DeepSeek-V3 部署至 GPU-A100-03", ip: "192.168.1.100", status: "success", risk: "low" },
-  { id: "AUD-20260222-0002", time: "14:28:45", user: "ops_bot", role: "运维机器人", action: "节点重启", target: "GPU-H100-03 执行热重启", ip: "10.0.0.50", status: "success", risk: "medium" },
-  { id: "AUD-20260222-0003", time: "14:25:10", user: "api_svc", role: "API 服务", action: "批量推理", target: "Batch#2847 提交 → LLaMA-70B", ip: "10.0.1.20", status: "running", risk: "low" },
-  { id: "AUD-20260222-0004", time: "14:20:55", user: "dev_zhang", role: "开发者", action: "配置修改", target: "修改 Qwen-72B 推理参数", ip: "192.168.2.88", status: "success", risk: "medium" },
-  { id: "AUD-20260222-0005", time: "14:15:22", user: "admin", role: "超级管理员", action: "数据迁移", target: "向量库分片迁移 Shard-05", ip: "192.168.1.100", status: "success", risk: "high" },
-  { id: "AUD-20260222-0006", time: "14:10:08", user: "system", role: "系统", action: "自动告警", target: "GPU-A100-03 温度超过80°C", ip: "localhost", status: "warning", risk: "high" },
-  { id: "AUD-20260222-0007", time: "14:05:33", user: "dev_li", role: "开发者", action: "模型下载", target: "Mixtral-8x7B 模型权重下载", ip: "192.168.2.92", status: "success", risk: "low" },
-  { id: "AUD-20260222-0008", time: "14:00:11", user: "ops_bot", role: "运维机器人", action: "健康检查", target: "全节点巡检 → 7/8 正常", ip: "10.0.0.50", status: "success", risk: "low" },
-  { id: "AUD-20260222-0009", time: "13:55:48", user: "admin", role: "超级管理员", action: "权限变更", target: "dev_wang 升级为运维角色", ip: "192.168.1.100", status: "success", risk: "high" },
-  { id: "AUD-20260222-0010", time: "13:50:20", user: "api_svc", role: "API 服务", action: "异常请求", target: "非法Token访问 /api/v2/infer", ip: "203.0.113.45", status: "failed", risk: "high" },
-  { id: "AUD-20260222-0011", time: "13:45:15", user: "dev_wang", role: "开发者", action: "模型测试", target: "Qwen-72B A/B 测试启动", ip: "192.168.2.88", status: "success", risk: "low" },
-  { id: "AUD-20260222-0012", time: "13:40:30", user: "ops_bot", role: "运维机器人", action: "缓存清理", target: "清理 GPU-A100-01 推理缓存", ip: "10.0.0.50", status: "success", risk: "low" },
-];
+function mapLogToAudit(entry: StoredLogEntry): AuditLog {
+  const riskMap: Record<string, "low" | "medium" | "high"> = { info: "low", debug: "low", warn: "medium", error: "high" };
+  const statusMap: Record<string, "success" | "running" | "failed" | "warning"> = {
+    info: "success", debug: "success", warn: "warning", error: "failed",
+  };
+  return {
+    id: entry.id,
+    time: new Date(entry.timestamp).toLocaleTimeString("zh-CN", { hour12: false }),
+    user: entry.source || "system",
+    role: entry.source === "system" ? "系统" : "服务",
+    action: entry.level === "error" ? "异常事件" : entry.level === "warn" ? "告警事件" : "操作日志",
+    target: entry.message,
+    ip: "localhost",
+    status: statusMap[entry.level] || "success",
+    risk: riskMap[entry.level] || "low",
+  };
+}
 
 const auditTrend = [
   { time: "08:00", ops: 120, errors: 2 },
@@ -85,28 +109,31 @@ const PAGE_SIZE = 5;
 
 export function OperationAudit() {
   const { t } = useI18n();
+  const { logs, clearLogs: _clearLogs } = useLogSlice();
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [detailLog, setDetailLog] = useState<AuditLog | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const allAuditLogs = useMemo(() => logs.map(mapLogToAudit), [logs]);
+
   // Filter logic
   const filteredLogs = useMemo(() => {
-    let logs = ALL_AUDIT_LOGS;
+    let result = allAuditLogs;
 
     // Category filter
     if (selectedFilter === "success") {
-      logs = logs.filter(l => l.status === "success");
+      result = result.filter((l: AuditLog) => l.status === "success");
     } else if (selectedFilter === "abnormal") {
-      logs = logs.filter(l => l.status === "failed" || l.status === "warning");
+      result = result.filter((l: AuditLog) => l.status === "failed" || l.status === "warning");
     } else if (selectedFilter === "alert") {
-      logs = logs.filter(l => l.risk === "high");
+      result = result.filter((l: AuditLog) => l.risk === "high");
     }
 
     // Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      logs = logs.filter(l =>
+      result = result.filter((l: AuditLog) =>
         l.id.toLowerCase().includes(q) ||
         l.user.toLowerCase().includes(q) ||
         l.action.toLowerCase().includes(q) ||
@@ -115,8 +142,8 @@ export function OperationAudit() {
       );
     }
 
-    return logs;
-  }, [selectedFilter, searchQuery]);
+    return result;
+  }, [selectedFilter, searchQuery, allAuditLogs]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
@@ -175,12 +202,12 @@ export function OperationAudit() {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {pages.push(i);}
+      for (let i = 1; i <= totalPages; i++) { pages.push(i); }
     } else {
       pages.push(1);
-      if (currentPage > 3) {pages.push("...");}
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {pages.push(i);}
-      if (currentPage < totalPages - 2) {pages.push("...");}
+      if (currentPage > 3) { pages.push("..."); }
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) { pages.push(i); }
+      if (currentPage < totalPages - 2) { pages.push("..."); }
       pages.push(totalPages);
     }
     return pages;
@@ -192,9 +219,9 @@ export function OperationAudit() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
         {[
           { label: t("audit.todayOps"), value: "1,284", icon: Activity, color: "#00d4ff", sub: t("audit.comparedYesterday") },
-          { label: t("audit.abnormalEvents"), value: String(ALL_AUDIT_LOGS.filter(l => l.status === "failed" || l.status === "warning").length), icon: AlertTriangle, color: "#ffdd00", sub: t("audit.needProcess") },
-          { label: t("audit.securityEvents"), value: String(ALL_AUDIT_LOGS.filter(l => l.risk === "high").length), icon: Shield, color: "#ff3366", sub: t("audit.unprocessed") },
-          { label: t("audit.activeUsers"), value: String(new Set(ALL_AUDIT_LOGS.map(l => l.user)).size), icon: User, color: "#00ff88", sub: t("audit.onlineCount") },
+          { label: t("audit.abnormalEvents"), value: String(allAuditLogs.filter((l: AuditLog) => l.status === "failed" || l.status === "warning").length), icon: AlertTriangle, color: "#ffdd00", sub: t("audit.needProcess") },
+          { label: t("audit.securityEvents"), value: String(allAuditLogs.filter((l: AuditLog) => l.risk === "high").length), icon: Shield, color: "#ff3366", sub: t("audit.unprocessed") },
+          { label: t("audit.activeUsers"), value: String(new Set(allAuditLogs.map((l: AuditLog) => l.user)).size), icon: User, color: "#00ff88", sub: t("audit.onlineCount") },
         ].map((card) => (
           <GlassCard key={card.label} className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -327,17 +354,17 @@ export function OperationAudit() {
                   <td className="px-3 py-2.5 text-[rgba(0,212,255,0.5)] max-w-[200px] truncate" style={{ fontSize: "0.72rem" }}>{log.target}</td>
                   <td className="px-3 py-2.5 text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.7rem", fontFamily: "monospace" }}>{log.ip}</td>
                   <td className="px-3 py-2.5">
-                    <span className={`px-1.5 py-0.5 rounded ${
-                      log.risk === "low" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
+                    <span className={`px-1.5 py-0.5 rounded ${log.risk === "low" ? "bg-[rgba(0,255,136,0.1)] text-[#00ff88]" :
                       log.risk === "medium" ? "bg-[rgba(255,221,0,0.1)] text-[#ffdd00]" :
-                      "bg-[rgba(255,51,102,0.1)] text-[#ff3366]"
-                    }`} style={{ fontSize: "0.62rem" }}>
+                        "bg-[rgba(255,51,102,0.1)] text-[#ff3366]"
+                      }`} style={{ fontSize: "0.62rem" }}>
                       {log.risk === "low" ? t("audit.riskLow") : log.risk === "medium" ? t("audit.riskMedium") : t("audit.riskHigh")}
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
                     <button
                       onClick={(e) => { e.stopPropagation(); setDetailLog(log); }}
+                      title="查看详情"
                       className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all"
                     >
                       <Eye className="w-3.5 h-3.5 text-[rgba(0,212,255,0.4)]" />
@@ -365,6 +392,7 @@ export function OperationAudit() {
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
+              title="上一页"
               className="p-1.5 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all disabled:opacity-30"
             >
               <ChevronLeft className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
@@ -374,9 +402,8 @@ export function OperationAudit() {
                 key={i}
                 onClick={() => typeof p === "number" && setCurrentPage(p)}
                 disabled={typeof p === "string"}
-                className={`px-2.5 py-1 rounded transition-all ${
-                  p === currentPage ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff]" : typeof p === "string" ? "text-[rgba(0,212,255,0.2)] cursor-default" : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff]"
-                }`}
+                className={`px-2.5 py-1 rounded transition-all ${p === currentPage ? "bg-[rgba(0,212,255,0.15)] text-[#00d4ff]" : typeof p === "string" ? "text-[rgba(0,212,255,0.2)] cursor-default" : "text-[rgba(0,212,255,0.4)] hover:text-[#00d4ff]"
+                  }`}
                 style={{ fontSize: "0.72rem" }}
               >
                 {p}
@@ -385,6 +412,7 @@ export function OperationAudit() {
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
+              title="下一页"
               className="p-1.5 rounded hover:bg-[rgba(0,212,255,0.1)] transition-all disabled:opacity-30"
             >
               <ChevronRight className="w-4 h-4 text-[rgba(0,212,255,0.4)]" />
@@ -400,7 +428,7 @@ export function OperationAudit() {
           <div className="relative w-full max-w-[500px] max-h-[85vh] overflow-auto rounded-2xl bg-[rgba(8,25,55,0.9)] backdrop-blur-2xl border border-[rgba(0,180,255,0.2)] shadow-[0_0_60px_rgba(0,180,255,0.1)] p-4 md:p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-[#e0f0ff]" style={{ fontSize: "1rem" }}>{t("audit.detailTitle")}</h3>
-              <button onClick={() => setDetailLog(null)} className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)]">
+              <button onClick={() => setDetailLog(null)} title="关闭" className="p-1.5 rounded-lg hover:bg-[rgba(0,212,255,0.1)]">
                 <XCircle className="w-5 h-5 text-[rgba(0,212,255,0.4)]" />
               </button>
             </div>

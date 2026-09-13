@@ -9,22 +9,40 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback, useRef, useContext } from "react";
 import {
-  Palette, Upload, RotateCcw, Check, ChevronDown, Search,
-  Type, BoxSelect, Sun, Moon, Eye, Image, Save,
-  X, Circle,
+  BoxSelect,
+  Check, ChevronDown,
+  Circle,
+  Eye, Image,
+  Moon,
+  Palette,
+  RotateCcw,
+  Save,
+  Search,
+  Sun,
+  Type,
+  Upload,
+  X,
 } from "lucide-react";
+import React, { useCallback, useContext, useRef, useState } from "react";
+import { ViewContext } from "../lib/view-context";
+import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
 import { GlassCard } from "./GlassCard";
 import { YYC3Logo } from "./YYC3Logo";
 import { ColorSwatch } from "./theme/ColorSwatch";
-import { useUIPrefsSlice } from "../store/slices/ui-prefs-slice";
-import { hexToOklch, formatOklch, oklchToHex } from "./theme/color-utils";
+import { formatOklch, hexToOklch, oklchToHex } from "./theme/color-utils";
 import {
-  THEME_PRESETS, DEFAULT_COLORS, DEFAULT_TYPOGRAPHY, DEFAULT_SHADOW, DEFAULT_BRANDING,
-  type ThemeColors, type ThemeTypography, type ThemeShadow, type BrandingConfig, type ThemePreset,
+  DEFAULT_BRANDING,
+  DEFAULT_COLORS,
+  DEFAULT_SHADOW,
+  DEFAULT_TYPOGRAPHY,
+  THEME_PRESETS,
+  type BrandingConfig,
+  type ThemeColors,
+  type ThemePreset,
+  type ThemeShadow,
+  type ThemeTypography,
 } from "./theme/theme-presets";
-import { ViewContext } from "../lib/view-context";
 
 // ── Section Accordion ───────────────────────────────
 function Section({ title, icon: Icon, children, defaultOpen = false }: {
@@ -34,7 +52,9 @@ function Section({ title, icon: Icon, children, defaultOpen = false }: {
   return (
     <div className="border border-[rgba(0,180,255,0.08)] rounded-xl overflow-hidden">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         className="w-full flex items-center gap-2.5 px-4 py-3 bg-[rgba(0,20,40,0.3)] hover:bg-[rgba(0,20,40,0.5)] transition-all text-left"
       >
         <Icon className="w-4 h-4 text-[#00d4ff] shrink-0" style={{ opacity: 0.7 }} />
@@ -113,7 +133,7 @@ export function ThemeCustomizer() {
   // ── Background upload ──
   const handleBgUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {return;}
+    if (!file) { return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
       const url = ev.target?.result as string;
@@ -142,15 +162,19 @@ export function ThemeCustomizer() {
   React.useEffect(() => {
     const savedTheme = useUIPrefsSlice.getState().customTheme;
     if (savedTheme) {
-      const parsed = savedTheme as Record<string, any>;
-      if (parsed.colors) {setColors(parsed.colors);}
-      if (parsed.typography) {setTypography(parsed.typography);}
-      if (parsed.shadow) {setShadow(parsed.shadow);}
-      if (parsed.branding) {setBranding(parsed.branding);}
-      if (parsed.radius !== undefined) {setRadius(parsed.radius);}
-      if (parsed.activePreset) {setActivePreset(parsed.activePreset);}
-      if (parsed.lightness !== undefined) {setLightness(parsed.lightness);}
-      if (parsed.branding?.backgroundUrl) {setBgPreview(parsed.branding.backgroundUrl);}
+      const parsed = savedTheme as Record<string, unknown>;
+      const c = parsed.colors as typeof colors | undefined;
+      const ty = parsed.typography as typeof typography | undefined;
+      const sh = parsed.shadow as typeof shadow | undefined;
+      const br = parsed.branding as typeof branding | undefined;
+      if (c) { setColors(c); }
+      if (ty) { setTypography(ty); }
+      if (sh) { setShadow(sh); }
+      if (br) { setBranding(br); }
+      if (parsed.radius !== undefined && parsed.radius !== null) { setRadius(parsed.radius as number); }
+      if (parsed.activePreset) { setActivePreset(parsed.activePreset as string); }
+      if (parsed.lightness !== undefined && parsed.lightness !== null) { setLightness(parsed.lightness as number); }
+      if (br?.backgroundUrl) { setBgPreview(br.backgroundUrl); }
     }
   }, []);
 
@@ -188,6 +212,7 @@ export function ThemeCustomizer() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={handleReset}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(0,180,255,0.15)] bg-[rgba(0,20,40,0.3)] text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] hover:border-[rgba(0,180,255,0.3)] transition-all"
             style={{ fontSize: "0.72rem" }}
@@ -196,6 +221,7 @@ export function ThemeCustomizer() {
             重置
           </button>
           <button
+            type="button"
             onClick={handleSaveTheme}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.2)] transition-all"
             style={{ fontSize: "0.72rem" }}
@@ -211,7 +237,9 @@ export function ThemeCustomizer() {
         {/* Preset dropdown */}
         <div className="relative flex-1 min-w-[200px]" ref={presetDropdownRef}>
           <button
+            type="button"
             onClick={() => setPresetDropdownOpen(!presetDropdownOpen)}
+            aria-label="选择预设主题"
             className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-[rgba(0,180,255,0.15)] bg-[rgba(0,20,40,0.4)] hover:border-[rgba(0,180,255,0.3)] transition-all"
           >
             <Search className="w-3.5 h-3.5 text-[rgba(0,212,255,0.3)]" />
@@ -237,10 +265,11 @@ export function ThemeCustomizer() {
               {filteredPresets.map((preset) => (
                 <button
                   key={preset.id}
+                  type="button"
                   onClick={() => applyPreset(preset)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[rgba(0,212,255,0.06)] transition-all text-left ${
-                    activePreset === preset.id ? "bg-[rgba(0,212,255,0.08)]" : ""
-                  }`}
+                  aria-label={`应用${preset.name}主题`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[rgba(0,212,255,0.06)] transition-all text-left ${activePreset === preset.id ? "bg-[rgba(0,212,255,0.08)]" : ""
+                    }`}
                 >
                   {/* Mini color chips */}
                   <div className="flex gap-0.5 shrink-0">
@@ -281,6 +310,7 @@ export function ThemeCustomizer() {
                 <div className="flex-1 space-y-1.5">
                   <label className="block text-[rgba(0,212,255,0.4)]" style={{ fontSize: "0.62rem" }}>系统名称</label>
                   <input
+                    title="系统名称"
                     className="w-full bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] rounded-lg px-3 py-1.5 text-[#e0f0ff] outline-none focus:border-[#00d4ff] transition-colors"
                     style={{ fontSize: "0.78rem" }}
                     value={branding.systemName}
@@ -293,6 +323,7 @@ export function ThemeCustomizer() {
               <div>
                 <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.62rem" }}>标语 (Tagline)</label>
                 <input
+                  title="标语"
                   className="w-full bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] rounded-lg px-3 py-1.5 text-[#e0f0ff] outline-none focus:border-[#00d4ff] transition-colors"
                   style={{ fontSize: "0.78rem" }}
                   value={branding.tagline}
@@ -305,7 +336,9 @@ export function ThemeCustomizer() {
                 <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.62rem" }}>背景图片</label>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
+                    aria-label="上传背景图片"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[rgba(0,180,255,0.2)] bg-[rgba(0,20,40,0.3)] text-[rgba(0,212,255,0.5)] hover:border-[#00d4ff] hover:text-[#00d4ff] transition-all"
                     style={{ fontSize: "0.72rem" }}
                   >
@@ -314,7 +347,9 @@ export function ThemeCustomizer() {
                   </button>
                   {bgPreview && (
                     <button
+                      type="button"
                       onClick={() => { setBgPreview(""); setBranding((p) => ({ ...p, backgroundUrl: "" })); }}
+                      aria-label="移除背景图片"
                       className="text-[rgba(255,100,100,0.6)] hover:text-[#ff6666] transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -324,6 +359,7 @@ export function ThemeCustomizer() {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    title="上传背景图片文件"
                     onChange={handleBgUpload}
                     className="hidden"
                   />
@@ -389,6 +425,7 @@ export function ThemeCustomizer() {
                 <div key={key}>
                   <label className="block text-[rgba(0,212,255,0.4)] mb-1" style={{ fontSize: "0.62rem" }}>{label}</label>
                   <input
+                    title={label}
                     className="w-full bg-[rgba(0,20,40,0.5)] border border-[rgba(0,180,255,0.12)] rounded-lg px-3 py-1.5 text-[#e0f0ff] outline-none focus:border-[#00d4ff] transition-colors"
                     style={{ fontSize: "0.72rem", fontFamily: "monospace" }}
                     value={typography[key]}
@@ -416,6 +453,7 @@ export function ThemeCustomizer() {
                 </div>
                 <input
                   type="range"
+                  title="圆角大小"
                   min={0}
                   max={2}
                   step={0.05}
@@ -442,6 +480,7 @@ export function ThemeCustomizer() {
                       </div>
                       <input
                         type="range"
+                        title={`${label}: ${shadow[key]}px`}
                         min={min}
                         max={max}
                         value={shadow[key]}
@@ -474,6 +513,7 @@ export function ThemeCustomizer() {
                 <Moon className="w-3.5 h-3.5 text-[rgba(0,212,255,0.3)]" />
                 <input
                   type="range"
+                  title="主题亮度调节"
                   min={5}
                   max={95}
                   value={lightness}
@@ -510,11 +550,10 @@ export function ThemeCustomizer() {
                   <button
                     key={p.id}
                     onClick={() => applyPreset(p)}
-                    className={`w-4 h-4 rounded-full border transition-all ${
-                      activePreset === p.id
-                        ? "border-[#00d4ff] scale-125 shadow-[0_0_6px_rgba(0,212,255,0.4)]"
-                        : "border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.3)]"
-                    }`}
+                    className={`w-4 h-4 rounded-full border transition-all ${activePreset === p.id
+                      ? "border-[#00d4ff] scale-125 shadow-[0_0_6px_rgba(0,212,255,0.4)]"
+                      : "border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.3)]"
+                      }`}
                     style={{ backgroundColor: p.colors.primary }}
                     title={p.name}
                   />
@@ -668,12 +707,13 @@ export function ThemeCustomizer() {
                 {THEME_PRESETS.map((preset) => (
                   <button
                     key={preset.id}
+                    type="button"
                     onClick={() => applyPreset(preset)}
-                    className={`rounded-xl border p-2.5 transition-all text-left ${
-                      activePreset === preset.id
-                        ? "border-[rgba(0,212,255,0.4)] bg-[rgba(0,212,255,0.06)] shadow-[0_0_12px_rgba(0,212,255,0.1)]"
-                        : "border-[rgba(0,180,255,0.08)] bg-[rgba(0,20,40,0.2)] hover:border-[rgba(0,180,255,0.2)]"
-                    }`}
+                    aria-label={`应用${preset.name}主题`}
+                    className={`rounded-xl border p-2.5 transition-all text-left ${activePreset === preset.id
+                      ? "border-[rgba(0,212,255,0.4)] bg-[rgba(0,212,255,0.06)] shadow-[0_0_12px_rgba(0,212,255,0.1)]"
+                      : "border-[rgba(0,180,255,0.08)] bg-[rgba(0,20,40,0.2)] hover:border-[rgba(0,180,255,0.2)]"
+                      }`}
                   >
                     {/* Color chips */}
                     <div className="flex gap-0.5 mb-2">

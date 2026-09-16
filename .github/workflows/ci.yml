@@ -22,9 +22,9 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           deny-licenses: GPL-3.0, AGPL-3.0
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -43,7 +43,7 @@ jobs:
           format: "sarif"
           output: "trivy-results.sarif"
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v4.37.4
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
@@ -58,7 +58,7 @@ jobs:
       'skipped')
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup pnpm
@@ -66,7 +66,7 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -92,13 +92,13 @@ jobs:
         shard-total: [ 4 ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
@@ -108,7 +108,7 @@ jobs:
         run: pnpm test:ci --shard=${{ matrix.shard-index }}/${{ matrix.shard-total }}
           --coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         if: always()
         continue-on-error: true
         with:
@@ -124,13 +124,13 @@ jobs:
     needs: [ build ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -163,13 +163,13 @@ jobs:
     needs: [ build ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -199,13 +199,13 @@ jobs:
     needs: [ quality, test ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -224,13 +224,13 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -268,7 +268,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Login to GHCR
@@ -336,7 +336,7 @@ jobs:
           exit 1
       - name: Slack notification (optional)
         if: always() && vars.SLACK_WEBHOOK != ''
-        uses: slackapi/slack-github-action@v3
+        uses: slackapi/slack-github-action@v4
         with:
           payload: |
             {

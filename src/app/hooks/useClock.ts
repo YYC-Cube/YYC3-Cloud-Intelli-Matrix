@@ -9,14 +9,36 @@
  * @tags: [hook],[clock]
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-/** 每秒更新的实时时钟 */
 export function useClock(): Date {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
+    const update = () => setNow(new Date());
+    update();
+    const msUntilNextSecond = 1000 - Date.now() % 1000;
+    const initTimer = setTimeout(() => {
+      update();
+      const timer = setInterval(update, 1000);
+      return () => clearInterval(timer);
+    }, msUntilNextSecond);
+    return () => clearTimeout(initTimer);
+  }, []);
+  return now;
+}
+
+export function useClockMinutes(): Date {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const update = () => setNow(new Date());
+    update();
+    const msUntilNextMinute = (60 - new Date().getSeconds()) * 1000;
+    const initTimer = setTimeout(() => {
+      update();
+      const timer = setInterval(update, 60000);
+      return () => clearInterval(timer);
+    }, msUntilNextMinute);
+    return () => clearTimeout(initTimer);
   }, []);
   return now;
 }

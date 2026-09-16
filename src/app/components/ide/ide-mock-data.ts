@@ -9,7 +9,7 @@
  * @tags: [component]
  */
 
-import type { IDEFile, IDEProject, ChatMessage, GitChange, GitCommit, GitBranch, IDENotification } from "./ide-types";
+import type { ChatMessage, GitBranch, GitChange, GitCommit, IDEFile, IDENotification, IDEProject } from "./ide-types";
 
 export const MOCK_FILE_TREE: IDEFile[] = [
   {
@@ -494,7 +494,7 @@ export const MOCK_CHAT_HISTORY: ChatMessage[] = [
   {
     id: "msg-2",
     role: "user",
-    content: "帮我创建一个新的 React 组件，用于显�� GPU 节点状态卡片",
+    content: "帮我创建一个新的 React 组件，用于显示 GPU 节点状态卡片",
     timestamp: "10:05:23",
   },
   {

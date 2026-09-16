@@ -9,13 +9,20 @@
  * @tags: [lib]
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getAPIConfig,
-  setAPIConfig,
+  onAPIConfigChange,
   resetAPIConfig,
+  setAPIConfig,
+  setAPIConfigWithValidation,
+  validateConfigUpdates,
   type APIEndpoints,
 } from "../../lib/api-config";
+
+vi.mock("../../lib/error-handler", () => ({
+  captureError: vi.fn(),
+}));
 
 describe("API Configuration", () => {
   beforeEach(() => {
@@ -46,9 +53,9 @@ describe("API Configuration", () => {
       };
 
       localStorage.setItem("yyc3_api_endpoints", JSON.stringify(customConfig));
-      
+
       vi.resetModules();
-      
+
       const { getAPIConfig: getConfig } = await import("../../lib/api-config");
       const config = getConfig();
 
@@ -95,6 +102,7 @@ describe("API Configuration", () => {
     });
 
     it("should validate config before saving", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
       const invalidConfig = {
         fsBase: "not-a-valid-url",
       };
@@ -102,6 +110,7 @@ describe("API Configuration", () => {
       const result = setAPIConfig(invalidConfig);
 
       expect(result).toBeDefined();
+      warnSpy.mockRestore();
     });
   });
 
@@ -246,6 +255,86 @@ describe("API Configuration", () => {
       const config = getAPIConfig();
       expect(config.fsBase).toBe("/api/custom");
       expect(config.dbBase).toBe("/api/custom-db");
+    });
+  });
+
+  describe("setAPIConfigWithValidation", () => {
+    it("should return config and validation result on success", () => {
+      const result = setAPIConfigWithValidation({ fsBase: "/api/test" });
+
+      expect(result.config).toBeDefined();
+      expect(result.validation).toBeDefined();
+      expect(result.validation.success).toBe(true);
+      expect(result.config.fsBase).toBe("/api/test");
+    });
+
+    it("should return failed validation for invalid input", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
+      const result = setAPIConfigWithValidation({ fsBase: "bad-url" });
+
+      expect(result.validation.success).toBe(false);
+      expect(result.config).toBeDefined();
+      warnSpy.mockRestore();
+    });
+
+    it("should persist valid config to localStorage", () => {
+      setAPIConfigWithValidation({ timeout: 9999 });
+
+      const stored = JSON.parse(localStorage.getItem("yyc3_api_endpoints") || "{}");
+      expect(stored.timeout).toBe(9999);
+    });
+  });
+
+  describe("validateConfigUpdates", () => {
+    it("should return success for valid updates", () => {
+      const result = validateConfigUpdates({ fsBase: "/valid" });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should return failure for invalid updates", () => {
+      const result = validateConfigUpdates({ fsBase: "not-valid" });
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toBeDefined();
+      expect(result.errors!.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("onAPIConfigChange", () => {
+    it("should call listener when config changes", () => {
+      const listener = vi.fn();
+      const cleanup = onAPIConfigChange(listener);
+
+      setAPIConfig({ timeout: 5555 });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener.mock.calls[0][0].timeout).toBe(5555);
+
+      cleanup();
+    });
+
+    it("should return cleanup function that removes listener", () => {
+      const listener = vi.fn();
+      const cleanup = onAPIConfigChange(listener);
+
+      cleanup();
+      listener.mockClear();
+
+      setAPIConfig({ timeout: 7777 });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("should call listener on reset", () => {
+      const listener = vi.fn();
+      const cleanup = onAPIConfigChange(listener);
+
+      resetAPIConfig();
+
+      expect(listener).toHaveBeenCalled();
+
+      cleanup();
     });
   });
 });

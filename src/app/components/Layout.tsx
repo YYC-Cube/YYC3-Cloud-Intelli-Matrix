@@ -104,6 +104,7 @@ export function Layout() {
             {/* TopBar: minimal, always on top */}
             <TopBar
               connectionState={wsData.connectionState}
+              isSimulated={wsData.isSimulated}
               reconnectCount={wsData.reconnectCount}
               lastSyncTime={wsData.lastSyncTime}
               onReconnect={wsData.manualReconnect}
@@ -115,6 +116,7 @@ export function Layout() {
               userEmail={auth.userEmail}
               userRole={auth.userRole}
               onToggleTerminal={() => setTerminalOpen(prev => !prev)}
+              onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             />
 
             {/* Main area: Sidebar (desktop) + Content */}

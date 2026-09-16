@@ -9,15 +9,21 @@
  * @tags: [component]
  */
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useClock } from "../hooks/useClock";
 import {
-  MessageCircle, ChevronRight, X, Sparkles,
-  Clock, Users, Zap, Activity,
+  Activity,
+  ChevronRight,
+  Clock,
+  MessageCircle,
+  Sparkles,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useClockMinutes } from "../hooks/useClock";
 import { useI18n } from "../hooks/useI18n";
-import type { UnifiedFamilyMember } from "../types";
 import { useFamilyMemberSlice } from "../store";
+import type { UnifiedFamilyMember } from "../types";
 
 // ======== 时钟布局扩展 ========
 
@@ -27,9 +33,9 @@ interface ClockMember extends UnifiedFamilyMember {
 }
 
 const CLOCK_SLOTS: { angle: number; timeLabel: string }[] = [
-  { angle: 0,   timeLabel: "06:00" },
-  { angle: 45,  timeLabel: "07:30" },
-  { angle: 90,  timeLabel: "09:00" },
+  { angle: 0, timeLabel: "06:00" },
+  { angle: 45, timeLabel: "07:30" },
+  { angle: 90, timeLabel: "09:00" },
   { angle: 135, timeLabel: "10:30" },
   { angle: 180, timeLabel: "12:00" },
   { angle: 225, timeLabel: "13:30" },
@@ -50,11 +56,11 @@ function useContainerSize(ref: React.RefObject<HTMLDivElement | null>) {
   const [size, setSize] = useState({ width: 800, height: 600 });
   useEffect(() => {
     const el = ref.current;
-    if (!el) {return;}
+    if (!el) { return; }
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {setSize({ width, height });}
+        if (width > 0 && height > 0) { setSize({ width, height }); }
       }
     });
     ro.observe(el);
@@ -80,7 +86,7 @@ function formatDateInfo(date: Date) {
 
 export function AIFamilyPage() {
   const { t } = useI18n();
-  const time = useClock();
+  const time = useClockMinutes();
   const { members } = useFamilyMemberSlice();
   const [selectedMember, setSelectedMember] = useState<ClockMember | null>(null);
   const [hoveredMember, setHoveredMember] = useState<string | null>(null);
@@ -98,17 +104,16 @@ export function AIFamilyPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSpeaker((prev) => (prev + 1) % clockMembers.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(timer);
   }, [clockMembers.length]);
 
   // Clock hands
   const hours = time.getHours() % 12;
   const minutes = time.getMinutes();
-  const seconds = time.getSeconds();
   const hourAngle = (hours * 30) + (minutes * 0.5) - 90;
-  const minuteAngle = (minutes * 6) + (seconds * 0.1) - 90;
-  const secondAngle = (seconds * 6) - 90;
+  const minuteAngle = (minutes * 6) - 90;
+  const secondAngleBase = (time.getSeconds() * 6) - 90;
 
   const timeStr = time.toLocaleTimeString("zh-CN", { hour12: false });
   const { dateStr, dayLabel, isWeekend } = formatDateInfo(time);
@@ -211,8 +216,8 @@ export function AIFamilyPage() {
           {/* Second hand */}
           <line
             x1={0} y1={0}
-            x2={Math.cos(secondAngle * Math.PI / 180) * (RING_RADIUS * 0.7)}
-            y2={Math.sin(secondAngle * Math.PI / 180) * (RING_RADIUS * 0.7)}
+            x2={Math.cos(secondAngleBase * Math.PI / 180) * (RING_RADIUS * 0.7)}
+            y2={Math.sin(secondAngleBase * Math.PI / 180) * (RING_RADIUS * 0.7)}
             stroke="rgba(255,0,110,0.6)"
             strokeWidth={1}
             strokeLinecap="round"
@@ -542,6 +547,7 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
         <div className="relative shrink-0 p-6 pb-4" style={{ borderBottom: `1px solid ${member.color}15` }}>
           <button
             onClick={onClose}
+            title="关闭"
             className="absolute top-4 right-4 p-1.5 rounded-lg text-[rgba(0,240,255,0.3)] hover:text-[#00F0FF] hover:bg-[rgba(0,240,255,0.08)] transition-all"
           >
             <X className="w-4 h-4" />
@@ -656,6 +662,10 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
         <div className="px-6 pb-6 mt-auto">
           <div className="flex items-center gap-2">
             <button
+              onClick={() => {
+                onClose();
+                window.location.hash = "#/ai-family/chat";
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
               style={{
                 background: `${member.color}12`,
@@ -668,6 +678,10 @@ function MemberDetailDrawer({ member, onClose }: { member: ClockMember; onClose:
               对话
             </button>
             <button
+              onClick={() => {
+                onClose();
+                window.location.hash = "#/ai-family/activities";
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
               style={{
                 background: "rgba(0,40,80,0.2)",

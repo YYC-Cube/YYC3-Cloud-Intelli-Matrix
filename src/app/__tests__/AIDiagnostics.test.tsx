@@ -118,6 +118,7 @@ describe("AIDiagnostics", () => {
 
     vi.mocked(useWebSocketData).mockReturnValue({
       connectionState: "connected",
+      isSimulated: false,
       reconnectCount: 0,
       lastSyncTime: new Date().toISOString(),
       liveQPS: 1000,

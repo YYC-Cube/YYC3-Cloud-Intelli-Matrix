@@ -9,8 +9,8 @@
  * @tags: [ai-family, local, fallback]
  */
 
-import React, { useState, useEffect } from "react";
-import { Music, Upload, Heart, Sparkles } from "lucide-react";
+import { Heart, Music, Sparkles, Upload } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 export interface CareResponse {
   message: string;
@@ -166,13 +166,11 @@ interface SongUploadZoneProps {
 
 export function SongUploadZone({ onUploadSuccess, onError, maxFiles }: SongUploadZoneProps) {
   const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
-    const files = Array.from(e.dataTransfer.files).slice(0, maxFiles);
-    files.forEach((file) => {
-      if (file.type.startsWith("audio/") || file.name.endsWith(".mp3") || file.name.endsWith(".wav")) {
+  const processFiles = (files: File[]) => {
+    files.slice(0, maxFiles).forEach((file) => {
+      if (file.type.startsWith("audio/") || file.name.endsWith(".mp3") || file.name.endsWith(".wav") || file.name.endsWith(".flac")) {
         onUploadSuccess({ title: file.name.replace(/\.(mp3|wav|flac)$/i, ""), url: URL.createObjectURL(file) });
       } else {
         onError(new Error(`不支持的文件格式: ${file.name}`));
@@ -180,30 +178,27 @@ export function SongUploadZone({ onUploadSuccess, onError, maxFiles }: SongUploa
     });
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    processFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processFiles(Array.from(e.target.files || []));
+    e.target.value = "";
+  };
+
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
-      onClick={() => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".mp3,.wav,.flac,audio/*";
-        input.multiple = true;
-        input.onchange = (ev) => {
-          const target = ev.target as HTMLInputElement;
-          const files = Array.from(target.files || []).slice(0, maxFiles);
-          files.forEach((file) => {
-            onUploadSuccess({ title: file.name.replace(/\.(mp3|wav|flac)$/i, ""), url: URL.createObjectURL(file) });
-          });
-        };
-        input.click();
-      }}
-      className={`p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer text-center ${
-        dragging
-          ? "border-[#00d4ff] bg-[rgba(0,212,255,0.06)]"
-          : "border-white/10 hover:border-white/20 bg-white/[0.02]"
-      }`}
+      onClick={() => fileInputRef.current?.click()}
+      className={`p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer text-center ${dragging
+        ? "border-[#00d4ff] bg-[rgba(0,212,255,0.06)]"
+        : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+        }`}
     >
       <Upload className="w-10 h-10 mx-auto mb-3 text-white/25" />
       <p className="text-white/40 mb-1" style={{ fontSize: "0.82rem" }}>
@@ -216,6 +211,16 @@ export function SongUploadZone({ onUploadSuccess, onError, maxFiles }: SongUploa
         <Heart className="w-3.5 h-3.5 text-[#ff3366]/50" />
         <Sparkles className="w-3.5 h-3.5 text-[#FFD700]/50" />
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".mp3,.wav,.flac,audio/*"
+        multiple
+        onChange={handleChange}
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
     </div>
   );
 }

@@ -84,6 +84,36 @@
 | 🖥️ 系统桥接 | Electron IPC 通信           |   ❌   |    ✅    |   ❌   |   ❌    |
 | 🔔 原生通知 | 系统级通知推送              |   ⚠️   |    ✅    |   ✅   |   ✅    |
 
+### 🤖 AI Family 角色体系 | AI Family Roles
+
+YYC³ Cloud Intelli-Matrix 内置 8 种拟人化 AI 角色构成完整的智能协作体系：
+
+|     角色      |   名称    |   色彩    |                职责                |             核心能力              |
+| :-----------: | :-------: | :-------: | :--------------------------------: | :-------------------------------: |
+|  🎧 navigator  | 言启·千行 | `#FFD700` |     系统的「耳朵」与「翻译官」     |    语音识别 · NLP · 多语言翻译    |
+|   🧠 thinker   | 语枢·万物 | `#FF69B4` |    系统的「哲学家」与「分析师」    |  深度推理 · 逻辑分析 · 知识图谱   |
+|   👁️ prophet   | 预见·先知 | `#00BFFF` |          系统的「预言家」          |  时序预测 · 趋势分析 · 异常预警   |
+|   ⭐ bolero    | 千里·伯乐 | `#E8E8E8` |   系统的「人才官」与「推荐引擎」   |  智能推荐 · 资源匹配 · 评分系统   |
+| 🌐 meta-oracle | 元启·天枢 | `#00FF88` |    YYC3 的「大脑」与「总指挥」     | 强化学习 · 运筹优化 · 分布式调度  |
+|  🛡️ sentinel   | 智云·守护 | `#BF00FF` | 系统的「免疫系统」与「首席安全官」 |  UEBA · 异常检测 · SOAR 安全编排  |
+|   ⚖️ master    | 格物·宗师 | `#C0C0C0` |   系统的「质量官」与「进化导师」   |  SAST · 性能分析 · LLM 代码理解   |
+|  💡 creative   | 创想·灵韵 | `#FF7043` |  系统的「创意引擎」与「设计助手」  | 生成式 AI · 多模态创作 · 设计思维 |
+
+### 🏨 智慧酒店控制台 | Smart Hotel Console
+
+AI Family 角色自动映射到酒店业务场景：
+
+| 酒店角色 |    AI Family 角色    | 业务职责             |
+| :------: | :------------------: | :------------------- |
+| 前台接待 |  🎧 千行 (navigator)  | 客户接待、语音交互   |
+| 礼宾服务 |   ⭐ 伯乐 (bolero)    | 智能推荐、资源匹配   |
+| 酒店经理 | 🌐 天枢 (meta-oracle) | 全局调度、智能编排   |
+| 安全保卫 |  🛡️ 守护 (sentinel)   | 安全监控、威胁检测   |
+|  IT支持  |   ⚖️ 宗师 (master)    | 代码审查、性能分析   |
+| 市场营销 |  💡 灵韵 (creative)   | 创意生成、多模态设计 |
+| 财务管理 |   🧠 万物 (thinker)   | 数据分析、逻辑推理   |
+| 客户关系 |   👁️ 先知 (prophet)   | 预测分析、趋势洞察   |
+
 ---
 
 ## 🏗️ 系统架构 | Architecture
@@ -280,11 +310,14 @@ cp .env.example .env
 
 **环境变量说明:**
 
-| 变量名                   | 必需  | 默认值                   | 说明              |
-| ------------------------ | :---: | ------------------------ | ----------------- |
-| `VITE_SUPABASE_URL`      |   ❌   | -                        | Supabase 项目 URL |
-| `VITE_SUPABASE_ANON_KEY` |   ❌   | -                        | Supabase 匿名密钥 |
-| `VITE_OLLAMA_URL`        |   ❌   | `http://localhost:11434` | Ollama API 地址   |
+| 变量名                       | 必需  | 默认值                   | 说明              |
+| ---------------------------- | :---: | ------------------------ | ----------------- |
+| `VITE_SUPABASE_URL`          |   ❌   | -                        | Supabase 项目 URL |
+| `VITE_SUPABASE_ANON_KEY`     |   ❌   | -                        | Supabase 匿名密钥 |
+| `VITE_OLLAMA_URL`            |   ❌   | `http://localhost:11434` | Ollama API 地址   |
+| `VITE_YYC3_ZHIPU_API_KEY`    |   ❌   | -                        | 智谱 AI API Key   |
+| `VITE_YYC3_DEEPSEEK_API_KEY` |   ❌   | -                        | DeepSeek API Key  |
+| `VITE_YYC3_OLLAMA_BASE_URL`  |   ❌   | `http://localhost:11434` | Ollama 服务地址   |
 
 > 💡 **提示**: 不配置环境变量时，系统将自动进入 **Ghost Mode** (开发模式)
 
@@ -467,12 +500,12 @@ dist/assets/index.js            275.69 kB │ gzip: 80.45 kB
 
 ### 测试覆盖
 
-| 指标            | 值    | 说明            |
-| --------------- | ----- | --------------- |
-| 🧪**测试用例**   | 3,797 | 单元 + 集成测试 |
-| 📁**测试文件**   | 221   | 覆盖核心模块    |
-| 📊**代码覆盖率** | 49%+  | 持续提升中      |
-| ✅**通过率**     | 100%  | CI 强制通过     |
+| 指标          | 值    | 说明            |
+| ------------- | ----- | --------------- |
+| 🧪**测试用例** | 4,622 | 单元 + 集成测试 |
+| 📁**测试文件** | 264   | 覆盖核心模块    |
+| 📊**通过率**   | 99.8% | 4612/4622 通过  |
+| ✅**CI 强制**  | 100%  | 主流程全部通过  |
 
 ### Lighthouse 评分
 
@@ -580,6 +613,10 @@ git push origin feature/your-feature
 - [X] PWA 支持
 - [X] Electron 桌面版
 - [X] 国际化 (中/英)
+- [X] AI Family 8种拟人化角色系统
+- [X] 智慧酒店多模型协作控制台
+- [X] 多模型提供商 (智谱/DeepSeek/Ollama)
+- [X] GitHub Pages 自动部署 (matrix.yyc3.top)
 
 ### v1.1.0 (计划中)
 
@@ -704,7 +741,7 @@ SOFTWARE.
 
 **Made with ❤️ by [YYC³ Cube](https://github.com/YYC-Cube)**
 
-**[GitHub](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)** · **[Documentation](./docs/)** · **[Changelog](./CHANGELOG.md)** · **[Contributing](./CONTRIBUTING.md)**
+**[GitHub](https://github.com/YYC-Cube/YYC3-Cloud-Intelli-Matrix)** · **[在线演示](https://matrix.yyc3.top/)** · **[Documentation](./docs/)** · **[Changelog](./CHANGELOG.md)** · **[Contributing](./CONTRIBUTING.md)**
 
 ---
 

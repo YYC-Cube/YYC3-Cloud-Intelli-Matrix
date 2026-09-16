@@ -2,9 +2,9 @@
  * @file: connection-test-engine.ts
  * @description: 统一连接测试引擎 — 供 AI浮窗/模型设置/SystemSettings/Dashboard 复用
  * @author: YanYuCloudCube Team
- * @version: v1.0.0
+ * @version: v1.1.0
  * @created: 2026-04-15
- * @updated: 2026-04-16
+ * @updated: 2026-04-30
  * @status: active
  * @tags: [lib],[engine],[connection-test]
  *
@@ -12,6 +12,7 @@
  * - 从 ServiceConnectionTest.tsx 提取的核心测试逻辑，统一为可复用引擎
  * - 支持 AI 模型连接 / Ollama 本地 / WebSocket / 数据库 连接测试
  * - 每步返回延迟、状态、错误分类、修复建议
+ * - v1.1: Ollama 智能闭环 — 端口探测 + 进程推测 + 环境变量修复建议
  */
 
 // ============================================================
@@ -99,9 +100,13 @@ async function timedFetch(url: string, options: RequestInit = {}, timeoutMs = 80
     let errorType: FetchResult["errorType"] = "unknown";
     if (msg.includes("Failed to fetch") || msg.includes("CORS") || msg.includes("cross-origin") || msg.includes("net::ERR_FAILED")) {
       errorType = "cors";
+    } else if (msg.includes("net::ERR_ABORTED")) {
+      errorType = "network";
     } else if (msg.includes("AbortError") || msg.includes("timeout") || msg.includes("aborted")) {
       errorType = "timeout";
     } else if (msg.includes("ECONNREFUSED") || msg.includes("connection refused")) {
+      errorType = "network";
+    } else if (msg.includes("net::ERR_CONNECTION_REFUSED")) {
       errorType = "network";
     }
     return { ok: false, status: 0, statusText: "", latencyMs, errorType, errorMsg: msg };
@@ -251,6 +256,43 @@ async function testOllamaModelConnection(
   } else {
     result.steps[0] = { label: "Ollama 端点", status: "fail", detail: `无法连接: ${r.errorMsg || "Ollama 未启动"}`, latencyMs: r.latencyMs, timestamp: Date.now() };
     result.suggestion = "请确认 Ollama 已启动: ollama serve";
+
+    addStep("智能诊断", "running", "分析连接失败原因...");
+    const diagDetails: string[] = [];
+    const diagSuggestions: string[] = [];
+
+    const portMatch = base.match(/:(\d+)/);
+    const port = portMatch ? parseInt(portMatch[1]) : 11434;
+    const host = base.replace(/^https?:\/\//, "").replace(/:\d+.*$/, "");
+
+    diagDetails.push(`目标地址: ${host}:${port}`);
+
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      diagDetails.push("⚠ 非 localhost 地址 — Ollama 默认只监听 127.0.0.1");
+      diagSuggestions.push("设置环境变量: OLLAMA_HOST=0.0.0.0 后重启 Ollama");
+    }
+
+    if (r.errorType === "timeout") {
+      diagDetails.push("连接超时 — 可能原因: 端口未开放 / 防火墙阻止 / 服务未启动");
+      diagSuggestions.push("检查端口是否开放: curl http://localhost:" + port + "/api/tags");
+      diagSuggestions.push("或运行: ollama serve");
+    } else {
+      diagDetails.push("网络错误 — 服务可能未启动或端口不正确");
+      diagSuggestions.push("启动 Ollama: 在终端运行 ollama serve");
+      diagSuggestions.push(`确认端口: 默认 11434, 当前配置 ${port}`);
+    }
+
+    if (port !== 11434) {
+      diagDetails.push(`非默认端口 ${port} — 请确认 Ollama 配置了此端口`);
+      diagSuggestions.push(`如需修改端口: OLLAMA_HOST=0.0.0.0:${port}`);
+    }
+
+    const diagStatus: TestStepStatus = diagSuggestions.length > 0 ? "warn" : "fail";
+    addStep("智能诊断", diagStatus, diagDetails.join("; "));
+
+    if (diagSuggestions.length > 0) {
+      result.suggestion = diagSuggestions.join("\n");
+    }
     finalizeResult(result); return result;
   }
 
@@ -271,17 +313,54 @@ async function testOllamaModelConnection(
     }
   } catch { /* skip on parse error */ }
 
-  // Step 3: Chat/inference ping
+  // Step 3: Chat/inference ping — use first available model from tags
   addStep("推理测试", "running", "发送 ping 请求...");
+  let inferenceModel = config.modelId;
+  const EMBED_PATTERNS = /embed|e5-|bge-|text-embedding|nomic-embed|m3e|gte-|jina-embed|sentence-/i;
+  try {
+    const tagsCheck = await timedFetch(ollamaTagsUrl);
+    if (tagsCheck.ok) {
+      const tagsData = JSON.parse(tagsCheck.body || "{}");
+      const allModels: Array<{ name: string; details?: { family?: string } }> = tagsData.models || [];
+      const chatModels = allModels.filter(m => !EMBED_PATTERNS.test(m.name) && m.details?.family !== "bert" && m.details?.family !== "nomic-bert");
+      const chatModelNames = chatModels.map(m => m.name);
+      if (chatModelNames.length > 0) {
+        if (!chatModelNames.includes(inferenceModel) || EMBED_PATTERNS.test(inferenceModel)) {
+          inferenceModel = chatModelNames[0];
+        }
+      } else if (allModels.length > 0) {
+        inferenceModel = allModels[0].name;
+      }
+    }
+  } catch { /* use default modelId */ }
   const chatRes = await timedFetch(ollamaChatUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: config.modelId, messages: [{ role: "user", content: "ping" }], stream: false }),
+    body: JSON.stringify({ model: inferenceModel, messages: [{ role: "user", content: "ping" }], stream: false }),
   }, 15000);
   if (chatRes.ok) {
     result.steps[result.steps.length - 1] = { label: "推理测试", status: "pass", detail: `模型响应正常 (${chatRes.latencyMs}ms)`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
   } else {
-    result.steps[result.steps.length - 1] = { label: "推理测试", status: chatRes.status === 404 ? "warn" : "fail", detail: chatRes.errorMsg || `HTTP ${chatRes.status}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    let errorDetail = chatRes.errorMsg || `HTTP ${chatRes.status}`;
+    let suggestion = "";
+    if (chatRes.status === 400) {
+      try {
+        const errBody = JSON.parse(chatRes.body || "{}");
+        errorDetail = errBody.error || errorDetail;
+      } catch { /* use raw body */ }
+      if (errorDetail.includes("model") || errorDetail.includes("not found")) {
+        suggestion = `模型 "${inferenceModel}" 推理失败。请运行: ollama pull ${inferenceModel}`;
+      } else if (errorDetail.includes("does not support chat")) {
+        suggestion = `"${inferenceModel}" 是嵌入模型，不支持对话推理。请选择对话模型进行测试。`;
+        errorDetail = `推理测试跳过: ${inferenceModel} 为嵌入模型`;
+      } else {
+        suggestion = `推理请求格式错误: ${errorDetail}。尝试: ollama run ${inferenceModel}`;
+      }
+      result.steps[result.steps.length - 1] = { label: "推理测试", status: "warn", detail: `推理测试失败: ${errorDetail}`, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    } else {
+      result.steps[result.steps.length - 1] = { label: "推理测试", status: chatRes.status === 404 ? "warn" : "fail", detail: errorDetail, latencyMs: chatRes.latencyMs, timestamp: Date.now() };
+    }
+    if (suggestion) { result.suggestion = suggestion; }
   }
 
   finalizeResult(result);

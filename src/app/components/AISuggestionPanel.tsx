@@ -294,7 +294,7 @@ export function AISuggestionPanel() {
 
       {/* ======== Tab: Chat ======== */}
       {activeTab === "chat" && (
-        <SDKChatPanel />
+        <SDKChatPanel embedded />
       )}
 
       {/* ======== Tab: AI Family ======== */}

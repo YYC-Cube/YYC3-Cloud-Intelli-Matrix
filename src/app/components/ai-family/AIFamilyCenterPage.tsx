@@ -17,7 +17,7 @@ import {
   Server, Radio, Database,
 } from "lucide-react";
 import { GlassCard } from "../GlassCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { getHourlyCare } from "./shared";
 import { useFamilyMemberSlice } from "../../store";
 import type { UnifiedFamilyMember } from "../../types";

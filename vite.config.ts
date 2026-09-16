@@ -47,8 +47,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v1\/llm\/ollama/, '/api'),
         configure: (proxy) => {
-          proxy.on('error', () => {
-            // Ollama 服务未启动时静默失败
+          proxy.on('error', (err, _req, _res) => {
+            console.log('[ollama-proxy] Ollama 服务未启动或不可达:', err.message);
           });
         },
       },

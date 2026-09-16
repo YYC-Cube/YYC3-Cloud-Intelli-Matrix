@@ -20,7 +20,7 @@
  * @exports: supabase, signIn, signOut, getSession, onAuthStateChange
  * @notes: 切换到真实 Supabase 时需替换 MockSupabaseClient 为 createClient()
  */
-import type { AppUser, AppSession } from "../types";
+import type { AppSession, AppUser } from "../types";
 
 // RF-011: Legacy type aliases (MockUser/MockSession) 已移除
 // 所有类型统一从 types/index.ts 导入 AppUser / AppSession
@@ -80,7 +80,7 @@ class MockSupabaseClient {
     getSession: async () => {
       try {
         const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) {return { data: { session: null }, error: null };}
+        if (!raw) { return { data: { session: null }, error: null }; }
         const session: AppSession = JSON.parse(raw);
         if (Date.now() > session.expiresAt) {
           localStorage.removeItem(SESSION_KEY);
@@ -122,7 +122,7 @@ class MockSupabaseClient {
       } else {
         callback("SIGNED_OUT", null);
       }
-      return { data: { subscription: { unsubscribe: () => {} } } };
+      return { data: { subscription: { unsubscribe: () => { } } } };
     },
   };
 
@@ -151,24 +151,23 @@ export const supabase = new MockSupabaseClient();
  * 功能完全不受限，仅限开发环境使用
  */
 export function ghostSignIn(): AppSession | null {
-  // @ts-ignore - Vite env
-  if (import.meta.env.PROD) {
-    console.error('[Auth] Ghost mode is disabled in production builds');
+  const ghostEnabled = env.VITE_ENABLE_GHOST_MODE === "true";
+  if (env.PROD && !ghostEnabled) {
+    console.error('[Auth] Ghost mode is disabled. Set VITE_ENABLE_GHOST_MODE=true to enable.');
     return null;
   }
   const session: AppSession = {
     user: GHOST_USER,
     token: `ghost_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24h
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
   };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   localStorage.setItem("yyc3_ghost", "1");
   return session;
 }
 
-/** 检查当前是否为幽灵模式 */
 export function isGhostMode(): boolean {
-  // @ts-ignore - Vite env
-  if (import.meta.env.PROD) { return false; }
+  const ghostEnabled = env.VITE_ENABLE_GHOST_MODE === "true";
+  if (env.PROD && !ghostEnabled) { return false; }
   return localStorage.getItem("yyc3_ghost") === "1";
 }

@@ -29,17 +29,15 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
 import { AISuggestionPanel } from "../components/AISuggestionPanel";
 
-vi.mock("lucide-react", () => ({
-  Bot: () => React.createElement("span", { "data-testid": "icon-bot" }),
-  RefreshCw: () => React.createElement("span", { "data-testid": "icon-refresh" }),
-  Activity: () => React.createElement("span", { "data-testid": "icon-activity" }),
-  AlertTriangle: () => React.createElement("span", { "data-testid": "icon-alert" }),
-  CheckCircle: () => React.createElement("span", { "data-testid": "icon-check" }),
-  Loader2: () => React.createElement("span", { "data-testid": "icon-loader" }),
-  ToggleLeft: () => React.createElement("span", { "data-testid": "icon-toggle-left" }),
-  ToggleRight: () => React.createElement("span", { "data-testid": "icon-toggle-right" }),
-  MessageSquare: () => React.createElement("span", { "data-testid": "icon-message" }),
-}));
+vi.mock("lucide-react", async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  const icons = Object.fromEntries(
+    Object.keys(actual).map((key) => [key, (props: Record<string, unknown>) =>
+      React.createElement("span", { ...props, "data-testid": `icon-${key}` })
+    ])
+  );
+  return icons;
+});
 
 vi.mock("../components/SDKChatPanel", () => ({
   __esModule: true,

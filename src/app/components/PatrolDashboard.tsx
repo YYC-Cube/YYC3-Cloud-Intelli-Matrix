@@ -9,23 +9,34 @@
  * @tags: [component]
  */
 
-import React, { useContext } from "react";
 import {
-  Play, Pause, Clock, CheckCircle, AlertTriangle, XCircle,
-  Settings, Calendar, Timer, Loader2, Shield,
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Loader2,
+  Pause,
+  Play,
+  Settings,
+  Shield,
+  Timer,
+  XCircle,
 } from "lucide-react";
-import { GlassCard } from "./GlassCard";
-import { PatrolScheduler } from "./PatrolScheduler";
-import { PatrolReport } from "./PatrolReport";
-import { PatrolHistory } from "./PatrolHistory";
-import { usePatrol } from "../hooks/usePatrol";
+import React, { useContext } from "react";
 import { useI18n } from "../hooks/useI18n";
+import { usePatrol } from "../hooks/usePatrol";
+import { useWebSocketData } from "../hooks/useWebSocketData";
 import { ViewContext } from "../lib/view-context";
+import { GlassCard } from "./GlassCard";
+import { PatrolHistory } from "./PatrolHistory";
+import { PatrolReport } from "./PatrolReport";
+import { PatrolScheduler } from "./PatrolScheduler";
 
 export function PatrolDashboard() {
   const view = useContext(ViewContext);
   const isMobile = view?.isMobile ?? false;
   const { t } = useI18n();
+  const wsData = useWebSocketData();
 
   const {
     patrolStatus,
@@ -61,6 +72,14 @@ export function PatrolDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {wsData.isSimulated && (
+            <span
+              className="px-2 py-0.5 rounded-full text-amber-300 border border-amber-500/30 bg-amber-500/10"
+              style={{ fontSize: "0.6rem" }}
+            >
+              模拟数据
+            </span>
+          )}
           <button
             onClick={() => setShowScheduler(!showScheduler)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.12)] text-[rgba(0,212,255,0.6)] hover:text-[#00d4ff] hover:border-[rgba(0,212,255,0.3)] transition-all"
@@ -72,11 +91,10 @@ export function PatrolDashboard() {
           <button
             onClick={() => runPatrol("manual")}
             disabled={patrolStatus === "running"}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all ${
-              patrolStatus === "running"
-                ? "bg-[rgba(0,212,255,0.05)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.3)] cursor-wait"
-                : "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.2)] hover:shadow-[0_0_15px_rgba(0,180,255,0.1)]"
-            }`}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all ${patrolStatus === "running"
+              ? "bg-[rgba(0,212,255,0.05)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.3)] cursor-wait"
+              : "bg-[rgba(0,212,255,0.12)] border border-[rgba(0,212,255,0.25)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.2)] hover:shadow-[0_0_15px_rgba(0,180,255,0.1)]"
+              }`}
             style={{ fontSize: "0.75rem" }}
           >
             {patrolStatus === "running" ? (
@@ -174,11 +192,10 @@ export function PatrolDashboard() {
           </div>
           <button
             onClick={() => toggleAutoPatrol(!schedule.enabled)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-              schedule.enabled
-                ? "bg-[rgba(0,255,136,0.08)] border border-[rgba(0,255,136,0.2)] text-[#00ff88]"
-                : "bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.4)]"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${schedule.enabled
+              ? "bg-[rgba(0,255,136,0.08)] border border-[rgba(0,255,136,0.2)] text-[#00ff88]"
+              : "bg-[rgba(0,40,80,0.3)] border border-[rgba(0,180,255,0.1)] text-[rgba(0,212,255,0.4)]"
+              }`}
             style={{ fontSize: "0.7rem" }}
           >
             {schedule.enabled ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}

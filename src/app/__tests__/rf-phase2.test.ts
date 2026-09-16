@@ -10,11 +10,15 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
-import React from "react";
+import { describe, expect, it } from "vitest";
 import type {
-  BaseSeverity, AlertLevel, ErrorSeverity, FollowUpSeverity,
-  AlertSeverity, DiagnosticPattern, StoreName, APIEndpoints,
+  AlertLevel,
+  AlertSeverity,
+  APIEndpoints,
+  BaseSeverity,
+  DiagnosticPattern,
+  ErrorSeverity, FollowUpSeverity,
+  StoreName,
 } from "../types";
 
 // ================================================================
@@ -62,7 +66,7 @@ describe("RF-004: ALL_STORES 常量去重", () => {
     const { ALL_STORES } = await import("../lib/yyc3-storage");
     expect(ALL_STORES).toBeDefined();
     expect(Array.isArray(ALL_STORES)).toBe(true);
-    expect(ALL_STORES).toHaveLength(22);
+    expect(ALL_STORES).toHaveLength(24);
   });
 
   it("ALL_STORES 包含所有预期的 store 名称", async () => {
@@ -74,6 +78,7 @@ describe("RF-004: ALL_STORES 常量去重", () => {
       "fileVersions", "dbConnections", "queryHistory", "committedChanges",
       "agent_memories", "agent_tasks", "mcp_contexts", "inference_cache",
       "family_messages", "family_activities", "family_memories", "family_broadcasts",
+      "music_library", "comm_stations",
     ];
     for (const name of expected) {
       expect(ALL_STORES).toContain(name);
@@ -106,8 +111,9 @@ describe("RF-004: ALL_STORES 常量去重", () => {
       "fileVersions", "dbConnections", "queryHistory", "committedChanges",
       "agent_memories", "agent_tasks", "mcp_contexts", "inference_cache",
       "family_messages", "family_activities", "family_memories", "family_broadcasts",
+      "music_library", "comm_stations",
     ];
-    expect(validNames).toHaveLength(22);
+    expect(validNames).toHaveLength(24);
   });
 });
 

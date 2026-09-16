@@ -12,7 +12,8 @@
 import * as React from "react";
 
 const IS_TEST = typeof process !== "undefined" && process.env.NODE_ENV === "test";
-const BASE = (typeof import.meta !== "undefined" && import.meta.env?.BASE_URL) || "";
+const _rawBase = (typeof import.meta !== "undefined" && (import.meta as unknown as Record<string, Record<string, string>>).env?.BASE_URL) || "";
+const BASE = _rawBase === "./" || _rawBase === "/" ? "" : _rawBase;
 
 const logo16 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/16.png`;
 const logo32 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/32.png`;
@@ -25,14 +26,14 @@ const logo256 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/25
 const logo512 = IS_TEST ? "/placeholder-logo.png" : `${BASE}/yyc3-icons/macOS/512.png`;
 
 function pickLogo(size: number): string {
-  if (size <= 16) {return logo16;}
-  if (size <= 32) {return logo32;}
-  if (size <= 48) {return logo48;}
-  if (size <= 64) {return logo64;}
-  if (size <= 96) {return logo96;}
-  if (size <= 128) {return logo128;}
-  if (size <= 192) {return logo192;}
-  if (size <= 256) {return logo256;}
+  if (size <= 16) { return logo16; }
+  if (size <= 32) { return logo32; }
+  if (size <= 48) { return logo48; }
+  if (size <= 64) { return logo64; }
+  if (size <= 96) { return logo96; }
+  if (size <= 128) { return logo128; }
+  if (size <= 192) { return logo192; }
+  if (size <= 256) { return logo256; }
   return logo512;
 }
 
@@ -61,13 +62,8 @@ export function YYC3LogoSvg({
       />
       {_showText && (
         <span
-          className="font-bold tracking-wider"
-          style={{
-            fontSize: `${size * 0.35}rem`,
-            color: "#ffffff",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontWeight: 600,
-          }}
+          className="font-bold tracking-wider text-white font-mono"
+          style={{ fontSize: `${size * 0.35}rem`, fontWeight: 600 }}
         >
           YYC³
         </span>

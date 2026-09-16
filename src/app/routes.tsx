@@ -9,11 +9,11 @@
  * @tags: [module],[routes]
  */
 
-import { createHashRouter } from "react-router";
 import { lazy, Suspense, type ComponentType } from "react";
+import { createHashRouter } from "react-router";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
 import { NotFound } from "./components/NotFound";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // ============================================================
 //  Loading 占位组件
@@ -172,6 +172,9 @@ const UnifiedSettingsPanel = lazy(() =>
 const HotelDashboard = lazy(() =>
   import("./components/HotelDashboard").then((m) => ({ default: m.HotelDashboard })),
 );
+const CommStationPanel = lazy(() =>
+  import("./components/CommStationPanel").then((m) => ({ default: m.CommStationPanel })),
+);
 const SDKChatPanel = lazy(() =>
   import("./components/SDKChatPanel").then((m) => ({ default: m.SDKChatPanel })),
 );
@@ -227,6 +230,8 @@ export const router = createHashRouter([
       { path: "variables", Component: withSuspense(VariableCenter) },
       { path: "unified-settings", Component: withSuspense(UnifiedSettingsPanel) },
       { path: "hotel-dashboard", Component: withSuspense(HotelDashboard) },
+      { path: "hotel", Component: withSuspense(HotelDashboard) },
+      { path: "comm-station", Component: withSuspense(CommStationPanel) },
       { path: "sdk-chat", Component: withSuspense(SDKChatPanel) },
       { path: "export-center", Component: withSuspense(ConfigExportCenter) },
       { path: "*", Component: NotFound },

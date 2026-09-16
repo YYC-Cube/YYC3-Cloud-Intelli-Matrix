@@ -110,7 +110,7 @@ const DEFAULT_MEMBERS: UnifiedFamilyMember[] = [
     greeting: "天枢在此。家人们的事就是我的事，有任何需要随时说。",
     careMessage: "天枢播报：系统一切正常运转，家人们可以安心工作！",
     status: "online",
-    modelAssignment: { providerId: "openai", modelId: "gpt-4o", purpose: "全局调度与决策优化" },
+    modelAssignment: { providerId: "deepseek", modelId: "deepseek-chat", purpose: "全局调度与决策优化" },
     voiceProfile: { pitch: 0.85, rate: 0.9, volume: 1.0, lang: "zh-CN" },
     stats: { contribution: 1205, growth: 15, streak: 90, mood: "steady" },
     medals: ["team-player", "streak-master", "safe-guard", "knowledge-star", "warm-heart"],

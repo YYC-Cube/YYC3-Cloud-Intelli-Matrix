@@ -173,8 +173,9 @@ describe("Sidebar Component", () => {
     // nav.aiFamily is the key for the first child in the ai-family category
     expect(screen.getAllByText(/nav.aiFamily$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/nav.aiFamilyHome/i).length).toBeGreaterThan(0);
-    // The actual key is nav.aiFamilyChatCenter, not nav.aiFamilyChat
-    expect(screen.getAllByText(/nav.aiFamilyChatCenter/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.aiFamilyCenter/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.aiFamilyModels/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nav.aiFamilySettings/i).length).toBeGreaterThan(0);
   });
 
   it("should apply correct width style based on collapsed state", () => {

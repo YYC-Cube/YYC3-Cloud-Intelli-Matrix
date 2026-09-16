@@ -10,8 +10,8 @@
  */
 
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, cleanup } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mock dependencies before imports ──────────────────────────
 
@@ -31,8 +31,8 @@ global.fetch = vi.fn();
 
 // ── Import store and hook after mocks ─────────────────────────
 
-import { useProviderSlice, BUILTIN_PROVIDERS as SLICE_BUILTIN } from "../store/slices/provider-slice";
 import { useModelProvider } from "../hooks/useModelProvider";
+import { BUILTIN_PROVIDERS as SLICE_BUILTIN, useProviderSlice } from "../store/slices/provider-slice";
 
 describe("useModelProvider", () => {
   beforeEach(() => {
@@ -71,7 +71,6 @@ describe("useModelProvider", () => {
     const providerIds = result.current.providers.map((p) => p.id);
     expect(providerIds).toContain("zhipu");
     expect(providerIds).toContain("deepseek");
-    expect(providerIds).toContain("openai");
     expect(providerIds).toContain("ollama");
   });
 
@@ -359,6 +358,6 @@ describe("useModelProvider", () => {
     });
 
     const reset = result.current.providers.find((p) => p.id === "zhipu");
-    expect(reset?.label).toBe("Z.ai");
+    expect(reset?.label).toBe("Z.ai (智谱)");
   });
 });

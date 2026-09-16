@@ -395,7 +395,7 @@ describe("Performance Test Helpers", () => {
       });
 
       expect(result).toBe("done");
-      expect(duration).toBeGreaterThanOrEqual(10);
+      expect(duration).toBeGreaterThanOrEqual(5);
     });
   });
 

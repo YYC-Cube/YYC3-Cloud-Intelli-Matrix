@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           deny-licenses: GPL-3.0, AGPL-3.0
@@ -43,7 +43,7 @@ jobs:
           format: "sarif"
           output: "trivy-results.sarif"
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v4.37.4
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
@@ -62,11 +62,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -94,11 +94,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
@@ -126,11 +126,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -165,11 +165,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -201,11 +201,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -226,11 +226,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"

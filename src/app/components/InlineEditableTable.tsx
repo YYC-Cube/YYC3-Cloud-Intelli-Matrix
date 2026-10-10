@@ -9,14 +9,23 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
-  Check, X, Edit3, Send, RotateCcw, AlertTriangle,
-  Undo2, ChevronDown, ChevronUp, Trash2, CheckSquare, Square,
+  AlertTriangle,
+  Check,
+  CheckSquare,
+  ChevronDown, ChevronUp,
+  Edit3,
+  RotateCcw,
+  Send,
+  Square,
+  Trash2,
+  Undo2,
+  X,
 } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { idbGetAll, idbPut, idbClear as idbClearStore } from "../lib/yyc3-storage";
-import type { EditableCellChange, CommittedChange } from "../types";
+import { idbClear as idbClearStore, idbGetAll, idbPut } from "../lib/yyc3-storage";
+import type { CommittedChange, EditableCellChange } from "../types";
 
 // RF-011: Re-export 已移除
 
@@ -53,10 +62,10 @@ interface EditingCell {
 /** 格式化 SQL 值字面量 */
 export function formatSQLValue(value: unknown): string {
   const str = value === null || value === undefined ? "" : String(value);
-  if (str === "" || str === "NULL") {return "NULL";}
+  if (str === "" || str === "NULL") { return "NULL"; }
   const isNumeric = !isNaN(Number(str)) && str.trim() !== "";
   const isBool = str === "true" || str === "false";
-  if (isNumeric || isBool) {return str;}
+  if (isNumeric || isBool) { return str; }
   const escaped = str.includes("'") ? str.replace(/'/g, "''") : str;
   return `'${escaped}'`;
 }
@@ -119,7 +128,7 @@ export function InlineEditableTable({
 
   // ── IndexedDB 持久化: 加载 Undo 历史 ──
   useEffect(() => {
-    if (historyLoaded) {return;}
+    if (historyLoaded) { return; }
     idbGetAll<CommittedChange>("committedChanges").then((saved) => {
       if (saved.length > 0) {
         // 按提交时间降序, 仅保留同表名的记录
@@ -173,7 +182,7 @@ export function InlineEditableTable({
 
   // ── 编辑操作 ──
   const startEditing = useCallback((rowIndex: number, column: string, value: unknown) => {
-    if (!editable) {return;}
+    if (!editable) { return; }
     if (column === primaryKey) {
       toast.info("主键列不可编辑");
       return;
@@ -186,7 +195,7 @@ export function InlineEditableTable({
   }, [editable, primaryKey]);
 
   const confirmEdit = useCallback(() => {
-    if (!editingCell) {return;}
+    if (!editingCell) { return; }
 
     const row = rows[editingCell.rowIndex];
     const oldValue = row[editingCell.column];
@@ -239,13 +248,13 @@ export function InlineEditableTable({
 
   // ── 批量 DELETE ──
   const markSelectedForDelete = useCallback(() => {
-    if (selectedRows.size === 0) {return;}
+    if (selectedRows.size === 0) { return; }
 
     const deleteChanges: EditableCellChange[] = [];
 
     for (const ri of selectedRows) {
       const row = rows[ri];
-      if (!row) {continue;}
+      if (!row) { continue; }
       const pkValue = row[primaryKey];
       const sql = buildDeleteSQL(tableName, primaryKey, pkValue);
       const rollbackSQL = buildInsertSQL(tableName, columns, row);
@@ -271,12 +280,12 @@ export function InlineEditableTable({
 
   // ── 提交 ──
   const requestCommit = useCallback(() => {
-    if (pendingChanges.length === 0) {return;}
+    if (pendingChanges.length === 0) { return; }
     setShowConfirmDialog(true);
   }, [pendingChanges]);
 
   const commitAllChanges = useCallback(async () => {
-    if (pendingChanges.length === 0 || !onExecuteSQL) {return;}
+    if (pendingChanges.length === 0 || !onExecuteSQL) { return; }
 
     setShowConfirmDialog(false);
     setExecuting(true);
@@ -285,7 +294,7 @@ export function InlineEditableTable({
     const successfulChanges: EditableCellChange[] = [];
 
     for (const change of pendingChanges) {
-      if (!change.sql) {continue;}
+      if (!change.sql) { continue; }
       try {
         const result = await onExecuteSQL(change.sql);
         if (result.ok) {
@@ -318,8 +327,8 @@ export function InlineEditableTable({
       const deleteCount = successfulChanges.filter(c => c.type === "delete").length;
       const updateCount = successfulChanges.filter(c => c.type === "update").length;
       const desc: string[] = [];
-      if (updateCount > 0) {desc.push(`${updateCount} 项 UPDATE`);}
-      if (deleteCount > 0) {desc.push(`${deleteCount} 项 DELETE`);}
+      if (updateCount > 0) { desc.push(`${updateCount} 项 UPDATE`); }
+      if (deleteCount > 0) { desc.push(`${deleteCount} 项 DELETE`); }
 
       toast.success(`已提交 ${successCount} 项变更`, {
         description: (failCount > 0 ? `${failCount} 项失败 · ` : "") + desc.join(", ") + " · 可 Undo 回滚",
@@ -345,10 +354,10 @@ export function InlineEditableTable({
   // ── Undo 回滚 ──
   /** Undo: 回滚已提交的变更 (整批) */
   const undoCommit = useCallback(async (commitId: string) => {
-    if (!onExecuteSQL) {return;}
+    if (!onExecuteSQL) { return; }
 
     const commit = committedHistory.find(c => c.id === commitId);
-    if (!commit || commit.rolledBack) {return;}
+    if (!commit || commit.rolledBack) { return; }
 
     setExecuting(true);
     let successCount = 0;
@@ -358,9 +367,9 @@ export function InlineEditableTable({
     const alreadyRolledBack = new Set(commit.rolledBackIndices ?? []);
 
     for (let i = commit.changes.length - 1; i >= 0; i--) {
-      if (alreadyRolledBack.has(i)) {continue;}
+      if (alreadyRolledBack.has(i)) { continue; }
       const change = commit.changes[i];
-      if (!change.rollbackSQL) {continue;}
+      if (!change.rollbackSQL) { continue; }
       try {
         const result = await onExecuteSQL(change.rollbackSQL);
         if (result.ok) {
@@ -392,10 +401,10 @@ export function InlineEditableTable({
 
   /** Undo: 行级回滚 (单项变更) */
   const undoSingleChange = useCallback(async (commitId: string, changeIndex: number) => {
-    if (!onExecuteSQL) {return;}
+    if (!onExecuteSQL) { return; }
 
     const commit = committedHistory.find(c => c.id === commitId);
-    if (!commit || commit.rolledBack) {return;}
+    if (!commit || commit.rolledBack) { return; }
 
     const alreadyRolledBack = new Set(commit.rolledBackIndices ?? []);
     if (alreadyRolledBack.has(changeIndex)) {
@@ -404,7 +413,7 @@ export function InlineEditableTable({
     }
 
     const change = commit.changes[changeIndex];
-    if (!change?.rollbackSQL) {return;}
+    if (!change?.rollbackSQL) { return; }
 
     setExecuting(true);
 
@@ -444,7 +453,7 @@ export function InlineEditableTable({
     toast.info("Undo 历史已清除");
   }, []);
 
-  if (rows.length === 0 && pendingChanges.length === 0) {return null;}
+  if (rows.length === 0 && pendingChanges.length === 0) { return null; }
 
   const undoableCommits = committedHistory.filter(c => !c.rolledBack);
   const pendingDeletes = pendingChanges.filter(c => c.type === "delete");
@@ -522,7 +531,7 @@ export function InlineEditableTable({
 
       {/* ═══ Undo 历史面板 ═══ */}
       {showHistory && undoableCommits.length > 0 && (
-        <div className="mb-2 p-2 rounded-lg bg-[rgba(0,20,40,0.5)] border border-[rgba(123,140,255,0.12)]">
+        <div data-testid="undo-history-panel" className="mb-2 p-2 rounded-lg bg-[rgba(0,20,40,0.5)] border border-[rgba(123,140,255,0.12)]">
           <div className="flex items-center justify-between mb-1">
             <p style={{ fontSize: f.xs, color: textDim }}>已提交变更 (可整批或逐项回滚, IndexedDB 持久化)</p>
             <button
@@ -572,14 +581,12 @@ export function InlineEditableTable({
                     return (
                       <div
                         key={ci}
-                        className={`flex items-center justify-between py-0.5 px-1.5 rounded ${
-                          isRolledBack ? "opacity-40 line-through" : ""
-                        }`}
+                        className={`flex items-center justify-between py-0.5 px-1.5 rounded ${isRolledBack ? "opacity-40 line-through" : ""
+                          }`}
                       >
                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <span className={`shrink-0 ${
-                            change.type === "delete" ? "text-[#ff6464]" : "text-[#ffaa00]"
-                          }`} style={{ fontSize: "0.6rem" }}>
+                          <span className={`shrink-0 ${change.type === "delete" ? "text-[#ff6464]" : "text-[#ffaa00]"
+                            }`} style={{ fontSize: "0.6rem" }}>
                             {change.type === "delete" ? "DEL" : "UPD"}
                           </span>
                           <span className="text-[#c0dcf0] font-mono truncate" style={{ fontSize: "0.6rem" }}>
@@ -588,6 +595,7 @@ export function InlineEditableTable({
                         </div>
                         {!isRolledBack && (
                           <button
+                            data-testid="undo-item-btn"
                             onClick={() => undoSingleChange(commit.id, ci)}
                             disabled={executing}
                             className="px-1.5 py-0.5 rounded bg-[rgba(123,140,255,0.06)] text-[rgba(123,140,255,0.6)] hover:text-[#7b8cff] hover:bg-[rgba(123,140,255,0.12)] transition-all disabled:opacity-50 shrink-0"
@@ -657,11 +665,10 @@ export function InlineEditableTable({
             <button
               onClick={commitAllChanges}
               disabled={executing}
-              className={`px-4 py-1.5 rounded-lg flex items-center gap-1.5 transition-all disabled:opacity-50 ${
-                pendingDeletes.length > 0
-                  ? "bg-[rgba(255,60,60,0.12)] border border-[rgba(255,60,60,0.25)] text-[#ff6464]"
-                  : "bg-[rgba(0,255,136,0.12)] border border-[rgba(0,255,136,0.25)] text-[#00ff88]"
-              }`}
+              className={`px-4 py-1.5 rounded-lg flex items-center gap-1.5 transition-all disabled:opacity-50 ${pendingDeletes.length > 0
+                ? "bg-[rgba(255,60,60,0.12)] border border-[rgba(255,60,60,0.25)] text-[#ff6464]"
+                : "bg-[rgba(0,255,136,0.12)] border border-[rgba(0,255,136,0.25)] text-[#00ff88]"
+                }`}
               style={{ fontSize: f.sm }}
             >
               <Send className="w-3.5 h-3.5" />
@@ -710,22 +717,20 @@ export function InlineEditableTable({
               return (
                 <tr
                   key={ri}
-                  className={`border-b border-[rgba(0,180,255,0.03)] ${
-                    isMarkedDelete
-                      ? "bg-[rgba(255,60,60,0.06)] line-through opacity-60"
-                      : "hover:bg-[rgba(0,40,80,0.15)]"
-                  }`}
+                  className={`border-b border-[rgba(0,180,255,0.03)] ${isMarkedDelete
+                    ? "bg-[rgba(255,60,60,0.06)] line-through opacity-60"
+                    : "hover:bg-[rgba(0,40,80,0.15)]"
+                    }`}
                 >
                   {/* 选择框 */}
                   {editable && (
                     <td className="py-1 px-1.5 w-6">
                       <button
                         onClick={() => toggleRowSelection(ri)}
-                        className={`transition-colors ${
-                          selectedRows.has(ri)
-                            ? "text-[#00d4ff]"
-                            : "text-[rgba(0,212,255,0.15)] hover:text-[rgba(0,212,255,0.4)]"
-                        }`}
+                        className={`transition-colors ${selectedRows.has(ri)
+                          ? "text-[#00d4ff]"
+                          : "text-[rgba(0,212,255,0.15)] hover:text-[rgba(0,212,255,0.4)]"
+                          }`}
                       >
                         {selectedRows.has(ri) ? <CheckSquare className="w-3 h-3" /> : <Square className="w-3 h-3" />}
                       </button>
@@ -777,17 +782,15 @@ export function InlineEditableTable({
                       <td
                         key={col}
                         data-testid={`cell-${ri}-${col}`}
-                        className={`py-1.5 px-2 font-mono whitespace-nowrap max-w-[200px] truncate ${
-                          isPK
-                            ? "text-[#7b8cff]"
-                            : wasChanged
-                              ? "text-[#ffaa00]"
-                              : "text-[#c0dcf0]"
-                        } ${
-                          editable && !isPK && !isMarkedDelete
+                        className={`py-1.5 px-2 font-mono whitespace-nowrap max-w-[200px] truncate ${isPK
+                          ? "text-[#7b8cff]"
+                          : wasChanged
+                            ? "text-[#ffaa00]"
+                            : "text-[#c0dcf0]"
+                          } ${editable && !isPK && !isMarkedDelete
                             ? "cursor-pointer hover:bg-[rgba(0,212,255,0.06)] transition-colors"
                             : ""
-                        }`}
+                          }`}
                         onDoubleClick={() => !isMarkedDelete && startEditing(ri, col, row[col])}
                         title={editable && !isPK ? `双击编辑 · ${col}: ${displayValue}` : String(displayValue)}
                       >

@@ -10,16 +10,15 @@
  */
 
 // @vitest-environment jsdom
-import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import {
   InlineEditableTable,
-  formatSQLValue,
-  buildUpdateSQL,
-  buildRollbackSQL,
   buildDeleteSQL,
   buildInsertSQL,
+  buildRollbackSQL,
+  buildUpdateSQL,
+  formatSQLValue,
 } from "../components/InlineEditableTable";
 
 const { mockToast } = vi.hoisted(() => ({
@@ -470,9 +469,10 @@ describe("InlineEditableTable", () => {
       const undoBtnTexts = screen.getAllByText(/Undo/);
       fireEvent.click(undoBtnTexts[0]);
 
-      // 应显示两个"撤销"按钮 (每项变更一个)
+      // 应显示两个"撤销"按钮 (每项变更一个) — 限定在历史面板内，避免与"丢弃待提交变更"按钮歧义
+      const panel = await screen.findByTestId("undo-history-panel");
       await waitFor(() => {
-        const undoButtons = screen.getAllByText("撤销");
+        const undoButtons = within(panel).getAllByText("撤销");
         expect(undoButtons.length).toBe(2);
       });
     });
@@ -495,12 +495,9 @@ describe("InlineEditableTable", () => {
       });
       const undoBtnTexts = screen.getAllByText(/Undo/);
       fireEvent.click(undoBtnTexts[0]);
-      await waitFor(() => {
-        const undoItemTexts = screen.getAllByText("撤销");
-        expect(undoItemTexts.length).toBeGreaterThan(0);
-      });
-      const undoItemBtnTexts = screen.getAllByText("撤销");
-      fireEvent.click(undoItemBtnTexts[0]);
+      const panel = await screen.findByTestId("undo-history-panel");
+      const undoItemBtn = await within(panel).findByTestId("undo-item-btn");
+      fireEvent.click(undoItemBtn);
       // Wait for rollback to complete
       await new Promise(resolve => setTimeout(resolve, 200));
       // Verify that the rollback SQL was executed
@@ -525,12 +522,9 @@ describe("InlineEditableTable", () => {
       });
       const undoBtnTexts = screen.getAllByText(/Undo/);
       fireEvent.click(undoBtnTexts[0]);
-      await waitFor(() => {
-        const undoItemTexts = screen.getAllByText("撤销");
-        expect(undoItemTexts.length).toBeGreaterThan(0);
-      });
-      const undoItemBtnTexts = screen.getAllByText("撤销");
-      fireEvent.click(undoItemBtnTexts[0]);
+      const panel = await screen.findByTestId("undo-history-panel");
+      const undoItemBtn = await within(panel).findByTestId("undo-item-btn");
+      fireEvent.click(undoItemBtn);
       // 唯一的变更被回滚后, Undo 按钮应消失 (rolledBack=true)
       await waitFor(() => {
         const undoTexts = screen.queryAllByText(/Undo \(\d+\)/);

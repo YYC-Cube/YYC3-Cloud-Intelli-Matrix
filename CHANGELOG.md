@@ -41,6 +41,7 @@ language: zh-CN
 - 修复 Electron main 入口路径：`dist-electron/main.js` → `dist-electron/electron/main.js` 对齐 tsc 实际产物层级，消除 asar 入口校验失败
 - 修复 productName `³` 字符编码问题（Windows NSIS ANSI 传参损坏 / macOS dmg 临时文件 NFC-NFD 差异），productName/shortcutName 改 ASCII（运行时 UTF-8 场景保留 ³）
 - 定位并修复 pnpm `--` 参数转发陷阱：pnpm（≥7）原样保留 `--` 传给脚本（npm 才剥离），electron-builder（yargs）将 `--` 后内容视为位置参数，致 CI 传入的 `--dir` / `--publish never` 全部失效、隐式 CI publishing 触发 `GH_TOKEN is not set`；workflow 改用 `pnpm exec electron-builder --linux --dir --publish never` 参数直达二进制
+- 修复 Docker 镜像名大写违规：GHCR 要求镜像名全小写，`${{ github.repository }}` 展开保留原始大小写致 buildx 拒绝 `invalid tag ... repository name must be lowercase`；cicd.yml 与 release.yml 改用 `${GITHUB_REPOSITORY,,}` 转小写输出，release notes 示例同步
 - Electron CI 打包验证改 `--dir` 目录模式：安装器层三类失败均属发布产物层且与应用代码无关（macOS dmgbuild python 静默失败、Windows NSIS `MUI_ICON` 要求 .ico 而仓库仅有 PNG、隐式 publishing 的 GH_TOKEN 校验），CI 聚焦验证核心打包链路（编译/asar/图标转换/目录结构）并加三平台产物存在性校验；移除零消费者的 `build.publish` 配置（electron-updater 未在主进程引用、release.yml 仅打包 dist/ 不走 electron-builder）
 
 ### Security - 漏洞闭环

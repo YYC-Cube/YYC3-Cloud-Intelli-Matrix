@@ -166,8 +166,8 @@ jobs:
 
             ### Docker
             ```bash
-            docker pull ghcr.io/${{ github.repository }}:${{ needs.validate-tag.outputs.version }}
-            docker run -p 3118:8080 ghcr.io/${{ github.repository }}:${{ needs.validate-tag.outputs.version }}
+            docker pull ghcr.io/yanyucloudcube/yyc3-cloud-intelli-matrix:${{ needs.validate-tag.outputs.version }}
+            docker run -p 3118:8080 ghcr.io/yanyucloudcube/yyc3-cloud-intelli-matrix:${{ needs.validate-tag.outputs.version }}
             ```
 
             ### Build Info
@@ -210,11 +210,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ steps.image.outputs.name }}
           tags: |
             type=raw,value=${{ needs.validate-tag.outputs.version }}
             type=raw,value=latest

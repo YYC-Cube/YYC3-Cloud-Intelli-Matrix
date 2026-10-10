@@ -22,10 +22,11 @@
  * @notes: 修改配置后需要重启开发服务器
  */
 
-import { defineConfig } from 'vite'
-import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import type { ServerResponse } from 'http'
+import path from 'path'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   base: './',
@@ -47,8 +48,16 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v1\/llm\/ollama/, '/api'),
         configure: (proxy) => {
-          proxy.on('error', (err, _req, _res) => {
+          proxy.on('error', (err, _req, res) => {
             console.log('[ollama-proxy] Ollama 服务未启动或不可达:', err.message);
+            // 开发/CI 环境无 Ollama 时返回空模型列表兜底，避免请求挂死与控制台错误堆积
+            if ('writeHead' in res) {
+              const serverRes = res as ServerResponse;
+              if (!serverRes.headersSent) {
+                serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+                serverRes.end(JSON.stringify({ models: [] }));
+              }
+            }
           });
         },
       },

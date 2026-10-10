@@ -9,8 +9,8 @@
  * @tags: [component]
  */
 
-import React, { useState, useCallback } from "react";
-import { Lock, Mail, Eye, EyeOff, AlertCircle, Zap, Ghost } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Ghost, Lock, Mail, Zap } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { YYC3Logo } from "./YYC3Logo";
 
@@ -56,7 +56,7 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
   };
 
   const handleGhostLogin = useCallback(() => {
-    if (!onGhostLogin || ghostActivating) {return;}
+    if (!onGhostLogin || ghostActivating) { return; }
     setGhostActivating(true);
     setError("");
     // Brief visual delay for the activation effect
@@ -107,15 +107,15 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
             <div className="flex justify-center mb-4">
               <YYC3Logo size="xl" glow showStatus={false} className="shadow-[0_0_30px_rgba(0,180,255,0.4)]" />
             </div>
-            <h1 
-              className="text-[#00d4ff] tracking-[0.3em] mb-1" 
+            <h1
+              className="text-[#00d4ff] tracking-[0.3em] mb-1"
               style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "1.4rem" }}
               data-testid="login-title"
             >
               YYC³ CP-IM
             </h1>
-            <p 
-              className="text-[rgba(0,212,255,0.4)]" 
+            <p
+              className="text-[rgba(0,212,255,0.4)]"
               style={{ fontSize: "0.75rem", letterSpacing: "0.15em" }}
               data-testid="login-subtitle"
             >
@@ -213,6 +213,7 @@ export function Login({ onLoginSuccess, onGhostLogin }: LoginProps) {
           {onGhostLogin && (
             <button
               type="button"
+              data-testid="login-ghost-button"
               onClick={handleGhostLogin}
               disabled={ghostActivating}
               onMouseEnter={() => setGhostHover(true)}

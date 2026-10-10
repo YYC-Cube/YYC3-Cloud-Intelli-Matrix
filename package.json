@@ -272,9 +272,6 @@
       ],
       "icon": "public/yyc3-icons/macOS/512.png",
       "artifactName": "${productName}-${version}-win-${arch}.${ext}",
-      "signingHashAlgorithms": [
-        "sha256"
-      ],
       "requestedExecutionLevel": "asInvoker"
     },
     "linux": {

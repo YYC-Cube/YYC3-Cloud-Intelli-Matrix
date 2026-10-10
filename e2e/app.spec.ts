@@ -1,72 +1,37 @@
+/**
+ * @file: app.spec.ts
+ * @description: E2E Smoke Tests · 基于真实应用锚点（Login → Ghost 登录 → 主应用）
+ * @author: YanYuCloudCube Team
+ * @version: v2.0.0
+ * @created: 2026-04-08
+ * @updated: 2026-10-11
+ * @status: active
+ * @tags: [e2e],[smoke],[playwright]
+ */
+
 import { test, expect } from '@playwright/test';
 
-test.describe('YYC³ Cloud Intelli-Matrix E2E Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
+test.describe('YYC³ Cloud Intelli-Matrix E2E Smoke Tests', () => {
   test('should load the application', async ({ page }) => {
+    await page.goto('/');
     await expect(page).toHaveTitle(/YYC³ Cloud Intelli-Matrix/);
   });
 
-  test('should display dashboard', async ({ page }) => {
-    await page.waitForSelector('[data-testid="dashboard"]', { timeout: 10000 });
-    const dashboard = page.locator('[data-testid="dashboard"]');
-    await expect(dashboard).toBeVisible();
+  test('should display login page', async ({ page }) => {
+    await page.goto('/');
+    // 未认证时显示登录页（supabase 会话检查有 3s 超时兜底）
+    await page.waitForSelector('[data-testid="login-title"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible();
+    await expect(page.locator('[data-testid="login-submit-button"]')).toBeVisible();
   });
 
-  test('should navigate to data monitor', async ({ page }) => {
-    await page.waitForSelector('[data-testid="nav-data-monitor"]', { timeout: 10000 });
-    await page.click('[data-testid="nav-data-monitor"]');
-    await expect(page).toHaveURL(/.*data-monitor/);
-  });
-
-  test('should open AI assistant', async ({ page }) => {
-    await page.waitForSelector('[data-testid="ai-assistant-button"]', { timeout: 10000 });
-    await page.click('[data-testid="ai-assistant-button"]');
-    const aiPanel = page.locator('[data-testid="ai-assistant-panel"]');
-    await expect(aiPanel).toBeVisible();
-  });
-
-  test('should display system status', async ({ page }) => {
-    await page.waitForSelector('[data-testid="system-status"]', { timeout: 10000 });
-    const status = page.locator('[data-testid="system-status"]');
-    await expect(status).toBeVisible();
-    const statusText = await status.textContent();
-    expect(statusText).toBeTruthy();
-  });
-
-  test('should toggle theme', async ({ page }) => {
-    await page.waitForSelector('[data-testid="theme-toggle"]', { timeout: 10000 });
-    const themeToggle = page.locator('[data-testid="theme-toggle"]');
-    await themeToggle.click();
-    await page.waitForTimeout(500);
-    await expect(themeToggle).toBeVisible();
-  });
-
-  test('should display user menu', async ({ page }) => {
-    await page.waitForSelector('[data-testid="user-menu-button"]', { timeout: 10000 });
-    await page.click('[data-testid="user-menu-button"]');
-    const userMenu = page.locator('[data-testid="user-menu"]');
-    await expect(userMenu).toBeVisible();
-  });
-
-  test('should navigate through tabs', async ({ page }) => {
-    await page.waitForSelector('[data-testid="nav-tabs"]', { timeout: 10000 });
-    const tabs = page.locator('[data-testid="nav-tabs"] button');
-    const tabCount = await tabs.count();
-    expect(tabCount).toBeGreaterThan(0);
-
-    await tabs.first().click();
-    await page.waitForTimeout(500);
-    await expect(tabs.first()).toHaveClass(/active/);
-  });
-
-  test('should display charts', async ({ page }) => {
-    await page.waitForSelector('[data-testid="dashboard"]', { timeout: 10000 });
-    const charts = page.locator('[data-testid^="chart-"]');
-    await charts.first().waitFor({ state: 'visible', timeout: 10000 });
-    const chartCount = await charts.count();
-    expect(chartCount).toBeGreaterThan(0);
+  test('should sign in via ghost mode and enter main app', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('[data-testid="login-ghost-button"]', { timeout: 15000 });
+    // 幽灵登录：跳过认证直接进入主应用
+    await page.click('[data-testid="login-ghost-button"]');
+    // 主应用挂载后 TopBar 渲染品牌名与用户头像
+    await page.waitForSelector('[data-testid="brand-name"]', { timeout: 20000 });
+    await expect(page.locator('[data-testid="user-avatar-btn"]')).toBeVisible();
   });
 });

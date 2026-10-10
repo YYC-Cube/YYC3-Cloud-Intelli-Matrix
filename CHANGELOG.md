@@ -34,6 +34,8 @@ language: zh-CN
 - 修复 `pnpm-lock.yaml` 与 `package.json` 规格不同步导致 CI/CD Pipeline、Deploy to GitHub Pages 全分片 `frozen-lockfile` 安装失败（@tailwindcss/vite、@vitejs/plugin-react、vite-plugin-electron、react-router）
 - 统一 pnpm 9（CI）与 pnpm 10/11（本地）配置源：overrides 在 `package.json` 与 `pnpm-workspace.yaml` 保持一致；构建脚本以 `onlyBuiltDependencies` + `allowBuilds` 双键声明
 - 修复 release.yml：create-release 之后的 "Update release" 步骤覆盖整个 release notes；action-slack 无效输入 `webhook_url` 改为 `SLACK_WEBHOOK` 环境变量；Docker 镜像旧名 cloudpivot 对齐
+- 根治 InlineEditableTable 行级 Undo 测试 flaky：全局"撤销"文本查询存在元素歧义与异步竞争，组件补 testid 锚点、测试改为面板内精确定位
+- 修复流水线 Build/E2E/Lighthouse/Electron/Docker 作业被静默跳过：`quality` 以 `always()` 容忍被跳过的 `dependency-review`，调度器将该作业向下游传播为异常状态；quality 改为仅依赖 security-scan，切断 skipped 依赖传播
 
 ### Security - 漏洞闭环
 

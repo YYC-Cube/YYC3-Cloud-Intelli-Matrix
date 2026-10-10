@@ -6,15 +6,18 @@ WORKDIR /app
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && corepack prepare pnpm@latest --activate
+# pnpm-workspace.yaml 必须随拷：pnpm 10+/11 的 overrides 配置源，缺失会触发
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH（frozen 校验 settings 与 lockfile 不符）
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# 固定主版本与 CI（9.x）一致，避免 pnpm@latest 漂移到 11.x 造成行为差异
+RUN corepack enable pnpm && corepack prepare pnpm@9 --activate
 RUN pnpm install --frozen-lockfile --prod=false
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN corepack enable pnpm && corepack prepare pnpm@latest --activate
+RUN corepack enable pnpm && corepack prepare pnpm@9 --activate
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
 

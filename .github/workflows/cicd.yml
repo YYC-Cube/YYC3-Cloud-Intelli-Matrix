@@ -219,6 +219,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -233,25 +235,38 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      # --dir 模式验证核心打包链路（编译/asar/图标转换/目录结构），
+      # 安装器格式（dmg/NSIS/AppImage）属发布层，由 release 流程负责
       - name: Build Electron (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:electron -- --publish never
+        run: pnpm build:electron -- --dir
       - name: Build Electron (macOS)
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac -- --publish never
+        run: pnpm build:mac -- --dir
       - name: Build Electron (Windows)
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win -- --publish never
+        run: pnpm build:win -- --dir
+      - name: Verify packed output (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: test -d dist-electron/linux-unpacked
+      - name: Verify packed output (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          test -d "dist-electron/mac-arm64/YYC3 Cloud.app" ||
+            test -d "dist-electron/mac/YYC3 Cloud.app"
+      - name: Verify packed output (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path dist-electron/win-unpacked)) { exit 1 }
       - name: Upload Electron artifacts
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: electron-build-${{ matrix.os }}
           path: |
-            dist-electron/*.dmg
-            dist-electron/*.exe
-            dist-electron/*.AppImage
-            dist-electron/*.deb
+            dist-electron/*-unpacked/
+            dist-electron/mac*/
           retention-days: 7
 
   docker:

@@ -307,12 +307,6 @@
       "installerHeader": "public/yyc3-icons/macOS/512.png",
       "installerHeaderIcon": "public/yyc3-icons/macOS/512.png",
       "deleteAppDataOnUninstall": false
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "YanYuCloudCube",
-      "repo": "YYC3-Cloud-Intelli-Matrix",
-      "private": false
     }
   }
 }

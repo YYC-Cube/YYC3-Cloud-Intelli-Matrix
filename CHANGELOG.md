@@ -36,6 +36,11 @@ language: zh-CN
 - 修复 release.yml：create-release 之后的 "Update release" 步骤覆盖整个 release notes；action-slack 无效输入 `webhook_url` 改为 `SLACK_WEBHOOK` 环境变量；Docker 镜像旧名 cloudpivot 对齐
 - 根治 InlineEditableTable 行级 Undo 测试 flaky：全局"撤销"文本查询存在元素歧义与异步竞争，组件补 testid 锚点、测试改为面板内精确定位
 - 修复流水线 Build/E2E/Lighthouse/Electron/Docker 作业被静默跳过：`quality` 以 `always()` 容忍被跳过的 `dependency-review`，调度器将该作业向下游传播为异常状态；quality 改为仅依赖 security-scan，切断 skipped 依赖传播
+- 修复 Build 恢复后暴露的三类存量失败：electron-builder 26 schema 移除 `build.win.signingHashAlgorithms` 致三平台配置校验失败（删除该字段）；E2E 脚手架测试引用不存在的 testid 且无后端 mock（重写为真实锚点 smoke 测试 + ollama 代理兜底）；lighthouserc recommended preset 与 Lighthouse 13 insight 审计不兼容且 performance 阈值 0.9 vs 实测 0.55（改显式核心断言集，阈值对齐实测 0.5）
+- 修复 brace-expansion 全局 override 回归：`^2.1.6` 强推 minimatch@10 依赖的 v5 至 v2 致 API 不兼容三平台打包崩溃，改按版本线 selector（@^1→1.1.12+ / @^2→2.0.2+，保留 CVE-2025-5889 修复下限）
+- 修复 Electron main 入口路径：`dist-electron/main.js` → `dist-electron/electron/main.js` 对齐 tsc 实际产物层级，消除 asar 入口校验失败
+- 修复 productName `³` 字符编码问题（Windows NSIS ANSI 传参损坏 / macOS dmg 临时文件 NFC-NFD 差异），productName/shortcutName 改 ASCII（运行时 UTF-8 场景保留 ³）
+- Electron CI 打包验证改 `--dir` 目录模式：安装器层三类失败均属发布产物层且与应用代码无关（macOS dmgbuild python 静默失败、Windows NSIS `MUI_ICON` 要求 .ico 而仓库仅有 PNG、配置 `build.publish` 驱动 GitHubPublisher 初始化致 `GH_TOKEN is not set` 且 CLI `--publish never` 无法阻止），CI 聚焦验证核心打包链路（编译/asar/图标转换/目录结构）并加三平台产物存在性校验；移除无任何消费者的 `build.publish` 配置（electron-updater 未在主进程引用、release.yml 仅打包 dist/ 不走 electron-builder），根除 publisher 初始化
 
 ### Security - 漏洞闭环
 

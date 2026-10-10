@@ -27,6 +27,29 @@ language: zh-CN
 
 ---
 
+## [Unreleased] - 2026-10-11
+
+### Fixed - CI 闭环
+
+- 修复 `pnpm-lock.yaml` 与 `package.json` 规格不同步导致 CI/CD Pipeline、Deploy to GitHub Pages 全分片 `frozen-lockfile` 安装失败（@tailwindcss/vite、@vitejs/plugin-react、vite-plugin-electron、react-router）
+- 统一 pnpm 9（CI）与 pnpm 10/11（本地）配置源：overrides 在 `package.json` 与 `pnpm-workspace.yaml` 保持一致；构建脚本以 `onlyBuiltDependencies` + `allowBuilds` 双键声明
+- 修复 release.yml：create-release 之后的 "Update release" 步骤覆盖整个 release notes；action-slack 无效输入 `webhook_url` 改为 `SLACK_WEBHOOK` 环境变量；Docker 镜像旧名 cloudpivot 对齐
+
+### Security - 漏洞闭环
+
+- `pnpm audit` 漏洞 165 → 0 high / 0 critical（2 个 dev-only moderate：uuid@8 仅使用不受影响的 v4 API、sprintf-js 修复版本 1.1.4 未发布且攻击路径不可达，风险接受）
+- 升级直接依赖：electron 41.10.7、electron-builder 26.15.3、@electron/rebuild 4.2.1、electron-updater 6.8.10、react-router(/-dom) 7.18.4
+- 传递依赖 overrides：tar、brace-expansion、basic-ftp、@xmldom/xmldom、form-data、fast-uri、ip-address、nanoid、browserslist、http-cache-semantics、source-map-js、compression、proxy-addr、shell-quote、undici、ws、js-yaml
+- lighthouse override 至 13.5.0（puppeteer-core 25 / @puppeteer/browsers 3，移除 extract-zip 链）
+
+### Changed
+
+- 包名 `yyc3-cloudpivot-intelli-matrix` → `yyc3-cloud-intelli-matrix`；新增 20 个 keywords
+- GitHub 仓库设置 20 个 topics；补齐 11 个仓库标签并接入 PR Labeler 自动工作流
+- 移除冗余/废弃文件：package-lock.json（解除跟踪）、bunfig.toml、fix_fonts2.py、*.tsbuildinfo（解除跟踪并加入 .gitignore）
+
+---
+
 ## [3.4.2] - 2026-04-26
 
 ### Added

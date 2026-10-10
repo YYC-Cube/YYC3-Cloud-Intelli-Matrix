@@ -1,5 +1,5 @@
   # PR Labeler Configuration
-  docs:
+  documentation:
     - changed-files:
         - any: ['docs/**', '*.md']
 

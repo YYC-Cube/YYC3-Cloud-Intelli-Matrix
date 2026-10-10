@@ -235,17 +235,18 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      # --dir 模式验证核心打包链路（编译/asar/图标转换/目录结构），
-      # 安装器格式（dmg/NSIS/AppImage）属发布层，由 release 流程负责
+      # pnpm exec 参数直达 electron-builder 二进制。
+      # 注意：pnpm（≥7）会原样保留 "--" 传给脚本（npm 才剥离），
+      # "pnpm build:x -- --dir" 会因 yargs 忽略 "--" 后选项而失效
       - name: Build Electron (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:electron -- --dir
+        run: pnpm build && pnpm exec electron-builder --linux --dir --publish never
       - name: Build Electron (macOS)
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac -- --dir
+        run: pnpm build && pnpm exec electron-builder --mac --dir --publish never
       - name: Build Electron (Windows)
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win -- --dir
+        run: pnpm build && pnpm exec electron-builder --win --dir --publish never
       - name: Verify packed output (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: test -d dist-electron/linux-unpacked

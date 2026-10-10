@@ -40,7 +40,8 @@ language: zh-CN
 - 修复 brace-expansion 全局 override 回归：`^2.1.6` 强推 minimatch@10 依赖的 v5 至 v2 致 API 不兼容三平台打包崩溃，改按版本线 selector（@^1→1.1.12+ / @^2→2.0.2+，保留 CVE-2025-5889 修复下限）
 - 修复 Electron main 入口路径：`dist-electron/main.js` → `dist-electron/electron/main.js` 对齐 tsc 实际产物层级，消除 asar 入口校验失败
 - 修复 productName `³` 字符编码问题（Windows NSIS ANSI 传参损坏 / macOS dmg 临时文件 NFC-NFD 差异），productName/shortcutName 改 ASCII（运行时 UTF-8 场景保留 ³）
-- Electron CI 打包验证改 `--dir` 目录模式：安装器层三类失败均属发布产物层且与应用代码无关（macOS dmgbuild python 静默失败、Windows NSIS `MUI_ICON` 要求 .ico 而仓库仅有 PNG、配置 `build.publish` 驱动 GitHubPublisher 初始化致 `GH_TOKEN is not set` 且 CLI `--publish never` 无法阻止），CI 聚焦验证核心打包链路（编译/asar/图标转换/目录结构）并加三平台产物存在性校验；移除无任何消费者的 `build.publish` 配置（electron-updater 未在主进程引用、release.yml 仅打包 dist/ 不走 electron-builder），根除 publisher 初始化
+- 定位并修复 pnpm `--` 参数转发陷阱：pnpm（≥7）原样保留 `--` 传给脚本（npm 才剥离），electron-builder（yargs）将 `--` 后内容视为位置参数，致 CI 传入的 `--dir` / `--publish never` 全部失效、隐式 CI publishing 触发 `GH_TOKEN is not set`；workflow 改用 `pnpm exec electron-builder --linux --dir --publish never` 参数直达二进制
+- Electron CI 打包验证改 `--dir` 目录模式：安装器层三类失败均属发布产物层且与应用代码无关（macOS dmgbuild python 静默失败、Windows NSIS `MUI_ICON` 要求 .ico 而仓库仅有 PNG、隐式 publishing 的 GH_TOKEN 校验），CI 聚焦验证核心打包链路（编译/asar/图标转换/目录结构）并加三平台产物存在性校验；移除零消费者的 `build.publish` 配置（electron-updater 未在主进程引用、release.yml 仅打包 dist/ 不走 electron-builder）
 
 ### Security - 漏洞闭环
 

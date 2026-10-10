@@ -119,6 +119,28 @@ jobs:
           name: codecov-shard-${{ matrix.shard-index }}
           fail_ci_if_error: false
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    if: ${{ needs.quality.result == 'success' && needs.test.result == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.1.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build project
+        run: pnpm build
+
   e2e-test:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
@@ -193,28 +215,6 @@ jobs:
           name: lighthouse-results
           path: .lighthouseci/
           retention-days: 7
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [quality, test]
-    if: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6.1.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build project
-        run: pnpm build
 
   electron-build:
     name: Electron Build Verification

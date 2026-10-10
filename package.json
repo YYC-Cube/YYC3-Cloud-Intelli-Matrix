@@ -219,7 +219,7 @@
   },
   "build": {
     "appId": "com.yyc3.cloud.intelli-matrix",
-    "productName": "YYC³ Cloud",
+    "productName": "YYC3 Cloud",
     "directories": {
       "output": "dist-electron",
       "buildResources": "resources"
@@ -300,7 +300,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "YYC³ Cloud",
+      "shortcutName": "YYC3 Cloud",
       "license": "LICENSE",
       "installerIcon": "public/yyc3-icons/macOS/512.png",
       "uninstallerIcon": "public/yyc3-icons/macOS/512.png",

@@ -2,7 +2,7 @@
   "name": "yyc3-cloud-intelli-matrix",
   "version": "3.4.1",
   "description": "YYC³ Family 本地闭环多端推理矩阵数据看盘系统",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/electron/main.js",
   "author": "YanYuCloudCube Team <admin@0379.email>",
   "license": "MIT",
   "keywords": [

@@ -41,6 +41,7 @@ language: zh-CN
 - 升级直接依赖：electron 41.10.7、electron-builder 26.15.3、@electron/rebuild 4.2.1、electron-updater 6.8.10、react-router(/-dom) 7.18.4
 - 传递依赖 overrides：tar、brace-expansion、basic-ftp、@xmldom/xmldom、form-data、fast-uri、ip-address、nanoid、browserslist、http-cache-semantics、source-map-js、compression、proxy-addr、shell-quote、undici、ws、js-yaml
 - lighthouse override 至 13.5.0（puppeteer-core 25 / @puppeteer/browsers 3，移除 extract-zip 链）
+- CodeQL 默认设置调整：仓库 Python 源码清零后移除 python 分析，新增 javascript-typescript（actions + JS/TS 双分析通过）；开放告警仅剩 2 个风险接受的 dev-only medium
 
 ### Changed
 

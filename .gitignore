@@ -7,6 +7,9 @@ node_modules/
 package-lock.json
 yarn.lock
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # Testing
 coverage/
 *.lcov

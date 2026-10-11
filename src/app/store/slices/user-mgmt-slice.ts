@@ -29,11 +29,15 @@ export interface UserMgmtSlice {
   toggleLock: (id: string) => void;
 }
 
+// Date.now() 毫秒级时间戳在同一毫秒内会产生重复 ID（批量 addUser 场景），
+// 导致 toggleLock 等按 id 的操作互相污染；追加单调计数器保证唯一
+let userIdCounter = 0;
+
 export const useUserMgmtSlice = create<UserMgmtSlice>()(
   persist(
     (set, _get) => ({
       users: DEFAULT_USERS,
-      addUser: (user) => set((s) => ({ users: [...s.users, { ...user, id: `usr-${Date.now()}` }] })),
+      addUser: (user) => set((s) => ({ users: [...s.users, { ...user, id: `usr-${Date.now()}-${userIdCounter++}` }] })),
       updateUser: (id, updates) => set((s) => ({ users: s.users.map((u) => u.id === id ? { ...u, ...updates } : u) })),
       removeUser: (id) => set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
       toggleLock: (id) => set((s) => ({ users: s.users.map((u) => u.id === id ? { ...u, locked: !u.locked } : u) })),

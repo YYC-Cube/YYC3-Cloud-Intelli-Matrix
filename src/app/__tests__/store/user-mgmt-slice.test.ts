@@ -72,7 +72,7 @@ describe('useUserMgmtSlice', () => {
 
       expect(added).toBeDefined();
       expect(added?.name).toBe('测试用户');
-      expect(added?.id).toMatch(/^usr-\d+$/);
+      expect(added?.id).toMatch(/^usr-\d+-\d+$/);
     });
 
     it('应该增加用户总数', () => {
